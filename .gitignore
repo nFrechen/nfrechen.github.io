@@ -3,3 +3,6 @@
 .RData
 _site/
 .sass-cache/
+*cache/
+*figure/
+*figure-html/
