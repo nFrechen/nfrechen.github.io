@@ -1,0 +1,151 @@
+---
+layout: post
+title: "interactive maps"
+author: "Nanu Frechen"
+excerpt: "Insert interactive maps into your html documents"
+category: howto
+language: English
+---
+```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+
+load=FALSE
+
+library(knitr)
+opts_chunk$set(message = F, error = F, warning = F, cache = F, autodep=T, fig.width=7, fig.height=5, dev="svg", dpi=100, tidy=T)
+
+library(rgl)
+knit_hooks$set(webgl = hook_webgl)
+```
+
+
+```{r install, eval=F}
+install.packages("leaflet")
+```
+
+```{r library}
+library(leaflet)
+```
+
+
+```{r, eval=F, echo=F}
+leaflet() %>% addTiles() %>% setView(-93.65, 42.0285, zoom = 4) %>%
+  addWMSTiles(
+    "http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi",
+    layers = "nexrad-n0r-900913",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+    attribution = "Weather data © 2012 IEM Nexrad"
+  )
+```
+
+```{r, eval=F, echo=F}
+leaflet() %>% addTiles() %>% setView(10, 51, zoom = 13) %>%
+  addWMSTiles(
+    "http://www.geoproxy.geoportal-th.de/geoproxy/services/UEK250COL",
+    layers = "UEK250",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+    attribution = "test"
+  )
+```
+Thüringen DGM:
+http://www.geoportal-th.de/Portals/0/Downloads/Geoproxy/Geoproxy_Ebenenliste.pdf
+```{r thüringen-dgm, eval=F, echo=F}
+leaflet() %>% addTiles() %>% setView(10, 51, zoom = 13) %>%
+  addWMSTiles(
+    "http://www.geoproxy.geoportal-th.de/geoproxy/services/DGM",
+    layers = "DGM5",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+    attribution = "test"
+  )
+```
+Thüringen DTK:
+```{r thüringen-dtk, eval=F, echo=F}
+leaflet() %>% addTiles() %>% setView(10, 51, zoom = 13) %>%
+  addWMSTiles(
+    "http://www.geoproxy.geoportal-th.de/geoproxy/services/DTK",
+    layers = "th_dtk10",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+    attribution = "test"
+  )
+```
+Thüringen DOP:
+```{r thüringen-dop, eval=F, echo=F}
+leaflet() %>% addTiles() %>% setView(11.052246, 50.861444, zoom = 13) %>%
+  addWMSTiles(
+    "http://www.geoproxy.geoportal-th.de/geoproxy/services/DOP",
+    layers = "th_dop200rgb",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+    attribution = "test"
+  )
+```
+Thüringen DOP:
+```{r thüringen-dop20cm, eval=F, echo=F}
+leaflet() %>% addTiles() %>% setView(11.340, 50.72261, zoom = 18) %>%
+  addWMSTiles(
+    "http://www.geoproxy.geoportal-th.de/geoproxy/services/DOP",
+    layers = "th_dop",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+    attribution = "test"
+    )
+```
+
+NRW Strassennetz:
+```{r NRW-Strassen}
+leaflet() %>% 
+  addTiles() %>% 
+  setView(6.95, 50.93, zoom = 12) %>%
+  addWMSTiles(
+    "http://www.wms.nrw.de/wms/DE_NW_SBV_INSPIRE_Viewservice_Strassennetz",
+    layers = c(0:5),
+    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+    attribution = "test"
+    )
+```
+
+NRW Geologie:
+```{r NRW-Geologie}
+leaflet() %>% 
+  addTiles() %>% 
+  setView(7.5, 51.5, zoom = 7) %>%
+  addWMSTiles(
+    "http://www.wms.nrw.de/gd/guek500",
+    layers = c(0),
+    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+    attribution = "test"
+    )
+```
+
+NRW DGM:
+https://www.geoportal.nrw.de/application-geokatalog/start/index.php
+```{r NRW-DGM}
+leaflet() %>% 
+  setView(7.518, 50.757, zoom = 13) %>%
+  addWMSTiles(
+    "http://www.wms.nrw.de/geobasis/DGM_Relief",
+    layers = "DGM_Relief",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+    attribution = "test"
+    ) %>% 
+  addProviderTiles("Stamen.Toner", options=tileOptions(opacity=1)
+  #addProviderTiles("Esri.WorldImagery", options=tileOptions(opacity=.5)
+  #addTiles(options=tileOptions(opacity=0.4)
+)
+```
+
+```{r geo, eval=F}
+leaflet() %>% addTiles() %>% setView(7.4390, 49.9154, zoom = 13) %>%
+  addWMSTiles(
+    "http://www.geoportal.rlp.de/mapbender/php/wms.php",
+    layers = "guek300_uebersichtskarte",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+    attribution = "test"
+  )
+```
+
+
+```{r, eval=F}
+leaflet() %>% addTiles() %>% setView(-93.65, 42.0285, zoom = 7) %>%addWMSTiles(
+"http://basemap.nationalmap.gov/arcgis/services/USGSHydroNHD/MapServer/WMSServer?",
+options = WMSTileOptions(format = "image/png", transparent = TRUE),
+attribution = "") 
+```
+
