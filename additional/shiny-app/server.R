@@ -1,10 +1,10 @@
 # library(leaflet)
 # library(RgetDWDdata)
-# library(magrittr)
 # stations <- getDWDstations()
+# View(stations)
 # save(stations, file="stations.RData")
-#
-
+#data <- getDWDdata(Messstelle = "Cottbus")
+#save(data, file="weatherdata.RData")
 
 library(shiny)
 library(leaflet)
@@ -27,14 +27,26 @@ shinyServer(function(input, output, session) {
       clusterOptions = markerClusterOptions()
     )
   })
-  output$selectedMarker <- renderText({
-    index <- stations$geoLaenge==input$map_marker_click$lng & stations$geoBreite==input$map_marker_click$lat
-    if(length(index)==0) {
-      "select station on the map"
-    }else{
-    stations$Stationsname[index]
-    }
+    #  "select station on the map"
+    #stations$Stationsname[index]
+
+    output$ui <- renderUI({
+      if (is.null(input$map_marker_click)){
+        h3("please select station from the map")
+      }else{
+        index <- stations$geoLaenge==input$map_marker_click$lng & stations$geoBreite==input$map_marker_click$lat
+        fluidPage(
+          h3(stations$Stationsname[index]),
+          h4(paste("ID:", stations$Stations_id[index])),
+          h4(paste("State:", stations$Bundesland[index])),
+          h4(paste("Heigth:", stations$Stationshoehe[index]), "m"),
+          h4("In action"),
+          h4(paste("since:", stations$von_datum[index])),
+          h4(paste("until:", stations$bis_datum[index])),
+          actionButton("activate-parameterselect", label = "select this station")
+        )
+      }
+    })
+
   })
 
-}
-)
