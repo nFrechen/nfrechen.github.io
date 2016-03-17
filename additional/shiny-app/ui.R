@@ -12,12 +12,13 @@ shinyUI(navbarPage("DWD climate data browser", id="nav",
       )
     )
   ),
-  tabPanel("select parameters",
+  tabPanel("select variables",
            sidebarLayout(
              sidebarPanel(
-               h4(textOutput("parameterselect_title")),
+               p("selected station:"),
+               h4(textOutput("variableselect_title")),
                 uiOutput("download_button"),
-                uiOutput("select_parameters")
+                uiOutput("select_variables")
              ),
              mainPanel(
                plotOutput("plot")
