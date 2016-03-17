@@ -1,7 +1,7 @@
 library(shiny)
 library(leaflet)
 
-shinyUI(navbarPage("Mapbrowser", id="nav",
+shinyUI(navbarPage("DWD climate data browser", id="nav",
   tabPanel("select station on map",
     div(class="outer",
       tags$head(includeCSS("styles.css")),

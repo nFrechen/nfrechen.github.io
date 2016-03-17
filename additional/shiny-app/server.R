@@ -28,8 +28,8 @@ shinyServer(function(input, output, session) {
     )
   })
 
-  output$result_title <- renderText("select parameters in previous panel")
-  output$parameterselect_title <- renderText("select parameters in previous panel")
+  output$result_title <- renderText("select parameters in previous tab")
+  output$parameterselect_title <- renderText("select a station on the map in the previous tab")
     #  "select station on the map"
     #stations$Stationsname[index]
 
@@ -58,22 +58,35 @@ shinyServer(function(input, output, session) {
     observeEvent(input$download,{
       print(stations$Stations_id[index])
       data <- getDWDdata(stations$Stations_id[index], historisch = F)
-      data_names <- colnames(data[-1:-3])[apply(data[-1:-3], 2, function(x) all(!is.na(x)))]
-      output$select_parameters <- renderUI({
-        selectizeInput('parameter_selection', 'select all parameters you want to analyze', choices = data_names, multiple = TRUE)
-      })
-      output$plot <- renderPlot({
-        n <- length(input$parameter_selection)
+      if(is.null(data)){
+        output$select_parameters <- renderUI({
+          h4("Sorry, the download for the selected station failed.")
+        })
+      }else{
 
-        if(n!=0){
-          par(mfrow=c(n,1), mar=c(3,4,0.1,0.1))
-          for(i in input$parameter_selection){
+        data_names <- colnames(data[-1:-3])[apply(data[-1:-3], 2, function(x) all(!is.na(x)))]
+        if(length(data_names)==0){
+          output$select_parameters <- renderUI({
+            h4("Sorry, this station has no data that we can display.")
+          })
+        }else{
+          output$select_parameters <- renderUI({
+            selectizeInput('parameter_selection', 'select all parameters you want to analyze', choices = data_names, multiple = TRUE)
+          })
+          output$plot <- renderPlot({
+            n <- length(input$parameter_selection)
 
-            plot(data[,"MESS_DATUM"], data[,i], ylab=i)
-          }
+            if(n!=0){
+              par(mfrow=c(n,1), mar=c(3,4,0.1,0.1))
+              for(i in input$parameter_selection){
 
+                plot(data[,"MESS_DATUM"], data[,i], ylab=i)
+              }
+
+            }
+          }, height = (500))
         }
-      }, height = (500))
+      }
     })
 
 })
