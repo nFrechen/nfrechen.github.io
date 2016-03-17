@@ -1,5 +1,7 @@
 # library(leaflet)
 library(RgetDWDdata)
+library(dygraphs)
+library(xts)
 # stations <- getDWDstations()
 # View(stations)
 # save(stations, file="stations.RData")
@@ -78,18 +80,28 @@ shinyServer(function(input, output, session) {
               selectizeInput('variable_selection', 'select variables you want to display', choices = data_names, multiple = TRUE)
             )
           )
-          output$plot <- renderPlot({
+          observeEvent(input$variable_selection,{
             n <- length(input$variable_selection)
-
             if(n!=0){
-              par(mfrow=c(n,1), mar=c(3,4,0.1,0.1))
+              output$plot <- renderUI({
+                plotlist <- list()
+                for(i in input$variable_selection){
+                  plotlist[[i]] <- dygraphOutput(i, height=600/n)
+                }
+                return(plotlist)
+              })
+
               for(i in input$variable_selection){
-
-                plot(data[,"MESS_DATUM"], data[,i], ylab=i)
+                print(paste0("output$", i))
+                local({
+                  j <- i # this is assignment is important!
+                  output[[j]] <- renderDygraph(
+                      dygraph(xts(data[,j], data[,"MESS_DATUM"]), ylab=j, group="graphs") %>% dyRangeSelector()
+                  )
+                })
               }
-
             }
-          }, height = (600))
+          })
         }
       }
     })

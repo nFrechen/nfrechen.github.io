@@ -17,11 +17,11 @@ shinyUI(navbarPage("DWD climate data browser", id="nav",
              sidebarPanel(
                p("selected station:"),
                h4(textOutput("variableselect_title")),
-                uiOutput("download_button"),
-                uiOutput("select_variables")
+               uiOutput("download_button"),
+               uiOutput("select_variables")
              ),
              mainPanel(
-               plotOutput("plot")
+               uiOutput("plot")
              )
            )
 
