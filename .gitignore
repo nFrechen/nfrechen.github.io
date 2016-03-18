@@ -6,3 +6,6 @@ _site/
 *cache/
 *figure/
 *figure-html/
+_source/*.html
+_source/*.md
+_source/*/

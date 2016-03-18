@@ -2,10 +2,17 @@
 layout: page
 title: About
 permalink: /about/
+navpos: 1
 ---
 
-This is the base Jekyll theme. You can find out more info about customizing your Jekyll theme, as well as basic Jekyll usage documentation at [jekyllrb.com](http://jekyllrb.com/)
+This site is all about finding a new perspective to look on the things that sorround us. You think all the perspecives are taken? That we have already seen what can be seen? Then take it to a new dimension! Things stay hidden because people run back and forth between the same viewpoints. Add a new dimension to the spectrum and you will find things never envisioned before!
 
-You can find the source code for the Jekyll new theme at: [github.com/jglovier/jekyll-new](https://github.com/jglovier/jekyll-new)
+<!--
+Take a look from a different perspective — see it from the other side.
 
-You can find the source code for Jekyll at [github.com/jekyll/jekyll](https://github.com/jekyll/jekyll)
+Take a look behind the curtain.
+
+Give it a new dimension.
+
+view it from the other side
+-->
