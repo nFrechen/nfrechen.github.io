@@ -1,16 +1,15 @@
 # Site settings
-title: R Resources and Tutorials
+title: nDimensional
 description: > # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
-baseurl: "/knitr-jekyll" # the subpath of your site, e.g. /blog/
+  This site is all about finding a new perspective to look on the things that sorround us. You think all the perspecives are taken? That we have already seen what can be seen? Then take it to a new dimension! Things stay hidden because people run back and forth between the same viewpoints. Add a new dimension to the spectrum and you will find things never envisioned before!
 url: "http://yourdomain.com" # the base hostname & protocol for your site
 twitter_username: nDimensional
 github_username:  nFrechen
-permalink: /:year/:month/:title.html
+permalink: /:categories/:title.html
 
-exclude: ["source", "cache", "knitr-jekyll.Rproj"]
+exclude: ["source", "cache", "*.Rproj"]
 
 # Build settings
-markdown: kramdown
+gems:
+  - jekyll-pandoc
+markdown: pandoc
