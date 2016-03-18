@@ -10,6 +10,4 @@ permalink: /:categories/:title.html
 exclude: ["source", "cache", "*.Rproj"]
 
 # Build settings
-gems:
-  - jekyll-pandoc
-markdown: pandoc
+markdown: kramdown
