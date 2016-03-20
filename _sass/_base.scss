@@ -127,10 +127,26 @@ blockquote {
  */
 pre,
 code {
-    font-size: 15px;
+    font-family: Monaco, monospace;
+    font-size: 13px;
     border: 1px solid $grey-color-light;
     border-radius: 3px;
-    background-color: #eef;
+    background-color: #efefff;
+}
+
+.highlight code{
+  background-color: transparent;
+}
+
+.language-text {
+    display: block;
+    background-color: #f9f9ff;
+    padding: 8px 12px;
+    margin: -8px -12px;
+    border-radius: 3px;-color: red;
+}
+code.language-text {
+    background-color: #f9f9ff;
 }
 
 code {
