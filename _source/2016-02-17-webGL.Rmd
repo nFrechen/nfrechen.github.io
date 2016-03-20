@@ -1,0 +1,86 @@
+---
+layout: post
+title: "Rotierbare 3D-Objekte mit webGL"
+author: "Nanu Frechen"
+excerpt: Füge deinen html-Dokumenten interaktive 3d-Grafiken hinzu mit dem rgl-package und WebGL
+category: howto
+language: German
+---
+```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+
+load=FALSE
+filename <- "GMOD09Q1.A2001209.08d.latlon.x21y04.5v3.NDVI.tif"
+
+library(knitr)
+opts_chunk$set(message = F, error = F, warning = F, cache = T, autodep=T, fig.width=7, fig.height=5, dev="svg", dpi=100, tidy=T)
+
+library(rgl)
+knit_hooks$set(webgl = hook_webgl)
+```
+
+Das [rgl-package](http://rgl.neoscientists.org/about.shtml) bietet in R eine Möglichkeit, dreidimensionale Daten interaktiv darzustellen. Mit der Maus kann man das 3D-Objekt rotieren und mit dem Mausrad kann man es näher heran holen (vergrößern) und verkleinern. Für die Darstellung benutzt rgl [OpenGL](http://opengl.org). Um die 3D-Inhalte in intaktiver Form auch in Webseiten einbinden zu können, kann OpenGL nach [WebGL](https://de.wikipedia.org/wiki/WebGL) umgewandelt werden. WebGL kann von allen aktuellen Browsern (auch den mobilen) dargestellt werden[^1]. Wenn rgl-Befehle wie `plot3d()` in knitr-Dokumente eingebettet werden, wird beim compilieren automatisch ein WebGL-Objekt generiert und in die html-Seite eingebettet. Vorraussetzung ist, dass man die Chunk-Option `webgl=TRUE` setzt. Bei bedarf kann dieses in die html-Seite eingebettet werden. Dazu muss folgendes im head der markdown-Datei definiert sein:
+
+```{markdown}
+output: 
+  html_document: 
+    self_contained: yes
+```
+
+
+[^1]: [http://caniuse.com/#search=webgl](http://caniuse.com/#search=webgl)
+
+```{r testgl, webgl=TRUE}
+x <- runif(1000)
+y <- runif(1000)
+z <- x + rnorm(1000, mean = 0, sd=0.05)
+plot3d(x, y, z, col=rainbow(1000))
+#       , box=F, axes=F, xlab="", ylab="", zlab="")
+#par3d(mouseMode=c("zAxis", "yAxis", "xAxis", "none"))
+par3d(FOV=0.1)
+
+#par3d()$modelMatrix
+#round(par3d()$userMatrix)
+mat <- matrix(c(1, 0, 0, 0, 
+                0, 1, 0, 0, 
+                0, 0, 1, 0, 
+                0, 0, 0, 0.5), nrow=4)
+par3d(userMatrix=mat)
+```
+
+```{r normal, webgl=TRUE}
+x <- rnorm(1000)
+y <- rnorm(1000)
+z <- x + rnorm(1000, mean = 0, sd=0.05)
+plot3d(x, y, z, col=rainbow(1000))
+#       , box=F, axes=F, xlab="", ylab="", zlab="")
+#par3d(mouseMode=c("zAxis", "yAxis", "xAxis", "none"))
+par3d(FOV=0.1)
+
+#par3d()$modelMatrix
+#round(par3d()$userMatrix)
+mat <- matrix(c(1, 0, 0, 0, 
+                0, 1, 0, 0, 
+                0, 0, 1, 0, 
+                0, 0, 0, 1), nrow=4)
+par3d(userMatrix=mat)
+```
+
+```{r colorgradient, webgl=TRUE}
+x <- rnorm(1000)
+y <- rnorm(1000)
+z <- rnorm(1000)
+cols <- z + rnorm(1000, mean = 0, sd=0.05)
+cols <- (cols - min(cols)) / diff(range(cols)) * (1000-1) +1
+range(cols)
+
+plot3d(x, y, z, col=rainbow(1000)[cols], box=F, axes=F, xlab="", ylab="", zlab="")
+#par3d(mouseMode=c("zAxis", "yAxis", "xAxis", "none"))
+par3d(FOV=0.1)
+
+par3d(userMatrix=mat, zoom=0.3)
+```
+
+```{r spin, eval=F}
+play3d(spin3d(axis = c(0,0,1), rpm = 10), duration=6)
+```
+
