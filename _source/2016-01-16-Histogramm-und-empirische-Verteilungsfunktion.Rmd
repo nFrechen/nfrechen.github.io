@@ -2,7 +2,12 @@
 layout: post
 title: 'Empirische Verteilungsfunktionen ableiten'
 author: "Nanu Frechen <nanu.frechen@b-tu.de>"
+excerpt: In dieser Übung geht es darum die empirische Verteilungsfunktion aus einem Datensatz abzuleiten.
+category: tutorial
+language: German
 ---
+
+
 * auto-gen TOC:
 {:toc}
 
@@ -20,7 +25,7 @@ knit_hooks$set(small.mar = function(before, options, envir) {
   	}
 })
 
-opts_chunk$set(message = F, error = F, warning = F, cache=T, autodep = T, fig.width = 7, fig.height = 3.5, dev="png", small.mar=T)
+opts_chunk$set(message = F, error = F, warning = F, cache=T, autodep = T, fig.width = 7, fig.height = 3.5, dev="svg", small.mar=T)
 ```
 
 
