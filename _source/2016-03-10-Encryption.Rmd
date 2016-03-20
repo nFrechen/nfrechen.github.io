@@ -11,15 +11,33 @@ language: English
 load=FALSE
 
 library(knitr)
-opts_chunk$set(message = F, error = F, warning = F, cache = TRUE, autodep=T, fig.width=7, fig.height=5, dev="svg", dpi=100, tidy=T)
+
+knit_hooks$set(small.mar = function(before, options, envir) {
+  if (before) {
+			par(mar=c(4,4,0.1,0.1), las=1, pch=20)
+  	}
+})
+
+opts_chunk$set(message = F, error = F, warning = F, cache = TRUE, autodep=T, fig.width=7, fig.height=5, dev="svg", dpi=100, tidy=T, small.mar=T, tidy.opts=list(width.cutoff=60))
 
 library(rgl)
 library(pander)
-
-knit_hooks$set(webgl = hook_webgl)
+panderOptions('table.style', 'rmarkdown')
+panderOptions('table.split.table', 200)
 ```
 
+
+* auto-gen TOC:
+{:toc}
+
+------------------------------------
+
+Have you ever wondered how encryption works? It seems to be very advanced mathematics. Encryption algorithms are very complex and hard to understand. But is it possible to understand the basic principles, or even calculate it yourself? Here we will show some basic algorithms to do symmetric and asymmetric encryption that will help you to understand how it works.
+
+
 # Symmetric Encryption
+
+Symmetric Encryption means that you use the same key for encrypting and decrypting the message. This leaves you whith the problem of how to inform your recipient about what the key is.
 
 Let's start with a very simple case, the old "exchange every letter for another". So we start with a message like this:
 
@@ -27,18 +45,14 @@ Let's start with a very simple case, the old "exchange every letter for another"
 mes <- "Attack next Friday early in the Morning"
 ```
 
-To keep it simple we translate all to uppercase letters:
+To keep it simple we translate the string to uppercase letters and replace the spacing between words with "_":
 
 ```{r uppercase}
 mes <- toupper(mes)
+mes <- gsub(" ", "_", mes)
 ```
 So the message becomes "`r mes`".
 
-And we replace the spacing between words with _:
-```{r}
-mes <- gsub(" ", "_", mes)
-```
-and get "`r mes`".
 
 Finally we split the string into a vector of single letters:
 ```{r split}
@@ -49,7 +63,7 @@ mes
 
 ## Define the key
 
-To produce our key we make a table with all the letters from the alphabet and assign each with a new letter. You could choose the assignment yourself (or according to the order of first appearance in a book both you and your recipient possess). Here we just make a random shuffle of the letters with the function `sample()`:
+To produce our key we create a table with all the letters from the alphabet and assign each with a new letter. You could choose the assignment yourself (or according to the order of first appearance in a book both you and your recipient possess). Here we just make a random shuffle of the letters with the function `sample()`:
 ```{r key}
 LETTERSplus <- c(LETTERS, "_", ".", ",", "-")
 key <- sample(LETTERSplus)
@@ -57,24 +71,25 @@ names(key) <- LETTERSplus
 ```
 
 We end up with a table like this:
-```{r, echo=F, print-key-table}
-pander(key)
+```{r print-key, echo=F}
+pander(key, split.table=250)
 ```
+
 which is our key. To encrypt we exchange each letter from the first line with the corresponding letter form the second line. To decrypt we exchange each letter from the bottom line with the corresponding letter from the first line.
 
 ## Encrypt the message
 So our message would translate like this:
-```{r, echo=F}
+```{r print-encrypted-message, echo=F, cache=F}
 pander(key[mes])
 ```
 
-We achieve this in R by writing:
-```{r, results="hide"}
+We achieve this in R by executing:
+```{r save-mes_enc, results="hide"}
 mes_enc <- key[mes]
 ```
 
-To get a single string we paste the letters in the vector together like this:
-```{r, eval=T}
+To get a string we paste the letters in the vector together like this:
+```{r mes_enc_pasted, eval=T}
 paste(mes_enc, collapse="")
 ```
 
@@ -86,26 +101,33 @@ The letters in our encrypted message are not random. There is some structure in 
 table(mes_enc)
 ```
 
-```{r, echo=F}
+```{r, echo=F, cache=F}
 pander(sort(table(mes_enc), decreasing=T))
 ```
 
 Some letters are missing.
 
-This becomes more obvious if we have alonger message:
-```{r}
-new_mes <- "A German Enigma operator would be given a plaintext message to encrypt. For each letter typed in, a lamp indicated a different letter according to a pseudo-random substitution, based upon the wiring of the machine. The letter indicated by the lamp would be recorded as the enciphered substitution. The action of pressing a key also moved the rotor so that the next key press used a different electrical pathway, and thus a different substitution would occur. For each key press there was rotation of at least the right hand rotor, giving a different substitution alphabet. This continued for each letter in the message until the message was completed and a series of substitutions, each different from the others, had occurred to create a cyphertext from the plaintext. The cyphertext would then be transmitted as normal to an operator of another Enigma machine. This operator would key in the cyphertext and - as long as all the settings of the deciphering machine were identical to those of the enciphering machine - for every key press the reverse substitution would occur and the plaintext message would emerge."
+This becomes more obvious if we have a longer message:
+```{r new-message, tidy=T}
+new_mes <- 'A German Enigma operator would be given a plaintext message to encrypt. For each letter typed in, a lamp indicated a different letter according to a pseudo-random substitution, based upon the wiring of the machine. The letter indicated by the lamp would be recorded as the enciphered substitution. The action of pressing a key also moved the rotor so that the next key press used a different electrical pathway, and thus a different substitution would occur. For each key press there was rotation of at least the right hand rotor, giving a different substitution alphabet. This continued for each letter in the message until the message was completed and a series of substitutions, each different from the others, had occurred to create a cyphertext from the plaintext. The cyphertext would then be transmitted as normal to an operator of another Enigma machine. This operator would key in the cyphertext and - as long as all the settings of the deciphering machine were identical to those of the enciphering machine - for every key press the reverse substitution would occur and the plaintext message would emerge.'
 ```
-https://en.wikipedia.org/wiki/Enigma_machine
+(The text was taken from the [wikipedia page about the Enigma machine](https://en.wikipedia.org/wiki/Enigma_machine)).
 
-```{r}
+We use the same procedure to encrypt this message:
+
+```{r encrypt-new_mes}
 new_mes <- toupper(new_mes)
 new_mes <- gsub(" ", "_", new_mes)
 new_mes <- strsplit(new_mes, "")[[1]]
 new_mes_enc <- key[new_mes]
+```
+
+and end up with this:
+```{r}
 paste(new_mes_enc, collapse = "")
 ```
 
+If we look at the letter frequency in this message we can draw this barplot:
 ```{r}
 new_mes_freq <- sort(table(new_mes_enc), decreasing = T)
 ```
@@ -119,7 +141,8 @@ barplot(new_mes_freq/length(new_mes)*100, xlab="letter", ylab="frequency [%]", c
 
 ```{r download-text, results="hide"}
 # download the book
-text <- readLines("https://archive.org/download/adventuresoftoms00twai2/adventuresoftoms00twai2_djvu.txt")
+text <- readLines(
+  "https://archive.org/download/adventuresoftoms00twai2/adventuresoftoms00twai2_djvu.txt")
 # paste all lines together
 text <- paste(text, collapse = "")
 # convert everything to uppercase:
@@ -136,9 +159,9 @@ text <- strsplit(text, "")[[1]]
 sort(table(text), decreasing = T)/length(text)*100
 ```
 
-```{r sorted-word-frequency, echo=F}
+```{r sorted-word-frequency, echo=F, cache=F, results='asis'}
 text_freq <- sort(table(text), decreasing=TRUE)
-pander(text_freq)
+pandoc.table(text_freq, split.tables=90)
 ```
 
 ```{r, echo=F}
@@ -147,14 +170,17 @@ barplot(text_freq/length(text)*100, xlab="letter", ylab="frequency [%]", cex.nam
 ```
 
 
-```{r}
+```{r, cache=F}
 crack <- names(text_freq)
 names(crack) <- c(names(new_mes_freq), NA, NA)
 pander(sort(crack))
+
 ```
 
-```{r}
+
+```{r, cache=F}
 pander(key)
+
 ```
 
 
@@ -163,7 +189,7 @@ paste(crack[new_mes_enc], collapse="")
 ```
 
 
-```{r more-stats, fig.height=1.5}
+```{r more-stats, fig.height=1.5, eval=F}
 #new_mes <- paste(new_mes, collapse="")
 test_text <- paste(text, collapse="")
 par(mar=c(2,4,0.2,0.1), las=1, mgp=c(3,1,-0.6))
@@ -233,7 +259,7 @@ mes_num_enc
 ```
 
 We can try to convert it back to characters, but this gives us only a lot of rubbish:
-```{r}
+```{r, eval=F}
 rawToChar(as.raw(mes_num_enc))
 ```
 
@@ -246,11 +272,11 @@ remainder <- input %% 3
 You can see that the backwards calculation is not possible, because there are multiple remainders with the same numerical value produced by different numbers.
 
 But due to a fancy mathematical condition the following is possible:
-```{r, eval=F}
-base=75
-mes_num_enc <- encrypt(text = mes_num, key = 5, base = base)
+```{r basic-encrypt, eval=F}
+base=33
+mes_num_enc <- encrypt(text = mes_num, key = 3, base = base)
 
-mes_num_dec <- encrypt(mes_num_enc, key=19, base=base)
+mes_num_dec <- encrypt(mes_num_enc, key=7, base=base)
 mes_num_dec
 mes_num
 ```
@@ -259,67 +285,36 @@ mes_num
 rawToChar(as.raw(mes_num_dec))
 ```
 
-```{r, eval=F}
-key <- 3
-x <- 200
-base = key * x
 
-(x - 1) * (key - 1) -> y
-y+1/key -> dec_key
+## Asymmetric encryption with small prime numbers
+Let us start with a simple example:
+```{r small-primes, eval=F}
+while(!require(numbers)) install.packages("numbers")
 
-base = 
-  ((dec_key/key -1) /(key - 1) )+1 * key
-
-function()
-
-key <- 3
-a <- 11
-b <- 3
-  
-dec_key <- ((a-1)*(b-1) + 1)/key
-dec_key
-a * b
-
-
-key <- 3
-a <- 3
-b <- 15
-dec_key <- ((a-1)*(b-1) + 1)/key
-dec_key
-cat("base=", a*b)
-```
-
-
-```{r, eval=F}
-install.packages("numbers")
-library(numbers)
 q = 3
-p = 5
-n = p * q
+p = 11
+(n = p * q)
 
-fn <- n - (p + q - 1)
-fn
+(fn <- n - (p + q - 1))
 # 1 < e < φ(n)
 # gcd(e, φ(n)) = 1
-e=5
+e=3
 GCD(e, fn)
 
-
-
-m = 1 # message
-e = 4
-c = m*e %% n
-cd = m e * d = m (mod n)
-
-d = (e-1) %% (p-1)*(q-1)
-d
+m = 1:32 # message
+(c = m^e %% n)
+(dec <- c^7 %% n)
+all(dec == m)
 ```
 
 
+## Asymmetric encryption with large prime numbers
+If you want to use large prime numbers to do the RSA encryption you need a modulo function that can handle large numbers. The default R `%%` modulo throws a warning on large numbers and returns nonsense.
 
-```{r}
-install.packages("gmp")
-library(gmp)
+To calculate with large numbers we use the package `gmp`. This package provides Multiple Precision Arithmetic using the C library GMP (GNU Multiple Precision Arithmetic).
+```{r large-numbers}
+while(!require(gmp)) install.packages("gmp")
+
 two <- as.bigz(2)
 p1 <- two^107 -1 
 isprime(p1)
@@ -331,64 +326,17 @@ p2
 
 p1 = 61
 p2 = 53
-p2 = 127
 (n = p1 * p2)
+(t <- (p1-1)*(p2-1))
+e = as.bigz(17)
+(d = inv.bigz(e, t)) # 2753
 
-(fn <- (p1-1)*(p2-1))
-
-e=as.bigz(17)
-# 1 < e < φ(n)
-# gcd(e, φ(n)) = 1
-#GCD(e, fn)
-#e (mod φ(n))
-#e %% fn
-
-(d = inv.bigz(e, fn)) # 2753
-
-m <- mes_num
+m <- as.bigz(mes_num)
 (c <- mod.bigz(m^e, n))
 mes_num_dec <- as.integer(mod.bigz(pow.bigz(c, d), n))
 
 identical(mes_num, mes_num_dec)
 rawToChar(as.raw(mes_num_dec))
-```
-
-```{r}
-install.packages("gmp")
-library(gmp)
-two <- as.bigz(2)
-p1 <- two^107 -1 
-isprime(p1)
-p1
-
-p2 <- two^127 -1 
-isprime(p2)
-p2
-
-
-## Calculate c = x^e mod n
-## --------------------------------------------------------------------
-x <- as.bigz("0x123456789abcdef") # my secret message
-e <- as.bigz(3) # something smelling like a dangerous public RSA exponent
-(n <- p1 * p2) #  a product of two primes
-as.character(n, b=16)# as both primes were Mersenne's..
-
-## recreate the three numbers above [for demo below]:
-n. <- n
-x. <- x
-e. <- e # save
-Rev <- function() { 
-  n <<- n.
-  x <<- x.
-  e <<- e.
-  }
-
-# first way to do it right
-modulus(x) <- n
-c <- x ^ e
-c
-Rev()
-
 ```
 
 
@@ -400,3 +348,4 @@ library(PKI)
 
 
 # Passwords
+p
