@@ -1,0 +1,260 @@
+---
+layout: post
+title: Critical transitions
+excerpt: When stabile systems transition into instability
+category: philosophical
+language: English
+---
+```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+
+load=FALSE
+
+library(knitr)
+
+knit_hooks$set(small.mar = function(before, options, envir) {
+  if (before) {
+			par(mar=c(4,4,0.1,0.1), las=1, pch=20)
+  	}
+})
+
+opts_chunk$set(message = F, error = F, warning = F, cache = TRUE, autodep=T, fig.width=7, fig.height=3, dev="svg", dpi=100, tidy=T, small.mar=T, tidy.opts=list(width.cutoff=60))
+
+library(pander)
+panderOptions('table.style', 'rmarkdown')
+panderOptions('table.split.table', 200)
+```
+
+What is a stable system? A stable system is one that, if you push it out of balance, it will find it's balance again. Maybe it will take a while, maybe it will oscillate around the balance point, but finally it will be back in it's stable spot. A stable system must not be a static one. If it is under constant disturbance it will constantly be out of balance - but it will allways strive back to the balance point.
+
+While a stable system is like a sack hanging on a rope or a ball in a bowl, an unstable system is like a pencil standing on it's tip. It is nearly impossible to stay in balance that way. Even the slightest disturbance will tip it over. If it is slightly out of it's balance spot it will accellerate more and more away from it. 
+
+If we bring our imagination away from objects standing or our table (or not) there are systems that transition between a relatively stable state to a very unstable state. And we can observer this transition in how they react to disturbances. 
+
+* tips into an alternative state
+
+[Why should we expect early warnings before critical transitions?](http://www.early-warning-signals.org/theory/why-should-we-expect-early-warning/)
+
+[earlywarnings](https://cran.r-project.org/web/packages/earlywarnings/index.html)
+
+> **Early Warning Signals Toolbox for Detecting Critical Transitions in Timeseries**
+> The Early-Warning-Signals Toolbox provides methods for estimating statistical changes in timeseries that can be used for identifying nearby critical transitions. Based on Dakos et al (2012) Methods for Detecting Early Warnings of Critical Transitions in Time Series Illustrated Using Simulated Ecological Data.
+
+
+
+```{r install, eval=F}
+install.packages("earlywarnings")
+```
+
+```{r library}
+library(earlywarnings)
+```
+```{r}
+library(xts)
+library(lubridate)
+```
+
+
+```{r}
+data(circulation)
+circ <- xts(circulation$x, order.by = as.Date("2016-01-01") + hours(circulation$time))
+str(circ)
+```
+
+
+```{r detrending}
+plot(circ)
+plot(circulation$time, circulation$x, type="l", xlab="time")
+lines(sm <- ksmooth(circulation$time, circulation$x, "normal", bandwidth=50), col="red")
+```
+
+```{r residuals}
+residuals <- circ - sm$y
+residuals <- circulation - sm$y
+plot(residuals, type="h", ylab="residuals", xlab="time")
+abline(h=0)
+```
+
+```{r moving-window}
+winsize=50
+mw <- round(length(circulation$x) * winsize/100)
+```
+
+
+```{r standard-deviation}
+mvSD <- rollapply(residuals, width = mw, FUN = sd, fill=NA, align="right")
+plot(mvSD)
+```
+
+```{r acf, eval=F}
+str(residuals)
+acor <- function(x){
+  cor(x[-1], x[-length(x)])
+}
+acor(residuals)
+mvACF <- rollapply(residuals, width = mw, FUN = acor, fill=NA, align="right")
+mvACF <- rollapply(residuals, width = mw, FUN = function(x) acf(coredata(x), na.action=na.omit, lag.max = 1, type = c("correlation") , plot=F), fill=NA, align="right")
+
+as.ts(residuals)
+residuals <- residuals[1:10] 
+rollapply(residuals, width = mw, FUN = function(x) print(na.omit(x)), fill=NA, align="right")
+for(i in 1:length(residuals)){
+  acf(residuals[i:(i+mw)], lag.max = 1, type = c("correlation") , plot=F)
+}
+plot(mvACF)
+plot(circulation$time, mvACF, type="l")
+```
+
+```{r return-rate, eval=F}
+nARR <- rollapply(residuals, width = mw, 
+                   FUN = function(x) ar.ols(x, aic = FALSE, order.max = 1, 
+      dmean = FALSE, intercept = FALSE)$ar
+                   , fill=NA, align="right")
+
+plot(circulation$time, nARR, type="l")
+plot(circulation$time, 1/nARR, type="l", ylab="return rate")
+```
+
+
+
+
+# Working with paleoclimatic data
+
+We will us data from the National Oceanic and Atmospheric Administration (NOAA).
+NOAA's former three data centers---the National Climatic Data Center (NCDC), the National Geophysical Data Center (NGDC), and the National Oceanographic Data Center (NODC), which includes the National Coastal Data Development Center (NCDDC)—have merged into the National Centers for Environmental Information (NCEI).
+You will reach all of them over their central domain [ncei.noaa.gov](https://www.ncei.noaa.gov), but they retain their old domains at first. So you will for example still find all climate informations at NCDC's website [ncdc.noaa.gov](http://ncdc.noaa.gov). Paleoclimatic datasets (aka past climate data retained from boreholes) you find under the url [http://www.ncdc.noaa.gov/data-access/paleoclimatology-data/datasets](http://www.ncdc.noaa.gov/data-access/paleoclimatology-data/datasets).
+
+
+Following two publications ([Livina & Lenton 2010](http://www.clim-past.net/6/77/2010/cp-6-77-2010.html) and [Lenton et al 2012](http://www.clim-past.net/8/1127/2012/cp-8-1127-2012.html)) cited at the [homepage of the early warnings signals toolbox ](http://www.early-warning-signals.org/case-studies/paleoclimatic-transitions/) we will use two data sets availbable from NCDC:
+
+The [first dataset](http://www.ncdc.noaa.gov/paleo/study/2496), 
+produced by Rasmussen et. al 2007[^Rasmussen], is the one used in the above mentioned papers. It contains oxygen and calcium Isotope measurements from an ice core taken in Greenland.
+
+[^Rasmussen]:S.O. Rasmussen, I.K. Seierstad, K.K. Andersen, M. Bigler, D. Dahl-Jensen, and S.J. Johnsen. 2007. Synchronization of the NGRIP, GRIP, and GISP2 ice cores across MIS 2 and palaeoclimatic implications. Accepted, Quat. Sci. Rev., INTIMATE special issue, 2007
+
+The [second dataset](http://www.ncdc.noaa.gov/paleo/study/17796), produced by 
+Grootes and Stuiver (1997)[^Grootes], will just add some context to our analysis by showing how the oxygen isotope data developed past the last ice age until today.
+
+[^Grootes]:P. M. Grootes, M. Stuiver. 1997. Oxygen 18/16 variability in Greenland snow and ice with 10-3 to 10-5-year time resolution. Journal of Geophysical Research, Oceans, 102(C12), 26455-26470. doi: 10.1029/97JC00880
+
+```{r download, eval=F}
+url <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/gisp2/isotopes/d18o1yr.txt"
+url <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/gisp2/isotopes/d18o20y.txt"
+url <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/ngrip/gicc05-calcium-20yr.txt"
+url <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/gisp2/isotopes/gispd18o.txt"
+download.file(url, basename(url))
+colnames <- c("Depth",	"d18O", "Age")
+paleod8O <- read.table(basename(url), header = F, skip= 51, col.names = colnames, na.strings = "999999")
+```
+
+```{r, eval=F}
+head(paleodata)
+```
+
+
+```{r plot-paleodata, eval=F}
+library(dygraphs)
+par(mar=c(5,4,1,2), pch=20)
+plot(d18O~Age, paleod8O, type="o", xlim=c(22000, 12000))
+plot(d18O~Age, paleod8O, type="o", xlim=c(22000, 12000))
+
+paleodata$Age2 <- - paleodata$Age
+range(paleodata$d18O, na.rm=T)
+which(paleodata$Age < 0)
+dygraph(paleodata[10:1000,c(4,2)], xlim=c(-30000, 0))%>% dyRangeSelector()
+```
+
+
+## Paleodaten
+
+
+```{r, eval=F}
+url2 <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/ngrip/gicc05-calcium-20yr.txt"
+download.file(url, basename(url))
+colnames <- c("Age (years b2k)",
+"Maximum counting error (years)",
+"NGRIP2 depth (m)",
+"NGRIP d18O (permille)",
+"NGRIP [Ca^2+] (ppb)",
+"GRIP depth (m)",
+"GRIP d18O (permille)",
+"GRIP [Ca^2+] (ppb)",
+"GISP2 depth (m)",
+"GISP2 d18O (per mille)",
+"GISP2 [Ca^2+] (ppb)")
+  
+paleodata <- read.table(basename(url2), header = F, skip= 199, col.names = colnames, na.strings = "NaN")
+
+```
+
+
+```{r, eval=F}
+par(mar=c(4,4,.1,2), pch=20, mgp=c(2,1,0))
+xlim=c(32000, 12000)
+xlim=c(32440, 0)
+
+window <-250
+paleoz <- zoo(paleodata$GISP2.d18O, order.by = paleodata$Age)
+paleoz <- na.approx(paleoz)
+par(mfrow=c(3,1))
+plot(paleod8O$Age, paleod8O$d18O, type="l", xlim=xlim, col="lightblue")
+lines(paleoz, xlim=xlim)
+lines(paleodata$Age, paleodata$GISP2.d18O, type="l", xlim=xlim)
+abline(v=c(12700, 14700))
+
+lines(sm <- ksmooth(paleodata$Age, paleoz, "normal", bandwidth=558), col="red")
+
+residuals <- paleodata$GISP2.d18O - sm$y
+plot(paleodata$Age, residuals, type="h", xlim=xlim)
+
+mvSD <- rollapply(residuals, width = window, FUN = var, na.rm=T, fill=NA, partial=F, align="left")
+par(new=F)
+plot(paleodata$Age, mvSD, type="l", xlim=xlim, col="red")
+```
+
+```{r, eval=F}
+library(earlywarnings)
+pal <- data.frame(rev(-paleodata$Age), rev(paleoz))
+out=generic_ews(pal,winsize=50,detrending='gaussian',
+bandwidth=5,logtransform=FALSE,interpolate=FALSE)
+
+
+plot(sd~timeindex, data=out)
+```
+
+
+
+# further ideas
+
+```{r, eval=F}
+out=generic_ews(circulation,winsize=50,detrending='gaussian',
+bandwidth=5,logtransform=FALSE,interpolate=FALSE)
+plot(sd~timeindex, data=out)
+```
+
+
+```{r, eval=F}
+X = c(rnorm(1000, mean = 0), rnorm(1000, mean = -2), rnorm(1000, mean = 2)); 
+param = seq(0,5,length=3000); 
+res <- movpotential_ews(X, param)
+
+X = c(rnorm(1000, mean = 0), rnorm(1000, mean = -2), rnorm(1000, mean = 2)); 
+param = seq(0,5,length=3000); 
+res <- movpotential_ews(X, param)
+
+data(foldbif)
+bdstest_ews(circulation,ARMAoptim=FALSE,ARMAorder=c(1,0),embdim=3,epsilon=0.5, 
+boots=200,logtransform=FALSE,interpolate=FALSE)
+
+output<-ddjnonparam_ews(circulation,bandwidth=0.6,na=500,
+logtransform=TRUE,interpolate=FALSE)
+
+sensitivity_ews(circulation,indicator='sd',detrending='gaussian',
+incrwinsize=25,incrbandwidth=20)
+
+output=surrogates_ews(foldbif,indicator='sd',winsize=50,detrending='gaussian',
+bandwidth=10,boots=200,logtransform=FALSE,interpolate=FALSE)
+
+```
+
+
+If we dump a lot of biomass into a pond into a lake, it's ecosystem might be more or less disturbed. A stable system can recreate
