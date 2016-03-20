@@ -20,40 +20,41 @@ knit_hooks$set(webgl = hook_webgl)
 
 Have you ever had some spatial data, for example the coordinates of some weather stations or a shapefile of your study area and wanted to diplay it in context of a map or an arial photograph? For quite a while you could do this for example with the [RgoogleMaps](https://cran.r-project.org/web/packages/RgoogleMaps/index.html) package which can download map tiles from google maps. But this is a very static approach: you can't scroll around or zoom in and out.
 [Since June 2015](http://www.r-bloggers.com/leaflet-interactive-web-maps-with-r/) there is a new approach: having your maps interactive like you are used from [google maps](https://maps.google.com) or [openstreetmap.org](https://openstreetmap.org) 
-but with addition of your own data The package that maks this possible is
-[Leaflet for R](https://rstudio.github.io/leaflet/) which uses the open source [leaflet javascript library](http://leafletjs.com). With this package you can insert a one-liner into your [knitr](http://yihui.name/knitr) code and R does all the rest: it inserts a container `<div>` to contain the map into your html page and adds the needed javascripts libraries into the head.
+but with addition of your own data. The package that maks this possible is
+[Leaflet for R](https://rstudio.github.io/leaflet/) which uses the open source [leaflet javascript library](http://leafletjs.com). With this package you can insert a one-liner into your [knitr](http://yihui.name/knitr) code and R does all the rest: it inserts a container `<div>` to contain the map into your html page and adds the needed javascript code and the corresponding libraries into the head.
 
 # Where do the maps come from?
-You can use two types of map services: [TMS (Tile Map Service)](https://en.wikipedia.org/wiki/Tile_Map_Service) or [WMS (Web Map Service)](https://en.wikipedia.org/wiki/Web_Map_Service). Providers are for example [openstreetmap.org](https://openstreetmap.org), [google maps](https://maps.google.de) or [Esri](http://webhelp.esri.com/arcgisserver/9.3/Java/index.htm#wms_service.htm). A whole range of [providers](http://leaflet-extras.github.io/leaflet-providers/preview/) are already implemented into the R package. But you can also find fore exampe some governmental agencies who provide map services. For example search for "DGM" (german abbreviation for DEM, Digital Elevation Model) at [geoportal.de](http://geoportal.de).
+
+You can use two types of map services: [TMS (Tile Map Service)](https://en.wikipedia.org/wiki/Tile_Map_Service) or [WMS (Web Map Service)](https://en.wikipedia.org/wiki/Web_Map_Service). Providers are for example [openstreetmap.org](https://openstreetmap.org), [google maps](https://maps.google.de) or [Esri](http://webhelp.esri.com/arcgisserver/9.3/Java/index.htm#wms_service.htm). A whole range of [providers](http://leaflet-extras.github.io/leaflet-providers/preview/) are already implemented into the R package. But you can also find for exampe some governmental agencies who provide map services. For example search for "DGM" (german abbreviation for DEM, Digital Elevation Model) at [geoportal.de](http://geoportal.de).
 
 
 ## Tile Map Service (TMS)
 Tile Map Service servers provide image files with a simple url template: `http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`. You have to replace`{z}` with the zoom level and `{x}` and `{y}` with the tile coordinates. Some map tile servers additionally have different subdomains. tile.openstreetmap.org for example uses a, b and c. So replace `{s}` with one of those subdomains. For example we can download a map of europe with this url: [http://a.tile.openstreetmap.org/3/4/2.png](http://a.tile.openstreetmap.org/3/4/2.png)
 
-![map tile](http://a.tile.openstreetmap.org/3/4/2.png)
+![](http://a.tile.openstreetmap.org/3/4/2.png)
 
 Of course this is only a still image. Leafletjs then adds a lot of interactivity and dynamic loading of new image tiles to provide you with the experience of an interactive map.
 In the [leafletjs reference](http://leafletjs.com/reference.html#tilelayer)  you find some more information about Tile Layers.
 
 ## Web Map Service (WMS)
-The call for a Web Map Service is a bit more complex, but you also get additional features. According to [Wikipedia](https://en.wikipedia.org/wiki/Web_Map_Service#Requests):
+To request a map from a Web Map Service is a bit more complex, but you also get additional features. According to [Wikipedia](https://en.wikipedia.org/wiki/Web_Map_Service#Requests):
 
 ALL WMS provide two basic features:
 
-* **GetCapabilities** - returns parameters about the WMS (such as map image format and WMS version compatibility) and the available layers (map bounding box, coordinate reference systems, URI of the data and whether the layer is mostly opaque or not)
-* **GetMap** - returns a map image. Parameters include: width and height of the map, coordinate reference system, rendering style, image format
+* **GetCapabilities** - returns parameters about the WMS (such as map image format and WMS version compatibility) and the available layers (map bounding box, coordinate reference systems, URI of the data and whether the layer is mostly opaque or not).
+* **GetMap** - returns a map image. Parameters include: width and height of the map, coordinate reference system, rendering style, image format.
 
 Additional request types that WMS providers may optionally support include:
 
 * **GetFeatureInfo** - if a layer is marked as 'queryable' then you can request data about a coordinate of the map image.
-* **DescribeLayer** - returns the feature types of the specified layer or layers, which can be further described using WFS or WCS requests. This request is dependent on the SLD Profile of WMS.
+* **DescribeLayer** - returns the feature types of the specified layer or layers.
 * **GetLegendGraphic** - return an image of the map's legend image, giving a visual guide to map elements.
 
-The call is not done with a simple url. So we leave it to libraries like leafletjs to do the call for us.
+The request is not done with a simple url. So we leave it to libraries like leafletjs to do the request for us.
 
 # Use leaflet maps in R
 
-Let's start by installing the package and load it:
+Let's start by installing the package and loading it:
 
 ```{r install, eval=F}
 install.packages("leaflet")
@@ -63,7 +64,7 @@ install.packages("leaflet")
 library(leaflet)
 ```
 
-Then just type `leaflet()` to create a plain leaflet map and add a openstreetmap map with `addTiles()`.
+Then just type `leaflet()` to create a plain leaflet map. Add an openstreetmap tile with `addTiles()`.
 ```{r first-map, fig.width=4, fig.height=2}
 leaflet() %>% addTiles()
 ```
@@ -206,7 +207,7 @@ leaflet() %>%
 At [www.geoportal.nrw.de](https://www.geoportal.nrw.de/application-geokatalog/start/index.php) you can find WMS maps provided by the German state Nordrhein-Westfalen. For example this digital elevation model:
 ```{r NRW-DGM}
 leaflet() %>% 
-  setView(8, 51.276444, zoom = 13) %>%
+  setView(8, 51.277444, zoom = 15) %>%
   addWMSTiles(
     "http://www.wms.nrw.de/geobasis/DGM_Relief",
     layers = "DGM_Relief",
