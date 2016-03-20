@@ -1,16 +1,17 @@
 ---
-layout: page
-title: Tutorials
+layout: default
+title: tutorials
 permalink: /tutorial/
 navpos: 3
+nav: true
 ---
 
 <div class="home">
-
+  <h1 class="post-title">Tutorials</h1>
   <ul class="post-list">
     {% for post in site.categories.tutorial %}
       <li>
-        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }} </span> <span class="language">{{ post.language }}</span>
+        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }} </span> <a class="language" href="/{{ post.language }}/">{{ post.language }}</a>
 
         <h2>
           <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>

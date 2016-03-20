@@ -1,8 +1,9 @@
 ---
 layout: page
-title: Showcase
+title: showcase
 permalink: /showcase/
-navpos: 6
+navpos: 7
+nav: true
 ---
 
 <div class="home">
@@ -10,7 +11,7 @@ navpos: 6
   <ul class="post-list">
     {% for post in site.categories.Showcase %}
       <li>
-        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }} </span> <span class="language">{{ post.language }}</span>
+        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }} <a class="language" href="/{{ post.language }}/">{{ post.language }}</a>
 
         <h2>
           <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>

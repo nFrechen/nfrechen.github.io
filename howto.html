@@ -2,7 +2,8 @@
 layout: page
 title: howto
 permalink: /howto/
-navpos: 7
+navpos: 6
+nav: true
 ---
 
 <div class="home">
@@ -10,7 +11,7 @@ navpos: 7
   <ul class="post-list">
     {% for post in site.categories.howto %}
       <li>
-        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }} </span> <span class="language">{{ post.language }}</span>
+        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }} </span> <a class="language" href="/{{ post.language }}/">{{ post.language }}</a>
 
         <h2>
           <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>

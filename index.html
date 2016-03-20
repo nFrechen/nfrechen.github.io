@@ -1,7 +1,8 @@
 ---
 layout: default
-title: All Posts
+title: all posts
 navpos: 2
+nav: true
 ---
 
 <div class="home">
@@ -14,7 +15,7 @@ navpos: 2
         <h2>
           <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
         </h2>
-        <p class="post-meta">{{ post.date | date: "%b %-d, %Y" }} <a class="language" href="/tutorials/{{ post.language }}/">{{ post.language }}</a> <a class="language" href="/{{ post.category }}/">{{ post.categories.first }}</a></p>
+        <p class="post-meta">{{ post.date | date: "%b %-d, %Y" }} <a class="language" href="/{{ post.language }}/">{{ post.language }}</a> <a class="language" href="/{{ post.category }}/">{{ post.categories.first }}</a></p>
         {{ post.excerpt }}
       </li>
     {% endfor %}

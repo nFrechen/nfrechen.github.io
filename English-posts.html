@@ -1,0 +1,25 @@
+---
+layout: page
+title: English posts
+permalink: /english/
+nav: false
+---
+
+<div class="home">
+
+  {% assign english_posts = site.posts | where:"language","English" %}
+
+  <ul class="post-list">
+    {% for post in english_posts %}
+      <li>
+        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}<a class="language" href="/{{ post.category }}/">{{ post.categories.first }}</a></span>
+
+        <h2>
+          <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
+        </h2>
+        {{ post.excerpt }}
+      </li>
+    {% endfor %}
+  </ul>
+
+</div>
