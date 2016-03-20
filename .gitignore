@@ -2,6 +2,9 @@
 .Rhistory
 .RData
 _site/
+_posts/
+_bin/
+_data/
 .sass-cache/
 *cache/
 *figure/
