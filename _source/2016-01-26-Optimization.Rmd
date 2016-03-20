@@ -1,0 +1,120 @@
+---
+layout: post
+title: 'Optimization'
+author: "Nanu Frechen <nanu.frechen@b-tu.de>"
+excerpt: Optimizing the calculation times of R code.
+category: howto
+language: English
+---
+
+
+```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+
+master=F
+
+library(knitr)
+library(pander)
+library(lubridate)
+
+knit_hooks$set(small.mar = function(before, options, envir) {
+  if (before) {
+			par(mar=c(4,4,2,0.1), pch=20)
+  	}
+})
+
+opts_chunk$set(message = F, error = F, warning = F, cache=T, autodep = T, fig.width = 7, fig.height = 5, dev="svg", small.mar=T)
+```
+
+R is a script language in contrast to compiled languages like C. Compiled languages are much faster since during compilation the code gets optimized for the hardware it will run on. This does not happen for a script language like R.
+
+Nontheless a lot of the functions that you will use in R are not actually written in R. Most functions are written in C or Fortran[^1]. R just hands over the data to these functions and takes the calculated results back. Hence with those functions you are actually using compiled code to do your calculations, resultung in good performance. Consequentially, if you write an R script, you are chaining chunks of compiled code together, resulting in a program that is sligthly slower than an overall compiled program, but still much much faster than a program written purely in R.
+
+
+What is the main conclusion to be drawn from this:
+
+* The fever R commands you chain together, the more gets calculated in compiled code. Hence the code is faster.
+
+And this also leads to the thing you mostly should avoid in R:
+
+* Try to avoid writing loops in R, since this is a looped chaining of R commands.
+
+And there are a lot of functions that help you to avoid writing loops! In fact R in many aspects is designed in a way that makes loops no necessity. 
+
+Take for example how you are thought to do calculations on a vector of data in R, let's say multiply every element by 2:
+
+```{r vector}
+# comment in line
+data <- 1:1000000
+system.time( # comment after
+  
+  result <- data * 2
+
+)
+```
+
+Compare this to what time it takes to calculate this in a loop:
+```{r vector-loop}
+system.time({
+  
+  result <- NULL
+  for(i in 1:length(data)){
+    data[i] * 2
+  }
+
+})
+```
+
+It takes ten times the time to calculate the result with a loop.
+
+`system.time()` is a function you can use to measure the calculation time of your script and hence to compare the performance of it to other approaches.
+
+```{r}
+vector_function <- function(x){
+  result <- x * rev(x)
+}  
+```
+
+```{r}
+loop_function <- function(x){
+  result <- NULL
+  n <- length(x)
+  for(i in 1:n){
+    result[i] <- x[i] * x[n+1-i]
+  }
+  return(result)
+}
+```
+
+```{r, echo=F}
+par(mar=c(5,4,1,4))
+performance <- data.frame(n=seq(1000, 100000, by=5000), vector=NA, loop=NA)
+for(i in 1:nrow(performance)){
+  data <- 1:performance$n[i]
+  performance$vector[i] <- system.time(vector_function(data))[3]
+  Sys.sleep(1)
+  performance$loop[i] <- system.time(loop_function(data))[3]
+  Sys.sleep(1)
+}
+
+plot(vector~n, performance, type="b", ylim=range(performance[,2:3]), ylab="calculation time [s]")
+lines(performance$n, performance$loop, col="green", type="b")
+legend("topleft", col=c("black", "green", "red"), legend=c("vector", "loop", "increase"), title="method of calculation", lty=1, pch=20, bty="n")
+par(new=T)
+plot(performance$n, performance$loop/performance$vector, ann=F, axes=F, type="b", col="red")
+axis(4, col="red", col.axis = "red")
+mtext("performance increase", side = 4, line = 2.5, col="red")
+```
+
+As you can see the calculation time for the vector method barely exceeds `r signif(max(performance$vector), 3)` seconds, while the maximum calculation time  for the loop method is `r round(max(performance$loop))` seconds. The maximum increase in performance is over 10000 and will further increase with higher n!
+
+### Packages and functions to make your calculations faster
+
+* Use apply whenever possible
+* Use additional apply functions from the plyr package
+* Merge multiple dataframes with ldply of the plyr packages.
+* Read csv tables with fread of the data.table package.
+[^2]
+
+
+[^1]: About how to integrate compiled code written in C or Fortran into R consult the chapter 5.2 "Interface functions .C and .Fortran" of the manual "Writing R Extensions" you find in the home of the help system in R.
+[^2]: Test ob das hier auch noch so aussieht
