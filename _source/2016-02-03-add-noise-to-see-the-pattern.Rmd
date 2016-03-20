@@ -1,0 +1,92 @@
+---
+layout: post
+title: Add noise to see the pattern
+excerpt: "Adding noise usually degrades audio and image quality and makes seeing the details more difficult. In this case it is the other way around: it helps you to see the pattern."
+category: howto
+language: English
+---
+
+Adding noise usually degrades audio and image quality and makes seeing the details more difficult. In this case it is the other way around: it helps you to see the pattern.
+
+```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+
+master=T
+
+library(knitr)
+library(pander)
+library(lubridate)
+
+knit_hooks$set(small.mar = function(before, options, envir) {
+  if (before) {
+			par(mar=c(4,4,2,0.1), las=1, pch=20)
+  	}
+})
+
+opts_chunk$set(message = F, error = F, warning = F, cache=F, autodep = T, fig.width = 7, fig.height = 5, dev="png", small.mar=T)
+```
+
+
+```{r load data, echo=F}
+load("Cottbus.RData")
+```
+```{r Werte Ableiten, echo=F}
+library(RgetDWDdata)
+# calculate day of year
+Cottbus$JAHRESTAG <- yday(Cottbus$MESS_DATUM)
+Cottbus$ET0 <- with(Cottbus, calcET0(temp = LUFTTEMPERATUR, date = MESS_DATUM, sunshine = SONNENSCHEINDAUER, U = REL_FEUCHTE, v = WINDGESCHWINDIGKEIT, v_height = 16, latitude = 51))
+Cottbus$KWB <- Cottbus$NIEDERSCHLAGSHOEHE - Cottbus$ET0
+```
+
+
+
+```{r scatterplot-niederschlag, echo=T}
+NS <- Cottbus$NIEDERSCHLAGSHOEHE[Cottbus$NIEDERSCHLAGSHOEHE!=0]
+doy <- Cottbus$JAHRESTAG[Cottbus$NIEDERSCHLAGSHOEHE!=0]
+plot(NS, doy, cex=0.2, 
+     xlab="precipitation height", ylab="day of year", main="Scatterplot")
+```
+
+We add `log="x"` to get a logarithmic x-axis:
+
+```{r scatterplot-niederschlag-log, echo=T}
+NS <- Cottbus$NIEDERSCHLAGSHOEHE[Cottbus$NIEDERSCHLAGSHOEHE!=0]
+doy <- Cottbus$JAHRESTAG[Cottbus$NIEDERSCHLAGSHOEHE!=0]
+plot(NS, doy, cex=0.2, xlab="precipitation height", ylab="day of year", main="Scatterplot", xlim=c(0.1, 150), log="x")
+```
+
+```{r contour}
+library(MASS)
+test <- na.omit(data.frame(NS=NS, doy=doy))
+ppgrid <- kde2d(log(test$NS), test$doy)
+filled.contour(ppgrid)
+```
+
+```{r scatterplot-niederschlag+noise, echo=T}
+plot(NS+runif(length(NS), 0, 0.1), doy, cex=0.2, xlab="precipitation height", ylab="day of year", main="Scatterplot", xlim=c(0.1, 150), log="x")
+```
+
+```{r contour+noise}
+test <- na.omit(data.frame(NS=NS+runif(length(NS), 0, 0.1), doy=doy))
+ppgrid <- kde2d(log(test$NS), test$doy)
+filled.contour(ppgrid)
+```
+
+You can also add some noise to your data with the jitter package:
+```{r jitter-package, eval=F}
+install.packages("jitter")
+help(jitter)
+```
+
+```{r}
+plot(Cottbus$JAHRESTAG, jitter(Cottbus$SCHNEEHOEHE, 0), pch=20, cex=0.1)
+```
+
+```{r}
+min(diff(sort(unique(Cottbus$SCHNEEHOEHE))))
+plot(Cottbus$JAHRESTAG, jitter(Cottbus$SCHNEEHOEHE, amount=0.5), pch=20, cex=0.1)
+```
+
+```{r jitter+contour, eval=F}
+ppgrid <- kde2d(Cottbus$JAHRESTAG, jitter(Cottbus$SCHNEEHOEHE, amount=0.5))
+filled.contour(ppgrid)
+```
