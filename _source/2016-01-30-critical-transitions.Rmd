@@ -36,6 +36,7 @@ If we bring our imagination away from objects standing or our table (or not) the
 
 [earlywarnings](https://cran.r-project.org/web/packages/earlywarnings/index.html)
 
+# The early warning signals toolbox
 > **Early Warning Signals Toolbox for Detecting Critical Transitions in Timeseries**
 > The Early-Warning-Signals Toolbox provides methods for estimating statistical changes in timeseries that can be used for identifying nearby critical transitions. Based on Dakos et al (2012) Methods for Detecting Early Warnings of Critical Transitions in Time Series Illustrated Using Simulated Ecological Data.
 
@@ -44,6 +45,7 @@ If we bring our imagination away from objects standing or our table (or not) the
 ```{r install, eval=F}
 install.packages("earlywarnings")
 ```
+
 
 ```{r library}
 library(earlywarnings)
@@ -54,7 +56,7 @@ library(lubridate)
 ```
 
 
-```{r}
+```{r circulation-data-set}
 data(circulation)
 circ <- xts(circulation$x, order.by = as.Date("2016-01-01") + hours(circulation$time))
 str(circ)
@@ -85,11 +87,14 @@ mvSD <- rollapply(residuals, width = mw, FUN = sd, fill=NA, align="right")
 plot(mvSD)
 ```
 
-```{r acf, eval=F}
-str(residuals)
+```{r acor-function}
 acor <- function(x){
   cor(x[-1], x[-length(x)])
 }
+```
+
+```{r acf, eval=F}
+str(residuals)
 acor(residuals)
 mvACF <- rollapply(residuals, width = mw, FUN = acor, fill=NA, align="right")
 mvACF <- rollapply(residuals, width = mw, FUN = function(x) acf(coredata(x), na.action=na.omit, lag.max = 1, type = c("correlation") , plot=F), fill=NA, align="right")
@@ -121,55 +126,101 @@ plot(circulation$time, 1/nARR, type="l", ylab="return rate")
 
 We will us data from the National Oceanic and Atmospheric Administration (NOAA).
 NOAA's former three data centers---the National Climatic Data Center (NCDC), the National Geophysical Data Center (NGDC), and the National Oceanographic Data Center (NODC), which includes the National Coastal Data Development Center (NCDDC)—have merged into the National Centers for Environmental Information (NCEI).
-You will reach all of them over their central domain [ncei.noaa.gov](https://www.ncei.noaa.gov), but they retain their old domains at first. So you will for example still find all climate informations at NCDC's website [ncdc.noaa.gov](http://ncdc.noaa.gov). Paleoclimatic datasets (aka past climate data retained from boreholes) you find under the url [http://www.ncdc.noaa.gov/data-access/paleoclimatology-data/datasets](http://www.ncdc.noaa.gov/data-access/paleoclimatology-data/datasets).
+You will reach all of them over their central domain [ncei.noaa.gov](https://www.ncei.noaa.gov), but they retain their old domains at first. Therefore you will for example still find all climate informations at NCDC's website [ncdc.noaa.gov](http://ncdc.noaa.gov). Paleoclimatic datasets (aka past climate data retained from boreholes) you find under the url [http://www.ncdc.noaa.gov/data-access/paleoclimatology-data/datasets](http://www.ncdc.noaa.gov/data-access/paleoclimatology-data/datasets).
 
 
-Following two publications ([Livina & Lenton 2010](http://www.clim-past.net/6/77/2010/cp-6-77-2010.html) and [Lenton et al 2012](http://www.clim-past.net/8/1127/2012/cp-8-1127-2012.html)) cited at the [homepage of the early warnings signals toolbox ](http://www.early-warning-signals.org/case-studies/paleoclimatic-transitions/) we will use two data sets availbable from NCDC:
+Following two publications ([Livina & Lenton (2010)](http://www.clim-past.net/6/77/2010/cp-6-77-2010.html) and [Lenton et al (2012)](http://www.clim-past.net/8/1127/2012/cp-8-1127-2012.html)) cited at the [homepage of the early warnings signals toolbox ](http://www.early-warning-signals.org/case-studies/paleoclimatic-transitions/) we will use two data sets availbable from NCDC:
 
 The [first dataset](http://www.ncdc.noaa.gov/paleo/study/2496), 
-produced by Rasmussen et. al 2007[^Rasmussen], is the one used in the above mentioned papers. It contains oxygen and calcium Isotope measurements from an ice core taken in Greenland.
+produced by Rasmussen et. al (2007)[^Rasmussen], is the one used in the above mentioned papers. It contains oxygen and calcium Isotope measurements from an ice core taken in Greenland dating way back to more than 30,000 years before present.
 
 [^Rasmussen]:S.O. Rasmussen, I.K. Seierstad, K.K. Andersen, M. Bigler, D. Dahl-Jensen, and S.J. Johnsen. 2007. Synchronization of the NGRIP, GRIP, and GISP2 ice cores across MIS 2 and palaeoclimatic implications. Accepted, Quat. Sci. Rev., INTIMATE special issue, 2007
 
-The [second dataset](http://www.ncdc.noaa.gov/paleo/study/17796), produced by 
-Grootes and Stuiver (1997)[^Grootes], will just add some context to our analysis by showing how the oxygen isotope data developed past the last ice age until today.
+The [second dataset](https://www.ncdc.noaa.gov/paleo/study/2494), produced by 
+Vinther at al (2006)[^Vinther], showing how the oxygen isotope data developed in the Holocene until today.
 
-[^Grootes]:P. M. Grootes, M. Stuiver. 1997. Oxygen 18/16 variability in Greenland snow and ice with 10-3 to 10-5-year time resolution. Journal of Geophysical Research, Oceans, 102(C12), 26455-26470. doi: 10.1029/97JC00880
+[^Vinther]:B.M. Vinther, H.B. Clausen, S.J. Johnsen, S.O. Rasmussen, K.K. Andersen, S.L. Buchardt, D. Dahl-Jensen, I.K. Seierstad, M.-L. Siggaard-Andersen, J.P. Steffensen, A.M. Svensson, J. Olsen, and J. Heinemeier. 2006. A synchronized dating of three Greenland ice cores throughout the Holocene. Journ. Geophys. Res., vol. 111, D13102.
 
-```{r download, eval=F}
-url <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/gisp2/isotopes/d18o1yr.txt"
-url <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/gisp2/isotopes/d18o20y.txt"
-url <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/ngrip/gicc05-calcium-20yr.txt"
-url <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/gisp2/isotopes/gispd18o.txt"
-download.file(url, basename(url))
-colnames <- c("Depth",	"d18O", "Age")
-paleod8O <- read.table(basename(url), header = F, skip= 51, col.names = colnames, na.strings = "999999")
+## Download the Rasmussen
+
+The Rasmussen dataset can be downloaded from this url:
+
+```{r download-Rasmussen}
+RasmussenURL <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/ngrip/gicc05-calcium-20yr.txt"
+download.file(RasmussenURL, basename(RasmussenURL))
 ```
 
-```{r, eval=F}
-head(paleodata)
+In the head of the file we read:
+```{txt}
+
+DESCRIPTION: 
+Calcium concentration and d18O isotope ratios from the Greenland NGRIP, 
+GRIP, and GISP2 ice cores on the GICC05 time scale. The period covered 
+is 11.6-32.44 ka b2k (years before A.D. 2000).
+
+Calcium concentration and d18O isotope ratios from the Greenland NGRIP, 
+GRIP, and GISP2 ice cores resampled to 20 year resolution and presented 
+on the GICC05 time scale. The period covered is 11.6-32.44 ka b2k 
+(years before A.D. 2000).
+The match points used for the transfer of the time scale to GRIP and GISP2 
+depths can be found in the file Matchpoints_NGRIP_GRIP_GISP2_27nov2006.
+The main file containing the GICC05 time scale and d18O values for NGRIP 
+is named GICC05_NGRIP_GRIP_20y_27nov2006.
+Holocene data for NGRIP1, NGRIP2, GRIP, and DYE-3 can be found in a 
+separate file, named GICC05_Holocene_20y_27nov2006.
+All files can be obtained from www.icecores.dk or from 
+IGBP PAGES/World Data Center for Paleoclimatology.
+
+The concept of maximum counting error (2nd column) is introduced in 
+Rasmussen et al. (2006). In a standard deviation context, the maximum 
+counting error should be regarded as 2 sigma as discussed in 
+Andersen et al. (2006). The maximum counting error is a measure of the 
+uncertainty of the GICC05 time scale.  It does not include uncertainty 
+related to the transfer of the time scale to GRIP and GISP2 depths. 
+The latter contribution is discussed in section 4 of the main reference: 
+Rasmussen et al. (2008).
+
+Age and depth values refer to the bottom of each interval.
+Thus the NGRIP depth interval 1492.94 - 1493.62 m corresponds 
+to the time interval 11720 - 11740 b2k, in
+which the NGRIP d18O value is -39.72 permille.
+
+The NGRIP1 core reaches down to a depth of 1372 m. The NGRIP2 core 
+(drilled 20 meters away from the NGRIP1 core) reaches from surface 
+to bedrock, but high-resolution measurements have only been carried 
+out downwards from 1346 m. All depth reported here are NGRIP2 depths. 
+
+The data supplied below are resampled to 20 year resolution from the 
+original sources. Problems with missing data are ignored if the missing 
+data comprise 25% or less of the depth interval of a given 20-year interval. 
+If more than 25% of the data are missing, no value is given (indcated by "NaN").
+NOTE: This is the issue corrected in the present file. In the original release, 
+resampled values were also given if more than 25% of the data in a specific 
+depth interval were missing.
+
+
+COLUMNS IN THE DATA FILE
+ 1 : Age (years b2k)
+ 2 : Maximum counting error (years)
+ 3 : NGRIP2 depth (m)
+ 4 : NGRIP d18O (permille)
+ 5 : NGRIP [Ca^2+] (ppb)
+ 6 : GRIP depth (m)
+ 7 : GRIP d18O (permille)
+ 8 : GRIP [Ca^2+] (ppb)
+ 9 : GISP2 depth (m)
+10 : GISP2 d18O (per mille)
+11 : GISP2 [Ca^2+] (ppb)
+
+11620     98     1488.1     -36.41    17.08    1619.17   -37.14    10.91    1673.23   -36.73      8.7
+11640     98    1489.26     -36.57    16.41    1620.56    -36.6     9.81    1674.52   -36.44    14.86
+11660     98    1490.44     -36.68    22.68    1621.96   -36.81    11.71    1675.83   -36.01    17.75
+
 ```
 
 
-```{r plot-paleodata, eval=F}
-library(dygraphs)
-par(mar=c(5,4,1,2), pch=20)
-plot(d18O~Age, paleod8O, type="o", xlim=c(22000, 12000))
-plot(d18O~Age, paleod8O, type="o", xlim=c(22000, 12000))
 
-paleodata$Age2 <- - paleodata$Age
-range(paleodata$d18O, na.rm=T)
-which(paleodata$Age < 0)
-dygraph(paleodata[10:1000,c(4,2)], xlim=c(-30000, 0))%>% dyRangeSelector()
-```
-
-
-## Paleodaten
-
-
-```{r, eval=F}
-url2 <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/ngrip/gicc05-calcium-20yr.txt"
-download.file(url, basename(url))
+```{r read-Rasmussen, tidy=F}
 colnames <- c("Age (years b2k)",
 "Maximum counting error (years)",
 "NGRIP2 depth (m)",
@@ -182,38 +233,205 @@ colnames <- c("Age (years b2k)",
 "GISP2 d18O (per mille)",
 "GISP2 [Ca^2+] (ppb)")
   
-paleodata <- read.table(basename(url2), header = F, skip= 199, col.names = colnames, na.strings = "NaN")
+Rasmussen <- read.table(basename(RasmussenURL), header = F, skip= 199, col.names = colnames, na.strings = "NaN")
+```
+
+## Download the Vinther data set
+
+We can download the data set by Vinther from this url:
+
+```{r download-vinther}
+VintherURL <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/ngrip/gicc05-holocene-20yr.txt"
+download.file(VintherURL, basename(VintherURL))
 
 ```
 
+In the head of the data file we read:
 
-```{r, eval=F}
-par(mar=c(4,4,.1,2), pch=20, mgp=c(2,1,0))
-xlim=c(32000, 12000)
-xlim=c(32440, 0)
+```{txt}
+DESCRIPTION: 
+Greenland Ice Core Chronology 2005 (GICC05) Holocene section.
+Entire Holocene in 20-year resolution and d18O from NGRIP1, NGRIP2, GRIP, and DYE-3.
+All ages are given in years b2k (years relative to A.D. 2000).
+The concept of maximum counting error is introduced in Rasmussen et al. 
+(Journ. Geophys. Res, 2006)
 
-window <-250
-paleoz <- zoo(paleodata$GISP2.d18O, order.by = paleodata$Age)
+Age and depth values refer to the bottom of each interval.
+Thus the NGRIP1 depth interval 14.15-20.4 m corresponds to the time interval 
+40 - 60 b2k, in which the NGRIP1 d18O value is -35.11 permille.
+
+The NGRIP1 core reaches down to a depth of 1372 m. 
+The NGRIP2 core (drilled 20 meters away from the NGRIP1 core) reaches from surface to 
+bedrock, but high-resolution measurements have only been carried out downwards from 1346 m. 
+In the 26 m overlap zone, the cores are offset by 0.43 m on average, probably due to 
+uncertainties in the logging procedure (see Sch�tt Hvidberg et al., Ann. Glac. 35, 2002). 
+Thus, the same features appear at larger depths in the NGRIP1 than in the NGRIP2 core. 
+When combining NGRIP1 and NGRIP2 data, we recommend to switch from NGRIP1 to NGRIP2 
+in the year 9830b2k.
+
+Down to 8313 b2k, DYE-3 is dated year by year. Below 8313 b2k the GRIP-NGRIP based 
+time scale has been transferred to DYE-3 depths using the ECM profiles. This matching 
+introduces a few years of uncertainty which is not included in the maximum counting error 
+(column no. 10).
+
+(*) Note that millennial-scale variations in the DYE-3 d18O data are significantly 
+influenced by upstream effects. Furthermore, due to a problem with standards in the 
+early 1980s, the DYE-3 d18O measurements are slightly off-set (maximum 0.5 permil) 
+towards more negative values during the early Holocene.
+
+For more data downloads, go to www.icecores.dk
+
+
+COLUMNS IN THE DATA FILE:
+ 1 : Age (years b2k)
+ 2 : NGRIP1 depth (m)
+ 3 : NGRIP1 d18O (permille)
+ 4 : NGRIP2 depth (m)
+ 5 : NGRIP2 d18O (permille)
+ 6 : GRIP depth (m)
+ 7 : GRIP d18O (permille)
+ 8 : DYE-3 depth (m)
+ 9 : DYE-3 d18O (permille) SEE NOTE (*) ABOVE
+10 : Maximum counting error (years)
+
+
+20         7.35    -35.16      NaN       NaN       5.43      NaN          0      NaN      1
+40        14.15    -35.82      NaN       NaN       13.6    -35.13     20.21    -27.36     1
+60         20.4    -35.11      NaN       NaN      21.43    -35.55     37.24    -27.06     1
+
+```
+
+Therefore we read it like this:
+
+```{r read-Vinther, tidy=F}
+colnames <- c(
+"Age (years b2k)",
+"NGRIP1 depth (m)",
+"NGRIP1 d18O (permille)",
+"NGRIP2 depth (m)",
+"NGRIP2 d18O (permille)",
+"GRIP depth (m)",
+"GRIP d18O (permille)",
+"DYE-3 depth (m)",
+"DYE-3 d18O (permille)",
+"Maximum counting error (years)"
+  )
+Vinther <- read.table(basename(VintherURL), header = F, skip= 109, 
+                      col.names = colnames, na.strings = "NaN")
+```
+
+## Download the Grootes data set
+
+We can download the data set by Grootes from this url:
+
+```{r download}
+GrootesURL <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/gisp2/isotopes/gispd18o.txt"
+download.file(GrootesURL, basename(GrootesURL))
+```
+
+In the head of the data file we read:
+
+```{txt}
+DATA DESCRIPTION: 
+
+This file contains the GISP2 bidecadal delta 18O data set back to 16,510
+yr B.P., measured at the Quaternary Isotope Laboratory, University of
+Washington, as of February 1st, 1997.  The timescale includes revisions by
+D. A. Meese as of September 1994. The GISP2 depths below 167 meters are
+those of the D core; above 167 meters the core depths are those of the B
+core + 1.09 meters.  See the file gisp2age.dat for further information on
+the timescale. 
+
+Between 1650.29 and 1844.88 meters, the delta 18-O values of this time
+series are based on high resolution data (0.2 meter). They differ slightly
+from the 2-meter time series (file UW2md18O.dat). 
+
+The data columns represent: 
+
+(1) top depths of intervals (in meters)
+
+(2) mean delta 18-O values (in per mil) over bidecadal intervals starting
+at top depths.  Standard deviation in a single delta 18-O measurement is
+0.14 per mil. Multiple measurements (such as for the ones below) reduce
+the standard deviation to the 0.05 to 0.1 per mil range. 
+
+(3) layer count ages at top depths (in yr BP) where 0 BP represents AD
+1950 SUMMER to AD 1949 SUMMER
+
+DATA:		
+
+Depth	d18O	Age (top)
+Top (m)	(per mil)	(yr BP)
+
+6.04	-34.7	-30
+14.93	-34.78	-10
+23.29	-34.83	10
+30.45	-35.16	30
+```
+
+Therefore we read it like this:
+
+```{r read-Grootes}
+colnames <- c("Depth",	"d18O", "Age")
+Grootes <- read.table(basename(GrootesURL), header = F, skip= 51, col.names = colnames, na.strings = "999999")
+```
+
+
+## Search for early warning signals in the paleo data
+
+First we create a zoo timeseries from the Rasmussen and the Vinther GRIP $$\delta^{18}$$O variable. They overlap by 5 values so we cut off some from the Rasmussen data set.
+
+```{r, zoo-timeseries}
+paleoz <- zoo(c(Vinther$GRIP.d18O, Rasmussen$GRIP.d18O[-(1:5)]), order.by = c(Vinther$Age, Rasmussen$Age[-(1:5)]))
+```
+
+Then we will fill in the gaps that this timeseries has  by interpolating with the `na.approx()` function of the `zoo` package.
+
+```{r fill-gaps}
 paleoz <- na.approx(paleoz)
-par(mfrow=c(3,1))
-plot(paleod8O$Age, paleod8O$d18O, type="l", xlim=xlim, col="lightblue")
-lines(paleoz, xlim=xlim)
-lines(paleodata$Age, paleodata$GISP2.d18O, type="l", xlim=xlim)
-abline(v=c(12700, 14700))
-
-lines(sm <- ksmooth(paleodata$Age, paleoz, "normal", bandwidth=558), col="red")
-
-residuals <- paleodata$GISP2.d18O - sm$y
-plot(paleodata$Age, residuals, type="h", xlim=xlim)
-
-mvSD <- rollapply(residuals, width = window, FUN = var, na.rm=T, fill=NA, partial=F, align="left")
-par(new=F)
-plot(paleodata$Age, mvSD, type="l", xlim=xlim, col="red")
 ```
 
-```{r, eval=F}
+The next task is to smooth out the high frequency oscillations and produce a trendline for the series. We choose a bandwith of 558 like they did in the [Lenton et al (2012)](http://www.clim-past.net/8/1127/2012/cp-8-1127-2012.html) paper:
+
+```{r smooth}
+sm <- ksmooth(c(Vinther$Age, Rasmussen$Age[-(1:5)]), paleoz, "normal", bandwidth=558)
+```
+
+All this together plots like this:
+
+```{r plot-all}
+par(mar=c(4,4,.1,2), pch=20, mgp=c(2,1,0))
+#xlim=c(22000, 12000)
+xlim=c(32440, 0)
+#plot(Vinther$Age, Vinther$GRIP.d18O, type="l", xlim=xlim, ylim=c(-45, -32), col="lightblue", xlab="Age")
+plot(paleoz, xlim=xlim)
+abline(v=c(12700, 14700, 11700))
+lines(sm, col="red")
+```
+
+We then calculate the residuals representing the detrended short-term oscillations:
+
+```{r Rasmussen-residuals}
+residuals <- paleoz - sm$y
+plot(residuals, type="h", xlim=xlim)
+```
+
+
+```{r, rolling-window}
+window <-250
+mvSD <- rollapply(residuals, width = window, FUN = var, na.rm=T, fill=NA, partial=F, align="left")
+mvACF <- rollapply(residuals, width = window, FUN = acor, fill=NA, partial=F, align="left")
+
+plot(mvSD, type="l", xlim=xlim, col="red")
+#par(new=T)
+plot(mvACF, type="l", xlim=xlim, col="green")
+```
+
+<!----------------------------------------------------------------->
+
+```{r, eval=F, echo=F}
 library(earlywarnings)
-pal <- data.frame(rev(-paleodata$Age), rev(paleoz))
+pal <- data.frame(rev(-Rasmussen$Age), rev(paleoz))
 out=generic_ews(pal,winsize=50,detrending='gaussian',
 bandwidth=5,logtransform=FALSE,interpolate=FALSE)
 
@@ -221,18 +439,13 @@ bandwidth=5,logtransform=FALSE,interpolate=FALSE)
 plot(sd~timeindex, data=out)
 ```
 
-
-
-# further ideas
-
-```{r, eval=F}
+```{r, eval=F, echo=F}
 out=generic_ews(circulation,winsize=50,detrending='gaussian',
 bandwidth=5,logtransform=FALSE,interpolate=FALSE)
 plot(sd~timeindex, data=out)
 ```
 
-
-```{r, eval=F}
+```{r, eval=F, echo=F}
 X = c(rnorm(1000, mean = 0), rnorm(1000, mean = -2), rnorm(1000, mean = 2)); 
 param = seq(0,5,length=3000); 
 res <- movpotential_ews(X, param)
@@ -257,4 +470,3 @@ bandwidth=10,boots=200,logtransform=FALSE,interpolate=FALSE)
 ```
 
 
-If we dump a lot of biomass into a pond into a lake, it's ecosystem might be more or less disturbed. A stable system can recreate
