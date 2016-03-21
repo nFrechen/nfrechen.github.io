@@ -320,62 +320,6 @@ Vinther <- read.table(basename(VintherURL), header = F, skip= 109,
                       col.names = colnames, na.strings = "NaN")
 ```
 
-## Download the Grootes data set
-
-We can download the data set by Grootes from this url:
-
-```{r download}
-GrootesURL <- "http://www1.ncdc.noaa.gov/pub/data/paleo/icecore/greenland/summit/gisp2/isotopes/gispd18o.txt"
-download.file(GrootesURL, basename(GrootesURL))
-```
-
-In the head of the data file we read:
-
-```{txt}
-DATA DESCRIPTION: 
-
-This file contains the GISP2 bidecadal delta 18O data set back to 16,510
-yr B.P., measured at the Quaternary Isotope Laboratory, University of
-Washington, as of February 1st, 1997.  The timescale includes revisions by
-D. A. Meese as of September 1994. The GISP2 depths below 167 meters are
-those of the D core; above 167 meters the core depths are those of the B
-core + 1.09 meters.  See the file gisp2age.dat for further information on
-the timescale. 
-
-Between 1650.29 and 1844.88 meters, the delta 18-O values of this time
-series are based on high resolution data (0.2 meter). They differ slightly
-from the 2-meter time series (file UW2md18O.dat). 
-
-The data columns represent: 
-
-(1) top depths of intervals (in meters)
-
-(2) mean delta 18-O values (in per mil) over bidecadal intervals starting
-at top depths.  Standard deviation in a single delta 18-O measurement is
-0.14 per mil. Multiple measurements (such as for the ones below) reduce
-the standard deviation to the 0.05 to 0.1 per mil range. 
-
-(3) layer count ages at top depths (in yr BP) where 0 BP represents AD
-1950 SUMMER to AD 1949 SUMMER
-
-DATA:		
-
-Depth	d18O	Age (top)
-Top (m)	(per mil)	(yr BP)
-
-6.04	-34.7	-30
-14.93	-34.78	-10
-23.29	-34.83	10
-30.45	-35.16	30
-```
-
-Therefore we read it like this:
-
-```{r read-Grootes}
-colnames <- c("Depth",	"d18O", "Age")
-Grootes <- read.table(basename(GrootesURL), header = F, skip= 51, col.names = colnames, na.strings = "999999")
-```
-
 
 ## Search for early warning signals in the paleo data
 
