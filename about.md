@@ -29,7 +29,7 @@ Therefore a lot of my posts also try to teach you how to work in R and show you 
 
 In the end I would like to encourage you to try some programming yourself. You don't have to trust scientists and crazy computer specialists to do the calculations for you. Just try some of it yourself and you will see that you can do more than you think!
 
-
+This blog is hosted on github. So feel free to take a [look behind the curtain](https://github.com/nFrechen/nfrechen.github.io) and see how it's all done.
 
 <!--
 Take a look from a different perspective — see it from the other side.
