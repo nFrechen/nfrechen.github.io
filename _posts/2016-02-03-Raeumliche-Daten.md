@@ -2,7 +2,7 @@
 layout: post
 title: "Auswertung von räumlichen Daten"
 author: "Nanu Frechen"
-date: "4. Januar 2016"
+date: "2. Februar 2016"
 excerpt: Auswertung von räumlichen Daten mit dem raster package
 category: tutorial
 language: German
@@ -11,6 +11,7 @@ language: German
 
 * auto-gen TOC:
 {:toc}
+
 
 # Einleitung
 
@@ -324,3 +325,6 @@ An dieser Stelle könnte man natürlich mit weiteren analysen ansetzen. Man kön
 
 
 
+------------
+
+Wie geht's weiter? Als Fortsetzung zu dieser Übung empfiehlt sich die [Übung zu RasterStacks](/tutorial/RasterStack.html).

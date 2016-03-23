@@ -1,0 +1,184 @@
+---
+layout: post
+title: "Streudiagramme"
+author: "Nanu Frechen"
+excerpt: Werfen Sie mit Streudiagrammen einen ersten Blick auf ihre Daten und zeigen Sie erste Abhängigkeiten zwischen ihren Messvariablen.
+category: tutorial
+language: German
+---
+
+```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+
+master=TRUE
+
+library(knitr)
+opts_chunk$set(message = F, error = F, warning = F, cache=T, autodep = T, fig.width = 10, fig.height = 7)
+```
+
+* auto-gen TOC:
+{:toc}
+
+--------------------
+
+Dies ist die erste Übung aus einer Reihe von Übungen zu hydrologisch/metereologischen Datensätzen und deren Auswertung.
+
+--------------------
+
+
+# Einleitung
+Statistische Gesetzmäßigkeiten lassen sich an großen Datensätzen am einfachsten beobachten. Daher werden wir uns als erstes einige Datensätze mit einer Großen Anzahl an observations (Beobachtungen bzw. Messeinträgen/-punkten) anschauen. Statistiker sagen auch oft "mit großem $$n$$". Bei großen Datensätzen nähern sich die empirischen statistischen Kennwerte denen der Grundgesamtheit an, also den Werten die man theoretisch für eine unendliche Anzahl an Messwerten berechnen würde (für $$n\rightarrow \infty$$).
+
+Wie wir später sehen werden gibt es eine Vielzahl von Methoden, um statistische Größen auch für kleinere Datensätze zu berechnen bzw. abzuschätzen. Hier müssen einige Ungenauigkeiten in Kauf genommen werden und je nach Fachbereich werden unterschiedliche Methoden bevorzugt. Diese Unterschiede in der Methodik (und auch die Subjektivität in der Methodenwahl) verschwindet bei großen Datensätzen. Außerdem werden die Formeln einfacher und die dahinter stehenden Gesetzmäßigkeiten klarer ersichtlich.
+
+# Verwendete Datensätze
+
+Wir werden einerseits tägliche Klimadaten des Deutschen Wetterdienstes (DWD) verwenden. Diese sind frei im Internet erhältlich und können mit einer von uns geschriebenen R-Funktion namens `getDWDdata()` herunter geladen werden. Dieser Datensatz enthält unter anderem Niederschlagshöhe, Temperatur, Luftfeuchte, Sonnenscheindauer und Luftdruck. Mit diesen Werten kann man die Grasreferenzverdunstung ($$ET0$$) und damit die klimatische Wasserbilanz berechnen. 
+
+# Vorgehen
+
+Bevor wir Formeln verwenden, um statistische Kenngrößen zu berechnen, wollen wir eine sehr einfache Methode verwenden, um uns ein erstes Bild von unseren Daten zu verschaffen. Ein sogenannter **scatterplot** bzw. **Streudiagramm** zeigt die Verteilung der Messdaten in einer **Punktwolke**. In dieser Punktwolke kann man meistens schon eine Struktur erkennen. Z.B. eine Häufung von Messwerten in bestimmten Bereichen oder einen Trend, also einen mittleren Anstieg bzw. Abstieg der Messwerte. 
+Interessant ist auch, wie verschiedene Messwerte miteinander korrelieren, d.h. miteinander kausal oder durch eine latente Variable (eine dritte Variable, die beide Variablen beeinflusst) verknüpft sind.
+
+Oft kommt es vor, dass unwissentlich statistische Formeln angewendet werden, für dessen Anwendung die **Vorraussetzungen** nicht gegeben sind (z.B. **Normalverteilung** der Messwerte). Oder aber statistiche Eigenschaften werden übersehen, weil sie nicht berechnet wurden. Ein Blick auf das Streudiagramm eines Datensatzes gibt oft schon deutliche Hinweise, welche Art von Statistik man anwenden darf und sollte. So kann man z.B. schnell erkennen, ob die Daten einen Trend oder Periodische Muster enthalten. In diesem Falle müsste man seine Auswertung anpassen, also z.B. **Trend** und **Zyklus** vorher heraus rechnen bzw. andere Formeln für die Auswertung verwenden. 
+
+# Arbeitsschritte
+
+**Bitte öffnet RStudio immer, indem ihr auf die `.Rproj` Datei in eurem Übungsordner klickt.** In unserer ersten Übung habe ich euch gezeigt, wie man diese anlegt. Nur wenn ihr diese Projektdatei ladet, weiß RStudio in welchem Ordner ihr arbeiten wollt. Außerdem wird mit dieser Datei der Stand eurer letzten Berechnungen geladen, ihr könnt also dort weiter arbeiten, wo ihr im Projekt zuletzt aufgehört habt. 
+
+Beginnen wir nun mit der Übung:
+
+--------------
+
+## Installation `getDWDdata()`
+Die Installation müsst ihr natürlich nur einmal durchführen. 
+```{r RgetDWDdata-installieren, eval=FALSE}
+install.packages("devtools")
+library(devtools)
+install_github("nFrechen/RgetDWDdata", ref="Lehre")
+```
+
+```{r RgetDWDdata-installieren-inkl-ET0, echo=F, eval=F}
+library(devtools)
+install_github("nFrechen/RgetDWDdata")
+```
+
+Zusätzlich installieren wir noch ein Paket, dass wir später gut gebrauchen können:
+```{r maps-installieren, eval=FALSE}
+install.packages("maps")
+```
+
+--------------
+
+## Daten laden
+Bevor die Funktionen im Paket `RgetDWDdata` verwendet werden können muss das Paket mit dem `library()`-Befehl geladen werden:
+```{r Paket-laden}
+# Paket laden:
+library("RgetDWDdata")
+```
+
+Nun können wir `getDWDdata()` verwenden um die Klimadaten der Station Cottbus herunter zu laden: 
+```{r Daten-herunterladen}
+# Daten für Cottbus herunter laden:
+Cottbus <- getDWDdata("Cottbus", historisch=NA)
+```
+
+
+Schaut euch auch die Hilfeseite zu dieser Funktion an:
+```{r Hilfeseite}
+help(getDWDdata)
+help(getDWDstations)
+```
+
+---------
+
+## Erster Blick auf die Daten
+Was haben wir hier für Daten? Schauen wir uns die Daten als Tabelle an:
+```{r Tabelle, eval=F}
+View(tail(Cottbus,50))
+```
+```{r Tabelle-fuer-Dokument, echo=FALSE}
+kable(tail(Cottbus[,1:6]))
+kable(tail(Cottbus[,7:10]))
+kable(tail(Cottbus[,11:14]))
+kable(tail(Cottbus[,15:17]))
+```
+
+
+Schauen wir uns zwei Ausschnitte aus den Zeitreihen an. Der Übersichtlichkeit halber benutzen wir nur die Daten der letzten 6 Jahre.
+```{r Zeitreihen}
+n <- nrow(Cottbus)
+JahresAuswahl <- (n-365*6):n  # Auswahl der letzten vier Jahre
+plot(LUFTTEMPERATUR~MESS_DATUM, Cottbus[JahresAuswahl,], type="l")
+plot(NIEDERSCHLAGSHOEHE~MESS_DATUM, Cottbus[JahresAuswahl,], type="l")
+```
+
+----------------
+
+## Streudiagramm
+
+Nun entfernen wir den direkten Zeitbezug der Messwerte und schauen uns ein erstes Streudiagramm an. Dazu berechnen wir den Tag des Jahres für jede Messung:
+```{r Streudiagramm-Jahresverlauf}
+Cottbus$JAHRESTAG  <- yday(Cottbus$MESS_DATUM)
+
+plot(LUFTTEMPERATUR~JAHRESTAG, data=Cottbus[JahresAuswahl,], pch=20, cex=0.5)
+```
+
+Deutlich ist der Zyklus in den Temperaturdaten sichtbar, der auch schon in der Zeitreihe deutlich wurde. 
+
+Wer einen Leistungsstarken Rechner hat kann diesen Plot für den gesamten Datensatz darstellen. Dazu entfernt man den Eintrag `JahresAuswahl` aus den eckigen Klammern oder entfernt die eckigen Klammern und ihren Inhalt insgesamt. Eventuell lohnt es sich auch die Plotsymbol Größe auf `cex=0.1` zu verkleinern.
+
+Erzeugen wir nun eine Übersicht aller Streudiagramme aller Daten, die man für die Klimadaten erzeugen kann. Ein paar Spalten werden wir nicht in die Übersicht mit hinein nehmen. Daher machen wir hier eine Spaltenauswahl:
+```{r Grosser-Scatterplot, fig.width=10, fig.height=10, dev='png'}
+SpaltenAuswahl <- c("LUFTTEMPERATUR", "DAMPFDRUCK", "BEDECKUNGSGRAD", "LUFTDRUCK_STATIONSHOEHE", "REL_FEUCHTE", "WINDGESCHWINDIGKEIT", "NIEDERSCHLAGSHOEHE", "SONNENSCHEINDAUER", "SCHNEEHOEHE", "JAHRESTAG")
+
+plot(Cottbus[JahresAuswahl,SpaltenAuswahl], pch=20, cex=0.1)
+```
+
+Zu jedem der in der Übersicht gezeigten Streudiagrammen könnt ihr eine eigene Abbildung erzeugen. Dazu ersetzt ihr einfach im folgenden Code die Variablennamen:
+```{r, eval=FALSE}
+plot(LUFTTEMPERATUR~JAHRESTAG, data=Cottbus[JahresAuswahl,], pch=20, cex=0.5)
+```
+
+Bitte schaut euch zumindest die folgenden Streudiagramme an:
+
+* Sonnenscheindauer im Jahresverlauf
+* Schneehöhe mit der Temperatur
+* Dampfdruck gegen Temperatur
+* Relative Feuchte im Jahresverlauf
+* Relative Feuchte zu Sonnenscheindauer
+* Niederschlag im Jahresverlauf
+* Windgeschwindigkeit im Jahresverlauf
+
+Was können wir in den Streudiagrammen beobachten?
+
+* Trendartige Zusammenhänge bzw. positive oder negative Korrelation zwischen zwei Variablen *(z.B. relative Feuchte zu Sonnenscheindauer)*
+* Grenzwerte *(z.B. maximale Sonnenscheindauer im Jahresverlauf oder Schneehöhe in Abhängigkeit von der Temperatur)*
+* Zyklische Schwankungen:
+	*  Veränderung des Mittelwerts bei gleichbleibender Streuung *(z.B. Lufttemperatur im Jahresverlauf)*
+	*  Veränderung der Streuung bei gleichbleibendem Mittelwert *(z.B. Luftdruck im Jahresverlauf)*
+	*  Veränderung von Streuung und Mittelwert *(z.B. relative Feuchte im Jahresverlauf)*
+
+
+Eine Streudiagramm ist für die Hydrologie von besonderer Bedeutung. Schauen wir uns das Streudiagramm zwischen Temperatur und Dampfdruck an. Wir werden in diesem Falle nicht nur die Daten der letzten 6 Jahre verwenden, sondern den gesamten Datensatz.
+```{r Streudiagramm-Temperatur-gegen-Dampfdruck}
+plot(LUFTTEMPERATUR~DAMPFDRUCK, data=Cottbus, pch=20, cex=0.1)
+```
+
+Das Streudiagramm zeigt an der einen Seite eine deutliche Grenze. Diese Grenze beschreibt eine Kurve die zuerst stark ansteigt und bei höhren Lufftemperaturen langsamer ansteigt. Die obere bzw. linke Seite der Punktwolke scheint eher "ausgefranst". Hier lässt sich keine klare Grenze erkennen. 
+
+Wodurch entsteht also die Untere Grenze?
+Die Grenze kann durch folgende Formel beschrieben werden (siehe rote Kurve im nächsten Plot):
+
+$$e_s(T)=6.11\cdot e^{\frac{(17.62T)}{(243.12+T)} }$$
+
+Was diese Formel bedeutet werden wir in der nächsten Übung besprechen.
+
+```{r Streudiagramm-Temperatur-gegen-Dampfdruck-mit-Saettigungsdampfdruck, echo=FALSE}
+plot(LUFTTEMPERATUR~DAMPFDRUCK, data=Cottbus, pch=20, cex=0.1)
+Temp <- seq(-30, 30, 1)
+lines(es(Temp), Temp, col="red", lwd=2)
+```
+
+--------------------
+
+Die nächste Übung in dieser Serie ist die [Übung zur Grasreferenzverdunstung](/tutorial/Grasreferenzverdunstung.html).

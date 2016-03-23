@@ -5,12 +5,17 @@ excerpt: "Zeitreihen von räumlichen Daten mit Hilfe eines RasterStacks."
 category: tutorial
 language: German
 author: "Nanu Frechen"
-date: "4. Januar 2016"
 ---
 
 
 * auto-gen TOC:
 {:toc}
+
+------------
+
+Als Vorbereitung auf diese Übung empfiehlt sich die [Übung zu räumlichen Daten](/tutorial/Raeumliche-Daten.html).
+
+------------
 
 # Einleitung
 

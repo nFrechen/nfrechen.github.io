@@ -2,7 +2,7 @@
 layout: post
 title: "Auswertung von räumlichen Daten"
 author: "Nanu Frechen"
-date: "4. Januar 2016"
+date: "2. Februar 2016"
 excerpt: Auswertung von räumlichen Daten mit dem raster package
 category: tutorial
 language: German
@@ -28,6 +28,7 @@ opts_chunk$set(message = F, error = F, warning = F, cache = T, autodep=T, fig.wi
 
 * auto-gen TOC:
 {:toc}
+
 
 # Einleitung
 
@@ -296,3 +297,6 @@ ppgrid <- kde2d(as$aspect, as$NDVI)
 filled.contour(ppgrid)
 ```
 
+------------
+
+Wie geht's weiter? Als Fortsetzung zu dieser Übung empfiehlt sich die [Übung zu RasterStacks](/tutorial/RasterStack.html).

@@ -1,12 +1,11 @@
 ---
 layout: post
 title: 'Empirische Verteilungsfunktionen ableiten'
-author: "Nanu Frechen <nanu.frechen@b-tu.de>"
+author: "Nanu Frechen"
 excerpt: In dieser Übung geht es darum die empirische Verteilungsfunktion aus einem Datensatz abzuleiten.
 category: tutorial
 language: German
 ---
-
 
 * auto-gen TOC:
 {:toc}
@@ -16,6 +15,13 @@ language: German
 
 
 
+
+* auto-gen TOC:
+{:toc}
+
+--------------------
+
+Dies ist die dritte Übung aus einer Reihe von Übungen zu hydrologisch/metereologischen Datensätzen und deren Auswertung. Sie setzt die [Übung zur Grasreferenzverdunstung](/tutorial/Grasreferenzverdunstung.html) fort.
 
 --------------------
 
@@ -293,3 +299,6 @@ for(Monat in 1:12){
 }
 {% endhighlight %}
 
+---------------------
+
+Die nächste Übung in dieser Reihe ist die [Übung zur Anpassung von theoretischen Verteilungsfunktionen (Dauerlinie)](/tutorial/Dauerlinie.html)

@@ -5,18 +5,23 @@ excerpt: "Zeitreihen von räumlichen Daten mit Hilfe eines RasterStacks."
 category: tutorial
 language: German
 author: "Nanu Frechen"
-date: "4. Januar 2016"
 ---
 ```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 # Daten wirklich laden?
 load=FALSE
 
 library(knitr)
-opts_chunk$set(message = F, error = F, warning = F, cache = T, autodep=T, dev="svg", fig.width=5.4, fig.height=7)
+opts_chunk$set(message = F, error = F, warning = F, cache = F, autodep=T, dev="svg", fig.width=5.4, fig.height=7)
 ```
 
 * auto-gen TOC:
 {:toc}
+
+------------
+
+Als Vorbereitung auf diese Übung empfiehlt sich die [Übung zu räumlichen Daten](/tutorial/Raeumliche-Daten.html).
+
+------------
 
 # Einleitung
 
