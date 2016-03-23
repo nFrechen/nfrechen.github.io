@@ -2,10 +2,12 @@
 layout: post
 title: "Rotierbare 3D-Objekte mit webGL"
 author: "Nanu Frechen"
-excerpt: Füge deinen html-Dokumenten interaktive 3d-Grafiken hinzu mit dem rgl-package und WebGL
+excerpt: Füge deinen html-Seiten interaktive 3d-Grafiken hinzu mit dem rgl-package und WebGL
 category: howto
 language: German
+webgl: true
 ---
+
 ```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 
 load=FALSE
@@ -18,7 +20,10 @@ library(rgl)
 knit_hooks$set(webgl = hook_webgl)
 ```
 
-Das [rgl-package](http://rgl.neoscientists.org/about.shtml) bietet in R eine Möglichkeit, dreidimensionale Daten interaktiv darzustellen. Mit der Maus kann man das 3D-Objekt rotieren und mit dem Mausrad kann man es näher heran holen (vergrößern) und verkleinern. Für die Darstellung benutzt rgl [OpenGL](http://opengl.org). Um die 3D-Inhalte in intaktiver Form auch in Webseiten einbinden zu können, kann OpenGL nach [WebGL](https://de.wikipedia.org/wiki/WebGL) umgewandelt werden. WebGL kann von allen aktuellen Browsern (auch den mobilen) dargestellt werden[^1]. Wenn rgl-Befehle wie `plot3d()` in knitr-Dokumente eingebettet werden, wird beim compilieren automatisch ein WebGL-Objekt generiert und in die html-Seite eingebettet. Vorraussetzung ist, dass man die Chunk-Option `webgl=TRUE` setzt. Bei bedarf kann dieses in die html-Seite eingebettet werden. Dazu muss folgendes im head der markdown-Datei definiert sein:
+
+Das [rgl-package](http://rgl.neoscientists.org/about.shtml) bietet in R eine Möglichkeit, dreidimensionale Daten interaktiv darzustellen. Mit der Maus kann man das 3D-Objekt rotieren und mit dem Mausrad kann man es näher heran holen (vergrößern) und verkleinern. Für die Darstellung benutzt rgl [OpenGL](http://opengl.org). Um die 3D-Inhalte in intaktiver Form auch in Webseiten einbinden zu können, kann OpenGL nach [WebGL](https://de.wikipedia.org/wiki/WebGL) umgewandelt werden. WebGL kann von allen aktuellen Browsern (auch den mobilen) dargestellt werden[^1]. Wenn rgl-Befehle wie `plot3d()` in knitr-Dokumente eingebettet werden, wird beim compilieren automatisch ein WebGL-Objekt generiert und in die html-Seite eingebettet. Vorraussetzung ist, dass man die Chunk-Option `webgl=TRUE` setzt. Bei Bedarf kann dieses in die html-Seite eingebettet werden. Dazu muss folgendes im Head der markdown-Datei definiert sein:
+
+[^1]: [http://caniuse.com/#search=webgl](http://caniuse.com/#search=webgl)
 
 ```{markdown}
 output: 
@@ -26,20 +31,31 @@ output:
     self_contained: yes
 ```
 
+Hier einige Beispiele:
+```{r , webgl=TRUE}
+library(rgl)
 
-[^1]: [http://caniuse.com/#search=webgl](http://caniuse.com/#search=webgl)
+z <- 2 * volcano        # Exaggerate the relief
+x <- 10 * (1:nrow(volcano))   # 10 meter spacing (S to N)
+y <- 10 * (1:ncol(volcano))   # 10 meter spacing (E to W)
+n_colors <- diff(range(volcano))
+colors <- terrain.colors(n_colors)
+persp3d(x, y, z, col=colors[volcano - min(volcano)], aspect="iso", axes=F, box=F, xlab="", ylab="", zlab="")
+```
+
+```{r, webgl=TRUE}
+shade3d( translate3d( tetrahedron3d(col = "red"), 0, 0, 0) )
+```
+
+
+
 
 ```{r testgl, webgl=TRUE}
 x <- runif(1000)
 y <- runif(1000)
 z <- x + rnorm(1000, mean = 0, sd=0.05)
 plot3d(x, y, z, col=rainbow(1000))
-#       , box=F, axes=F, xlab="", ylab="", zlab="")
-#par3d(mouseMode=c("zAxis", "yAxis", "xAxis", "none"))
 par3d(FOV=0.1)
-
-#par3d()$modelMatrix
-#round(par3d()$userMatrix)
 mat <- matrix(c(1, 0, 0, 0, 
                 0, 1, 0, 0, 
                 0, 0, 1, 0, 
@@ -52,12 +68,7 @@ x <- rnorm(1000)
 y <- rnorm(1000)
 z <- x + rnorm(1000, mean = 0, sd=0.05)
 plot3d(x, y, z, col=rainbow(1000))
-#       , box=F, axes=F, xlab="", ylab="", zlab="")
-#par3d(mouseMode=c("zAxis", "yAxis", "xAxis", "none"))
 par3d(FOV=0.1)
-
-#par3d()$modelMatrix
-#round(par3d()$userMatrix)
 mat <- matrix(c(1, 0, 0, 0, 
                 0, 1, 0, 0, 
                 0, 0, 1, 0, 
@@ -71,16 +82,36 @@ y <- rnorm(1000)
 z <- rnorm(1000)
 cols <- z + rnorm(1000, mean = 0, sd=0.05)
 cols <- (cols - min(cols)) / diff(range(cols)) * (1000-1) +1
-range(cols)
 
 plot3d(x, y, z, col=rainbow(1000)[cols], box=F, axes=F, xlab="", ylab="", zlab="")
-#par3d(mouseMode=c("zAxis", "yAxis", "xAxis", "none"))
 par3d(FOV=0.1)
-
 par3d(userMatrix=mat, zoom=0.3)
 ```
 
-```{r spin, eval=F}
+```{r spin, eval=F, echo=F}
 play3d(spin3d(axis = c(0,0,1), rpm = 10), duration=6)
 ```
 
+Das letzte Beispiel zeigt, wie man mit rglwidget auch animierte 3D-Darstellungen per WebGL einbinden kann. Dieses Beispiel ist dem [htmlwidgets showcase](http://www.htmlwidgets.org/showcase_rglwidget.html) entnommen.
+
+```{r, message=FALSE, cache=F}
+library(rgl)
+library(rglwidget)
+library(htmltools)
+
+theta <- seq(0, 6*pi, len=100)
+xyz <- cbind(sin(theta), cos(theta), theta)
+lineid <- plot3d(xyz, type="l", alpha = 1:0, 
+                 lwd = 5, col = "blue")["data"]
+
+browsable(tagList(
+  rglwidget(elementId = "example", width = 500, height = 400,
+            controllers = "player"),
+  playwidget("example", 
+             ageControl(births = theta, ages = c(0, 0, 1),
+                        objids = lineid, alpha = c(0, 1, 0)),
+                        start = 1, stop = 6*pi, step = 0.1, 
+                        rate = 6,elementId = "player")
+))
+
+```
