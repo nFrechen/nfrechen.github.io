@@ -7,9 +7,6 @@ category: tutorial
 language: German
 ---
 
-* auto-gen TOC:
-{:toc}
-
 
 
 
