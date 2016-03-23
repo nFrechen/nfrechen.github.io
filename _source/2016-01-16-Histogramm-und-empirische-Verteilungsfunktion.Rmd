@@ -7,9 +7,6 @@ category: tutorial
 language: German
 ---
 
-* auto-gen TOC:
-{:toc}
-
 ```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 
 master=F
