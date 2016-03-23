@@ -13,7 +13,7 @@ library(knitr)
 
 knit_hooks$set(small.mar = function(before, options, envir) {
   if (before) {
-			par(mar=c(4,4,0.1,0.1), las=1, pch=20)
+			par(mar=c(4,4,.1,4), pch=20, mgp=c(2.5,1,0), las=1)
   	}
 })
 
@@ -162,41 +162,15 @@ Calcium concentration and d18O isotope ratios from the Greenland NGRIP,
 GRIP, and GISP2 ice cores resampled to 20 year resolution and presented 
 on the GICC05 time scale. The period covered is 11.6-32.44 ka b2k 
 (years before A.D. 2000).
-The match points used for the transfer of the time scale to GRIP and GISP2 
-depths can be found in the file Matchpoints_NGRIP_GRIP_GISP2_27nov2006.
-The main file containing the GICC05 time scale and d18O values for NGRIP 
-is named GICC05_NGRIP_GRIP_20y_27nov2006.
-Holocene data for NGRIP1, NGRIP2, GRIP, and DYE-3 can be found in a 
-separate file, named GICC05_Holocene_20y_27nov2006.
-All files can be obtained from www.icecores.dk or from 
-IGBP PAGES/World Data Center for Paleoclimatology.
 
-The concept of maximum counting error (2nd column) is introduced in 
-Rasmussen et al. (2006). In a standard deviation context, the maximum 
-counting error should be regarded as 2 sigma as discussed in 
-Andersen et al. (2006). The maximum counting error is a measure of the 
-uncertainty of the GICC05 time scale.  It does not include uncertainty 
-related to the transfer of the time scale to GRIP and GISP2 depths. 
-The latter contribution is discussed in section 4 of the main reference: 
-Rasmussen et al. (2008).
-
-Age and depth values refer to the bottom of each interval.
-Thus the NGRIP depth interval 1492.94 - 1493.62 m corresponds 
-to the time interval 11720 - 11740 b2k, in
-which the NGRIP d18O value is -39.72 permille.
+[...]
 
 The NGRIP1 core reaches down to a depth of 1372 m. The NGRIP2 core 
 (drilled 20 meters away from the NGRIP1 core) reaches from surface 
 to bedrock, but high-resolution measurements have only been carried 
 out downwards from 1346 m. All depth reported here are NGRIP2 depths. 
 
-The data supplied below are resampled to 20 year resolution from the 
-original sources. Problems with missing data are ignored if the missing 
-data comprise 25% or less of the depth interval of a given 20-year interval. 
-If more than 25% of the data are missing, no value is given (indcated by "NaN").
-NOTE: This is the issue corrected in the present file. In the original release, 
-resampled values were also given if more than 25% of the data in a specific 
-depth interval were missing.
+[...]
 
 
 COLUMNS IN THE DATA FILE
@@ -256,30 +230,7 @@ All ages are given in years b2k (years relative to A.D. 2000).
 The concept of maximum counting error is introduced in Rasmussen et al. 
 (Journ. Geophys. Res, 2006)
 
-Age and depth values refer to the bottom of each interval.
-Thus the NGRIP1 depth interval 14.15-20.4 m corresponds to the time interval 
-40 - 60 b2k, in which the NGRIP1 d18O value is -35.11 permille.
-
-The NGRIP1 core reaches down to a depth of 1372 m. 
-The NGRIP2 core (drilled 20 meters away from the NGRIP1 core) reaches from surface to 
-bedrock, but high-resolution measurements have only been carried out downwards from 1346 m. 
-In the 26 m overlap zone, the cores are offset by 0.43 m on average, probably due to 
-uncertainties in the logging procedure (see Sch�tt Hvidberg et al., Ann. Glac. 35, 2002). 
-Thus, the same features appear at larger depths in the NGRIP1 than in the NGRIP2 core. 
-When combining NGRIP1 and NGRIP2 data, we recommend to switch from NGRIP1 to NGRIP2 
-in the year 9830b2k.
-
-Down to 8313 b2k, DYE-3 is dated year by year. Below 8313 b2k the GRIP-NGRIP based 
-time scale has been transferred to DYE-3 depths using the ECM profiles. This matching 
-introduces a few years of uncertainty which is not included in the maximum counting error 
-(column no. 10).
-
-(*) Note that millennial-scale variations in the DYE-3 d18O data are significantly 
-influenced by upstream effects. Furthermore, due to a problem with standards in the 
-early 1980s, the DYE-3 d18O measurements are slightly off-set (maximum 0.5 permil) 
-towards more negative values during the early Holocene.
-
-For more data downloads, go to www.icecores.dk
+[...]
 
 
 COLUMNS IN THE DATA FILE:
@@ -326,19 +277,19 @@ Vinther <- read.table(basename(VintherURL), header = F, skip= 109,
 First we create a zoo timeseries from the Rasmussen and the Vinther GRIP $$\delta^{18}$$O variable. They overlap by 5 values so we cut off some from the Rasmussen data set.
 
 ```{r, zoo-timeseries}
-paleoz <- zoo(c(Vinther$GRIP.d18O, Rasmussen$GRIP.d18O[-(1:5)]), order.by = c(Vinther$Age, Rasmussen$Age[-(1:5)]))
+paleoz <- zoo(c(Vinther$GRIP.d18O[-1], Rasmussen$GRIP.d18O[-(1:5)]), order.by = c(Vinther$Age[-1], Rasmussen$Age[-(1:5)]))
 ```
 
 Then we will fill in the gaps that this timeseries has  by interpolating with the `na.approx()` function of the `zoo` package.
 
 ```{r fill-gaps}
-paleoz <- na.approx(paleoz)
+#paleoz <- na.approx(paleoz)
 ```
 
 The next task is to smooth out the high frequency oscillations and produce a trendline for the series. We choose a bandwith of 558 like they did in the [Lenton et al (2012)](http://www.clim-past.net/8/1127/2012/cp-8-1127-2012.html) paper:
 
 ```{r smooth}
-sm <- ksmooth(c(Vinther$Age, Rasmussen$Age[-(1:5)]), paleoz, "normal", bandwidth=558)
+sm <- ksmooth(c(Vinther$Age[-1], Rasmussen$Age[-(1:5)]), paleoz, "normal", bandwidth=558)
 ```
 
 All this together plots like this:
@@ -365,17 +316,29 @@ plot(residuals, type="h", xlim=xlim)
 window <-250
 mvSD <- rollapply(residuals, width = window, FUN = var, na.rm=T, fill=NA, partial=F, align="left")
 mvACF <- rollapply(residuals, width = window, FUN = acor, fill=NA, partial=F, align="left")
+nARR <- rollapply(residuals[-(1:42)], width = window, 
+                  FUN = function(x) ar.ols(x, 
+    aic = FALSE, order.max = 1, dmean = FALSE, intercept = FALSE)$ar, 
+    fill = NA, align = "right")
+
 
 plot(mvSD, type="l", xlim=xlim, col="red")
-#par(new=T)
-plot(mvACF, type="l", xlim=xlim, col="green")
+par(new=T)
+plot(mvACF, type="l", xlim=xlim, col="green", ann=F, axes=F)
+axis(4, col="green")
+mtext("mvACF", 4, line=3, las=3, col="green")
+par(new=T)
+plot(nARR, xlim=xlim, type = "l", col="blue")
+par(new=T)
+plot(1/nARR, xlim=xlim, type = "l", ylab = "return rate", col="orange")
+
 ```
 
 <!----------------------------------------------------------------->
 
 ```{r, eval=F, echo=F}
 library(earlywarnings)
-pal <- data.frame(rev(-Rasmussen$Age), rev(paleoz))
+pal <- data.frame(rev(-c(Vinther$Age[-1], Rasmussen$Age[-(1:5)])), rev(paleoz))
 out=generic_ews(pal,winsize=50,detrending='gaussian',
 bandwidth=5,logtransform=FALSE,interpolate=FALSE)
 
