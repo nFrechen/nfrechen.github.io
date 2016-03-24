@@ -1,0 +1,26 @@
+---
+title: "climate data from station `r stations$Stationsname[ind]`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+Sys.setlocale("LC_TIME", "en_us")
+```
+
+The weather station at `r stations$Stationsname[ind]` is located at latitude `r stations$geoBreite[ind]` and longitutude `r stations$geoLaenge[ind]` at a heigth `r stations$Stationshoehe[ind]`m above sea level. Measurements started at `r format(stations$von_datum[ind], format="%B %e %Y")` and ended `r format(stations$bis_datum[ind],format="%B %e %Y")`.
+
+
+```{r, echo=F}
+library(pander)
+pander(head(data), caption=paste("First ten rows of the selected data for station", stations$Stationsname[ind]))
+```
+
+
+```{r test_figure, eval=F, echo=F, fig.cap=paste("Plot of variable", input$variable_selection)}
+i <- input$variable_selection[1]
+plot(data[,2], data[,i], xlab="Datum", ylab=i, type="l")
+i <- input$variable_selection[2]
+plot(data[,2], data[,i], xlab="Datum", ylab=i, type="l")
+
+```
+
