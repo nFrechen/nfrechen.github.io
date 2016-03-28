@@ -112,7 +112,7 @@ shinyServer(function(input, output, session) {
               # generate download_file button:
               output$results <- renderUI({
                 list(
-                  selectInput("which_to_download", "choose a file to download:", choices = c(CSV="csv", Excel="xlsx")),
+                  selectInput("which_to_download", "choose a file to download:", choices = c(PDF="pdf", Word="docx", CSV="csv", Excel="xlsx")),
                   downloadButton("download_file", "Download")
                 )
               })
@@ -125,8 +125,8 @@ shinyServer(function(input, output, session) {
                 content = function(file) {
                   print(str(window))
                   switch(input$which_to_download,
-                      #"pdf" = pandoc(knit("pdf-report.Rmd", file), format="latex"),
-                      #"docx" = pandoc(knit("pdf-report.Rmd", file), format="docx"),
+                      "pdf" = rmarkdown::render("pdf-report.Rmd", pdf_document(), output_file=file),
+                      "docx" = rmarkdown::render("pdf-report.Rmd", word_document(), output_file=file),
                       "csv" = write.csv(data[,c("MESS_DATUM", input$variable_selection)], file),
                       "xlsx" = xlsx::write.xlsx(data[,c("MESS_DATUM", input$variable_selection)], file)
                   )
