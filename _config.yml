@@ -7,7 +7,7 @@ twitter_username: nDimensional
 github_username:  nFrechen
 permalink: /:categories/:title.html
 
-exclude: ["source", "cache", "*.Rproj"]
+exclude: ["source", "cache", "*.Rproj", "additional"]
 
 # Build settings
 markdown: kramdown
