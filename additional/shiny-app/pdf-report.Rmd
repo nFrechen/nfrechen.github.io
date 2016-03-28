@@ -3,24 +3,67 @@ title: "climate data from station `r stations$Stationsname[ind]`"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, message=F, error=F)
 Sys.setlocale("LC_TIME", "en_us")
 ```
 
 The weather station at `r stations$Stationsname[ind]` is located at latitude `r stations$geoBreite[ind]` and longitutude `r stations$geoLaenge[ind]` at a heigth `r stations$Stationshoehe[ind]`m above sea level. Measurements started at `r format(stations$von_datum[ind], format="%B %e %Y")` and ended `r format(stations$bis_datum[ind],format="%B %e %Y")`.
 
 
-```{r, echo=F}
-library(pander)
-pander(head(data), caption=paste("First ten rows of the selected data for station", stations$Stationsname[ind]))
+```{r Germany-map, fig.width=3, fig.height=3, fig.cap="Location of weather station in Germany"}
+library(RgoogleMaps)
+
+MyMap <- GetMap(center=c(lat=51.2, lon=10), zoom=6, markers = paste0("&markers=color:red|", stations$geoBreite[ind], ",", stations$geoLaenge[ind]))
+TextOnStaticMap(MyMap, lat=stations$geoBreite[ind], lon=stations$geoLaenge[ind], paste("weather station", stations$Stationsname[ind]), cex=0.7)
 ```
 
 
-```{r test_figure, eval=F, echo=F, fig.cap=paste("Plot of variable", input$variable_selection)}
+```{r Overview-map, fig.width=3, fig.height=3, fig.cap="Overview map of station location"}
+
+MyMap <- GetMap(center=c(lat=stations$geoBreite[ind], lon=stations$geoLaenge[ind]), zoom=10, markers = paste0("&markers=color:red|", stations$geoBreite[ind], ",", stations$geoLaenge[ind]))
+TextOnStaticMap(MyMap, lat=stations$geoBreite[ind], lon=stations$geoLaenge[ind], paste("weather station", stations$Stationsname[ind]), cex=0.7)
+```
+
+
+```{r detail-map, fig.width=3, fig.height=3, fig.cap="Detail map of station location"}
+
+MyMap <- GetMap(center=c(lat=stations$geoBreite[ind], lon=stations$geoLaenge[ind]), zoom=15, markers = paste0("&markers=color:red|", stations$geoBreite[ind], ",", stations$geoLaenge[ind]))
+TextOnStaticMap(MyMap, lat=stations$geoBreite[ind], lon=stations$geoLaenge[ind], paste("weather station", stations$Stationsname[ind]), cex=0.7)
+```
+
+
+
+```{r, echo=F}
+library(pander)
+pander(summary(data[,input$variable_selection]), caption=paste("Summary statistics of the selected variables for station", stations$Stationsname[ind]))
+```
+
+\pagebreak{}
+
+```{r test_figure, eval=F, echo=F, fig.cap="test", fig.subcap=paste("Plot of variable", input$variable_selection)}
 i <- input$variable_selection[1]
 plot(data[,2], data[,i], xlab="Datum", ylab=i, type="l")
 i <- input$variable_selection[2]
 plot(data[,2], data[,i], xlab="Datum", ylab=i, type="l")
 
+```
+
+
+```{r, results='asis'}
+library(ggplot2)
+plot.knit<-function(chunkLabel, #text for chunk label which is also used for figure file name
+                capt, #text for caption
+                plt) #plot object to be placed
+   {
+    cat(knit(text=(paste("```{r ",chunkLabel,", fig.cap='",capt,"'}\nplt\n```",sep='')), quiet=T))
+}
+
+for(i in input$variable_selection){
+  plot.knit(
+    chunkLabel= paste0("plot", i), 
+    capt = paste("plot", i),
+    plt = ggplot(data=data, aes_string("MESS_DATUM", i)) + geom_line()
+  )
+}
 ```
 

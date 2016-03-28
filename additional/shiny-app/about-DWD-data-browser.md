@@ -7,6 +7,7 @@ It is thought do demonstrate:
 * how to select variables to be plotted
 * how to plot variables in a way that you can zoom and scroll the timeline
 * how to download the selected data in the formats `.csv` and `.xlsx` (Excel)
+* how to provide a downloadable report of the slected data including a map plot, graphics of the variables and some summary statistics.
 
 It facilitates the following technologies:
 

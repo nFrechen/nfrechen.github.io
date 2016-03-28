@@ -125,8 +125,8 @@ shinyServer(function(input, output, session) {
                 content = function(file) {
                   print(str(window))
                   switch(input$which_to_download,
-                      "pdf" = rmarkdown::render("pdf-report.Rmd", pdf_document(), output_file=file),
-                      "docx" = rmarkdown::render("pdf-report.Rmd", word_document(), output_file=file),
+                      "pdf" = rmarkdown::render("pdf-report.Rmd", pdf_document(fig_caption = T), output_file=file),
+                      "docx" = rmarkdown::render("pdf-report.Rmd", word_document(fig_caption = T), output_file=file),
                       "csv" = write.csv(data[,c("MESS_DATUM", input$variable_selection)], file),
                       "xlsx" = xlsx::write.xlsx(data[,c("MESS_DATUM", input$variable_selection)], file)
                   )
