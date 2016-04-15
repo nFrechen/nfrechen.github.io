@@ -2,7 +2,6 @@
 .Rhistory
 .RData
 _site/
-_posts/
 _bin/
 _data/
 .sass-cache/
@@ -12,3 +11,13 @@ _data/
 _source/*.html
 _source/*.md
 _source/*/
+GMOD09Q1.A2001161.08d.latlon.x21y04.5v3.NDVI.tif
+GMOD09Q1.A2001209.08d.latlon.x21y04.5v3.NDVI.tif
+NDVI_raster_remapped.tif
+d18o1yr.txt
+d18o20y.txt
+gicc05-calcium-20yr.txt
+gicc05-holocene-20yr.txt
+gispd18o.txt
+n46e010.zip
+serv-jekyll-command.txt
