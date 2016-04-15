@@ -2,7 +2,7 @@
 layout: post
 title: Quantile Estimation
 excerpt: Another argument for selecting a quantile estimation type in R
-language: german
+language: German
 category: discussion
 ---
 
