@@ -2,7 +2,7 @@
 title: nDimensional
 description: > # this means to ignore newlines until "baseurl:"
   This blog is all about finding a new perspective to look on the things that sorround us. You think that all the perspectives are taken? That we have already seen what can be seen? Then take it to a new dimension! Things stay hidden because people run back and forth between the same viewpoints. Add a new dimension to the spectrum and you will find things never envisioned before!
-url: "http://yourdomain.com" # the base hostname & protocol for your site
+url: "http://n-dim.de" # the base hostname & protocol for your site
 twitter_username: nDimensional
 github_username:  nFrechen
 permalink: /:categories/:title.html
