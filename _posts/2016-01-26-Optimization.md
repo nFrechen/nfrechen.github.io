@@ -96,7 +96,6 @@ As you can see the calculation time for the vector method barely exceeds 0.002 s
 
 * Use apply whenever possible
 * Use additional apply functions from the plyr package
-* Merge multiple dataframes with ldply of the plyr packages.
 * Read csv tables with fread of the data.table package.
 [^2]
 

@@ -13,7 +13,7 @@ This blog is all about finding a new perspective to look on the things that surr
 Pretty tough goal, right? But you can help me! Above all my goals is do design everything I post here in a way that you can re-enact and reproduce my chain of thoughts. Therefore you will always find something you can do yourself: 
 
 * you can use my post as a starting point for more research,
-* you can do the calculations I did yourself and add some more,
+* you can do all the calculations I show you on your own computer and add some more,
 * the data sets I will be using are all publicly available, so you can use them yourself.
 
 Of course you need some tools to do that. The [statistical programming package R](http://r-project.org) is the tool of my choice. I use it to:
@@ -24,10 +24,10 @@ Of course you need some tools to do that. The [statistical programming package R
 
 Why do I use R? Because it holds such a huge amount of tools. And because it is freely available---which means that you can share your work and do everything you do in a way that is reproducible by everyone. 
 This is stated aim of all scientific publications. But when it comes to how the actual calculations where done, how
-the raw input data  where processed to get the final result, this is often not consequentially followed through. R is here to change that!
-Therefore a lot of my posts also try to teach you how to work in R and show you the potential if this mighty software-tool. To give you some tools at hand to do reserach yourself!
+the raw input data  where processed to get the final result, this is often not followed through consequentially. R is here to change that!
+Therefore a lot of my posts also try to teach you how to work in R and show you the potential of this mighty software-tool. To give you some tools at hand to do your own reserach!
 
-In the end I would like to encourage you to try some programming yourself. You don't have to trust scientists and crazy computer specialists to do the calculations for you. Just try some of it yourself and you will see that you can do more than you think!
+In the end I would like to encourage you to try some programming on your own. You don't have to trust scientists and crazy computer specialists to do the calculations for you. Just try some of it yourself and you will see that you can do more than you think!
 
 This blog is hosted on github. So feel free to take a [look behind the curtain](https://github.com/nFrechen/nfrechen.github.io) and see how it's all done.
 

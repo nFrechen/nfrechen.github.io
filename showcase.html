@@ -7,9 +7,11 @@ nav: true
 ---
 
 <div class="home">
+  <p>Here you will find some posts to display the vast possibilities of R. They come without much explanation. But you can see how they are produced in the <a href="https://github.com/nFrechen/nfrechen.github.io">source code of my blog</a>.</p>
+  <hr>
 
   <ul class="post-list">
-    {% for post in site.categories.Showcase %}
+    {% for post in site.categories.showcase %}
       <li>
         <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }} <a class="language" href="/{{ post.language }}/">{{ post.language }}</a>
 

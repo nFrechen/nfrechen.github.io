@@ -1,18 +1,18 @@
 ---
 layout: page
-title: posts in German
+title: Beiträge in Deutsch
 permalink: /German/
 nav: false
 ---
 
 <div class="home">
 
-  {% assign german_tutorials = site.posts | where:"language","German" %}
+  {% assign german_posts = site.posts | where:"language","German" %}
 
   <ul class="post-list">
-    {% for post in german_tutorials %}
+    {% for post in german_posts %}
       <li>
-        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}<a class="language" href="/{{ post.category }}/">{{ post.categories.first }}</a></span>
+        <span class="post-meta">{{ post.date | date: "%-d.%-m.%Y" }}<a class="language" href="/{{ post.category }}/">{{ post.categories.first }}</a></span>
 
         <h2>
           <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
