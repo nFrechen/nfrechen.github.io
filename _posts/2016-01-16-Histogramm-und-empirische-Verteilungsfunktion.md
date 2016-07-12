@@ -214,11 +214,11 @@ plot(density(temp))
 * Berechne die Anzahl der Messwerte $$n$$.
 * Sortiere alle Messwerte der Größe nach.
 * Weise jedem Messwerte einen Plotindex $$i$$ zu nach dem Muster $$i=1,2,...,n$$.
-* Berechne die Plotting Position $$p_i$$ nach der allgemeinen Formel 
+* Berechne die Plotting Position $$p_i$$ nach der allgemeinen Formel  
+$$p_i = \frac{i-\alpha}{n+1-2\alpha}$$
 
-$$p_i = \frac{i-\alpha}{n+1-2\alpha}$$ 
+  Wähle $$\alpha$$ dem Einsatzzweck entsprechend nach den Empfehlungen verschiedener Autoren (siehe nächste Abbildung). Die Unterschiede in diesen Methoden ist vor allem bei kleinen Stichproben wichtig. Bei großen Datensätzen macht die Wahl der Methode keinen großen Unterschied.
 
-Wähle $$\alpha$$ dem Einsatzzweck entsprechend nach den Empfehlungen verschiedener Autoren (siehe nächste Abbildung). Die Unterschiede in diesen Methoden ist vor allem bei kleinen Stichproben wichtig. Bei großen Datensätzen macht die Wahl der Methode keinen großen Unterschied.
 * Stelle auf der y-Achse die Plotting Positinen $$p_i$$ dar und auf der x-Achse die sortierten Messwerte.
 
 
