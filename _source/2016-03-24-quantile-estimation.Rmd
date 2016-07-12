@@ -132,7 +132,7 @@ It shows the result of the `quantile()` function executed with different `type` 
 For very high $$n$$ all these estimations end up where the theoretical quantiles are located (compare secondary axis on the right). The difference is how fast they approach this value for low $$n$$.
 
 
-```{r distribution-estimation-with-different-methods}
+```{r distribution-estimation-with-different-methods, dev="svg"}
 par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,3,6))
 
 nmax <- 1000
@@ -148,7 +148,7 @@ for(type in 1:9){
   }
 }
 
-ylim <- range(Qmatrix[,,])
+ylim <- max(abs(Qmatrix[,,]))*c(-1,1)
 
 for(type in 1:9){
   #View(Qmatrix)
@@ -241,7 +241,7 @@ The systematics of the deviation can be seen in the next figure in red circles. 
 
 Every approach shows different deviations. Type 4 shows the already discussed overall underestimation of the quantiles, but also shows that the outer quantiles show even greater deviation than the inner. Type 7 shows overestimation of the lower quantiles and underestimation of the higher quantiles, resulting in a underestimation of the spread of the distribution. For type 5, 6, 8 and 9 it is the other way around. At $$n=10$$ they overestimate the spread especially of the outermost quantiles. This effect is strongest for type 6 and the weakest for type 5 which again seems to be the most reliable way to estimate the quantiles. Type 1 to 3 show jumping deviations. Here the deviations (with our first graph in mind) should be entirely different for $$n=11$$. For all methods the deviations should disappear with high $$n$$, but some methods, show already quite accurate estimation of the inner quantiles. Type 8 and 9 show high deviations only for the $$0.125$$ and $$0.875$$ quantiles and type 5 seems to be accurate even for these quantiles.
 
-```{r comparison-between-discrete-and-random-repetition}
+```{r comparison-between-discrete-and-random-repetition, dev="svg"}
 par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(8,5,3,6))
 
 ylim <- max(abs(range(c(t(MeanQuantile[,repetitions,])-qnorm(Q), t(Qmatrix[,n,])-qnorm(Q))))) * c(-1,1)
@@ -272,7 +272,7 @@ For $$n=20$$ the deviations of type 2 are quite low. But this is just, because t
 
 For other distributions there are similar deviations of the different estimation methods as they are for the normal distribution.
 
-```{r comparison-between-discrete-and-random-repetition-with-n-20, eval=F}
+```{r comparison-between-discrete-and-random-repetition-with-n-20, eval=F, dev="svg"}
 
 par(mfrow=c(3,3), mar=c(.1,1,2,.1), oma=c(5,4,3,6))
 
@@ -596,3 +596,37 @@ mtext("quantiles estimated from discrete distribution in black, from repeated ra
 mtext("quantiles", 1, outer=T, line=3)
 
 ```
+
+
+```{r boxplot_quantiles, fig.width=7, fig.height=6}
+par(mfrow=c(1,2), mar=c(0,1,2,.1), oma=c(5,4,3,6))
+
+
+Q <- seq(1/(d+1), 1-1/(d+1), length.out=d)
+nmax <- 1000
+Qmatrix <- data.frame(lower_whisker=NA, lower_hinge=NA, median=NA, upper_hinge=NA, upper_whisker=NA)
+
+for(n in 1:nmax){
+    x <- seq(1/(n*2), 1-1/(n*2), length.out=n)
+    Qmatrix[n,] <- boxplot(qnorm(x), plot = F)$stats
+}
+
+ylim <- max(abs(Qmatrix))*c(-1.3,1.3)
+cols <- c(1,2,3,2,1)
+
+plot(NULL, xlim=c(1,nmax), ylim=ylim, log="x", 
+     main='"quantiles" calculated to display boxplots', xlab="", ylab="", frame.plot=T, panel.first=abline(v=c(1,2,5,10,20,50,100,200,500,1000), h=qnorm(Q), col="lightgray"))
+for(i in 1:5){
+  lines(Qmatrix[,i], col=cols[i], type="l")
+}
+axis(4, at=qnorm(Q), Q, las=1)
+legend("topleft", legend = rev(colnames(Qmatrix)), col=cols, lty=1)
+mtext("theoretical probabilities corresponding to the quantiles", 4, line=4.5, outer=T)  
+mtext("estimated quantile", side = 2, outer = T, cex=1, line=2.5)
+mtext("number of points uniformly distributed over probabilities",1, outer=T, line=3.5)
+
+# plot example boxplot
+bxp(boxplot(qnorm(x), plot = F), medcol=3, staplecol=1, boxcol=2, lwd=2, ylim=ylim, axes=F)
+
+```
+
