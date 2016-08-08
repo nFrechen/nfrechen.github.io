@@ -5,64 +5,242 @@ excerpt: Bedeckungsgrad
 category: showcase
 language: German
 ---
-<style>
-#Bedeckung{
-  width: 100%;
-  height: 500px;
-  
-  background: url("/images/Monatliche_Bedeckung/Monatliche_Bedeckung_002.svg");
+
+```{r install, cache=TRUE, echo=F, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+library(devtools)
+install_github("nFrechen/RgetDWDdata", ref = "feature/hourly_data")
+```
+
+
+
+```{r setting, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+library(knitr)
+knit_hooks$set(small.mar = function(before, options, envir) {
+  if (before) {
+			par(pch=20)
+  	}
+})
+opts_chunk$set(message = F, error = F, warning = F, cache=T, autodep = T, fig.width = 8, fig.height = 8, dev="svg", small.mar=T, echo=F)
+
+library(RgetDWDdata)
+library(viridis)
+library(fields)
+library(highcharter)
+Sys.setlocale(category = "LC_TIME", "de_DE")
+month.name <- format(ISOdate(2000, 1:12, 1), "%B")
+```
+
+
+```{r Wolken-Daten-download}
+CBhWolken <- getDWDhourly("00880", Parameter = "cloudiness", historisch = NA)
+
+CBhWolken$hour <- hour(CBhWolken$MESS_DATUM)
+#sort(unique(CBhWolken$GESAMT_BEDECKUNGSGRAD))
+sel <- which(CBhWolken$GESAMT_BEDECKUNGSGRAD>=0)
+#nrow(CBhWolken)
+n <- 200000
+CBhWolkenSample <- CBhWolken[sel,][sample(1:length(sel), n),]
+```
+
+
+```{r scatterplot, dev="png"}
+plot((CBhWolkenSample$hour+runif(n,0,1)), (CBhWolkenSample$GESAMT_BEDECKUNGSGRAD+runif(n,0,1)), pch=20, cex=0.1, col=rgb(0,0,0,0.2))
+```
+
+
+```{r Aggregierung}
+WolkenAggr <- aggregate(CBhWolkenSample$GESAMT_BEDECKUNGSGRAD, by=list(hour=CBhWolkenSample$hour, Bedeckung=CBhWolkenSample$GESAMT_BEDECKUNGSGRAD), FUN=length)
+```
+
+
+```{r image-plot-ganzes-Jahr}
+svg("../images/Monatliche_Bedeckung/Bedeckungsgrad.svg", family = "'Open Sans', Helvetica, Arial, sans", height=5)
+
+n <- sum(WolkenAggr$x)
+par(mar=c(4.1, 4.1, 4.1, 3.1), mgp=c(2,1,0), lab=c(12, 8, 7))
+
+image.plot(x=0:23, y=0:8, z=matrix(WolkenAggr$x/n*100, nrow = 24), xlab="Uhrzeit", ylab="Bedeckungsgrad", col=viridis(100), legend.mar=7, legend.lab="Häufigkeit in %", legend.line=2.5, graphics.reset = FALSE, las=1)
+
+# Wenn es maximal bewölkt ist, macht es keinen Unterschied, ob es Tag oder Nacht ist
+rect(xleft = 0-0.5, ybottom = 8-0.5, xright = 24-0.5, ytop = 9-0.5, lwd=3, xpd=NA, border="red")
+
+# Nachts ist die Wahrscheinlichkeit, dass es völlig klar wesentlich höher als Tagsüber
+rect(xleft = 0-0.5, ybottom = 0-0.5, xright = 9-0.5, ytop = 1-0.5, lwd=3, , xpd=NA, border ="green")
+rect(xleft = 17-0.5, ybottom = 0-0.5, xright = 24-0.5, ytop = 1-0.5, lwd=3, xpd=NA, border="green")
+
+# Tagsüber ist eine Bedeckung der Stufe 7 wahrscheinlicher als Nachts
+rect(xleft = 9-0.5, ybottom = 7-0.5, xright = 17-0.5, ytop = 8-0.5, lwd=3, xpd=NA, border="blue")
+
+# Tagsüber sind geringe Bedeckungsgrade zwischen 0 und 5 ungefähr gleich wahrscheinlich
+rect(xleft = 9-0.5, ybottom = 0-0.5, xright = 17-0.5, ytop = 6-0.5, lwd=3, xpd=NA, border="orange")
+
+# Bedeckungsgrade von 1 bis 6 unterscheiden sich nicht groß zwischen Tag und Nacht
+rect(xleft = 0-0.5, ybottom = 1-0.45, xright = 24-0.5, ytop = 7-0.55, lwd=3, xpd=NA, border="yellow")
+
+invisible(dev.off())
+```
+
+
+
+
+```{r line-plots}
+plot(0:23, WolkenAggr$x[WolkenAggr$Bedeckung==8]/n*100, type="l", ylim=c(0,2), col="green", pch=20, ylab="Häufigkeit in %", xlab="Uhrzeit")
+
+lines(0:23, WolkenAggr$x[WolkenAggr$Bedeckung==0]/n*100, type="l", pch=20)
+lines(0:23, WolkenAggr$x[WolkenAggr$Bedeckung==7]/n*100, type="l", col="blue", pch=20)
+lines(0:23, WolkenAggr$x[WolkenAggr$Bedeckung==4]/n*100, type="l", col="darkblue", pch=20)
+```
+
+
+
+```{r line-plot-highchart, cache=FALSE, eval=F}
+highchart() %>% 
+	hc_xAxis( title=list(text="hour")) %>%
+hc_add_series( name="8", data=WolkenAggr$x[WolkenAggr$Bedeckung==8]/n*100, type="spline", animation=FALSE) %>%
+hc_add_series(name="0", data=WolkenAggr$x[WolkenAggr$Bedeckung==0]/n*100, type="spline", animation=FALSE) %>%
+hc_add_series(name="7", data=WolkenAggr$x[WolkenAggr$Bedeckung==7]/n*100, type="spline", animation=FALSE) %>%
+hc_add_series(name="4", data=WolkenAggr$x[WolkenAggr$Bedeckung==4]/n*100, type="spline", animation=FALSE) %>%
+hc_legend(title=list(text="Bedeckung"))
+```
+
+
+```{r Monatliche-Aggegierung}
+WolkenAggrMon <- aggregate(CBhWolkenSample$GESAMT_BEDECKUNGSGRAD, by=list(hour=CBhWolkenSample$hour, Bedeckung=CBhWolkenSample$GESAMT_BEDECKUNGSGRAD, Monat=month(CBhWolkenSample$MESS_DATUM)), FUN=length)
+```
+
+
+```{r image-plot-monatliche-Aggegierung}
+svg("../images/Monatliche_Bedeckung/Monatliche_Bedeckung_%03d.svg", family = "'Open Sans', Helvetica, Arial, sans", height=5, bg=NA)
+nmin <- min(table(month(CBhWolkenSample$MESS_DATUM)))
+zlim <- c(0, max(WolkenAggrMon$x))/nmin*100
+for(i in 1:12){
+	n <- sum(WolkenAggrMon$x[WolkenAggrMon$Monat==i])
+	par(mar=c(4.1, 4.1, 1.1, 3.1), mgp=c(2,1,0), lab=c(12, 8, 7))
+	
+	z <- matrix(WolkenAggrMon$x[WolkenAggrMon$Monat==i]/n*100, nrow = 24)
+	x <- matrix(rep(0:23, times=ncol(z)), ncol=ncol(z))
+	y <- matrix(rep(0:8, times=nrow(z)), nrow=nrow(z), byrow=T)
+
+	image.plot(x=x, y=y, z=z, xlab="Uhrzeit", ylab="Bedeckungsgrad", col=viridis(100), legend.mar=7, legend.lab="Häufigkeit im Monat in %", legend.line=2.5, graphics.reset = FALSE, las=1, main="", zlim=zlim, lwd=1, xaxs="i", yaxs="i")
+	#month.name[i]
 }
-#Januar:hover{
-  text-decoration: underline;
-}
-#Januar:hover #Bedeckung{
-  color: red;
-  background: url("/images/Monatliche_Bedeckung/Monatliche_Bedeckung_001.svg");
-}
-.Februar{
-  display: block;
-  border: 1px solid black;
-  color: green;
-}
-#Februar:hover #Bedeckung{
-    color: blue;
-}
-</style>
+invisible(dev.off())
+```
+
+
+
+```{r precipitation-download}
+library(lubridate)
+CBhPrecip <- getDWDhourly("00880", Parameter = "precipitation", historisch = NA)
+
+
+CBhPrecip$hour <- hour(CBhPrecip$MESS_DATUM)
+sel <- which(CBhPrecip$NIEDERSCHLAGSHOEHE>0)
+#n <- 10000
+n <- nrow(CBhPrecip[sel,])
+CBhPrecipSample <- CBhPrecip[sel,][sample(1:length(sel), n),]
+```
+
+
+```{r precipitiation-scatterplot, dev="png"}
+plot((CBhPrecipSample$hour+runif(n,0,1)), (CBhPrecipSample$NIEDERSCHLAGSHOEHE+runif(n,0,0.1)), pch=20, cex=0.1, col=rgb(0,0,0,1), log="y")
+```
+
+
+```{r merge-precipitation-and-cloudiness, eval=FALSE}
+#CBhMerged <- merge(x=CBhPrecip$NIEDERSCHLAGSHOEHE, y=CBhWolken$GESAMT_BEDECKUNGSGRAD,)
+
+```
 
 
  <!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css">
 
 <!-- jQuery library -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="/assets/jquery/jquery.min.js"></script>
 
 <!-- Latest compiled JavaScript -->
-<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="/assets/bootstrap/js/bootstrap.js"></script>
+<script src="//cdn.rawgit.com/tonystar/bootstrap-hover-tabs/master/bootstrap-hover-tabs.js"></script>
+
+<style>
+#BedTab{
+  border: 1px solid #ddd;
+  border-top: none;
+}
+ul, ol{
+  margin-left: 0px;
+}
+.nav > li > a {
+    padding: 5px 10px;
+}
+#Bedeckungsgrad{
+  background-image: url('/images/Monatliche_Bedeckung/Bedeckungsgrad.svg');
+  background-size: 100% auto;
+  background-repeat: none;
+}
+
+</style>
 
 
+<div>
+  <div class="col-sm-4">
+    <ul id="Bedeckung_nav" class="nav
+    nav-stacked">
+      <li class="active"><a data-toggle="tab" href="#maximum">vollständig bedeckt</a></li>
+      <li><a data-toggle="tab" href="#Nacht">Klar</a></li>
+      <li><a data-toggle="tab" href="#Tag_stark_bedeckt">Tag stark bedeckt</a></li>
+      <li><a data-toggle="tab" href="#Tag">Tag</a></li>
+      <li><a data-toggle="tab" href="#Mittelbereich">Mittelbereich</a></li>
+    </ul>
+  </div>
+  <div id="Bedeckung_Jahr" class="tab-content col-sm-8">
+    <div id="maximum" class="tab-pane in active">
+      <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_maximal.svg"/>
+    </div>
+    <div id="Nacht" class="tab-pane in">
+      <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Nacht_klar.svg"/>
+    </div>
+    <div id="Tag_stark_bedeckt" class="tab-pane in">
+      <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Tag_stark_bedeckt.svg"/>
+    </div>
+    <div id="Tag" class="tab-pane in">
+      <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Tag.svg"/>
+    </div>
+    <div id="Mittelbereich" class="tab-pane in">
+      <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Mittelbereich.svg"/>
+    </div>
+  </div>  
+</div>
+
+
+<div>
 <ul class="nav nav-tabs">
-  <li class="active">
-      <a href="#" onclick="changeImage('001')" onmouseover="changeImage('001')" data-toggle="tab">Januar</a></li>
-  <li><a href="#" onclick="changeImage('002')" onmouseover="changeImage('002')" data-toggle="tab">Februar</a></li>
-  <li><a href="#" onclick="changeImage('003')" onmouseover="changeImage('003')" data-toggle="tab">März</a></li>
+  <li class="active"><a data-toggle="tab" href="#home">Januar</a></li>
+  <li><a data-toggle="tab" href="#menu1">Februar</a></li>
+  <li><a data-toggle="tab" href="#menu2">März</a></li>
 </ul>
 
-
-<div class="Monate">
-<span id="Januar" onclick="changeImage('001')" onmouseover="changeImage('001')">Januar</span>
-<span id="Januar" onclick="changeImage('002')"  onmouseover="changeImage('002')">Februar</span>
-<span id="Januar" onclick="changeImage('003')"  onmouseover="changeImage('003')">März</span>
-<span id="Januar" onclick="changeImage('004')" onmouseover="changeImage('004')">April</span>
-<span id="Januar" onclick="changeImage('005')" onmouseover="changeImage('005')">Mai</span>
-<span id="Januar" onclick="changeImage('006')" onmouseover="changeImage('006')">Juni</span>
-<span id="Januar" onclick="changeImage('007')" onmouseover="changeImage('007')">Juli</span>
-<span id="Januar" onclick="changeImage('008')" onmouseover="changeImage('008')">August</span>
+<div id="BedTab" class="tab-content">
+  <div id="home" class="tab-pane in active">
+    <img src="/images/Monatliche_Bedeckung/Monatliche_Bedeckung_001.svg"/>
+  </div>
+  <div id="menu1" class="tab-pane">
+    <img src="/images/Monatliche_Bedeckung/Monatliche_Bedeckung_002.svg"/>
+  </div>
+  <div id="menu2" class="tab-pane">
+    <img src="/images/Monatliche_Bedeckung/Monatliche_Bedeckung_003.svg"/>
+  </div>
 </div>
-<img id="Bedeckung2" src="/images/Monatliche_Bedeckung/Monatliche_Bedeckung_001.svg"/>
+</div>
 
-<script type="text/javascript">
-function changeImage(num){
-  document.getElementById("Bedeckung2").src = "/images/Monatliche_Bedeckung/Monatliche_Bedeckung_"+num+".svg";
-  return false;
-}
+<script>
+(function ($) {
+  $(function () {
+    $(document).off('click.bs.tab.data-api', '[data-hover="tab"]');
+    $(document).on('mouseenter.bs.tab.data-api', '[data-toggle="tab"], [data-hover="tab"]', function () {
+      $(this).tab('show');
+    });
+  });
+})(jQuery);
 </script>
