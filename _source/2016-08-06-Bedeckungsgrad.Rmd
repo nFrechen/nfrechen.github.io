@@ -19,6 +19,9 @@ Geschichten, wie Sie Ihre Daten zu erzählen haben.
 <script src="/assets/bootstrap/js/bootstrap.js"></script>
 <script src="//cdn.rawgit.com/tonystar/bootstrap-hover-tabs/master/bootstrap-hover-tabs.js"></script>
 
+<!-- D3js library -->
+<script src="https://d3js.org/d3.v4.min.js"></script>
+
 <style>
 #BedTab{
   border: 1px solid #ddd;
@@ -28,7 +31,7 @@ ul, ol{
   margin-left: 0px;
 }
 .nav > li > a {
-    padding: 5px 10px;
+    padding: 5px 5px;
 }
 #Bedeckungsgrad{
   background-image: url('/images/Monatliche_Bedeckung/Bedeckungsgrad.svg');
@@ -249,7 +252,7 @@ WolkenAggrMon <- aggregate(CBhWolkenSample$GESAMT_BEDECKUNGSGRAD, by=list(hour=C
 # Was ändert sich über den Jahresverlauf?
 
 ```{r image-plot-monatliche-Aggegierung}
-svg("../images/Monatliche_Bedeckung/Monatliche_Bedeckung_%03d.svg", family = "'Open Sans', Helvetica, Arial, sans", height=5, bg=NA)
+svg("../images/Monatliche_Bedeckung/Monatliche_Bedeckung_%d.svg", family = "'Open Sans', Helvetica, Arial, sans", height=4, bg=NA)
 nmin <- min(table(month(CBhWolkenSample$MESS_DATUM)))
 zlim <- c(0, max(WolkenAggrMon$x))/nmin*100
 for(i in 1:12){
@@ -267,25 +270,28 @@ invisible(dev.off())
 ```
 
 
-<div>
-<ul class="nav nav-tabs">
-  <li class="active"><a data-toggle="tab" href="#home">Januar</a></li>
-  <li><a data-toggle="tab" href="#menu1">Februar</a></li>
-  <li><a data-toggle="tab" href="#menu2">März</a></li>
-</ul>
+<div id="Monatswerte">
+  <ul class="nav nav-tabs">
+  </ul>
+  
+  <div id="BedTab" class="tab-content">
+  </div>
+</div>
 
-<div id="BedTab" class="tab-content">
-  <div id="home" class="tab-pane in active">
-    <img src="/images/Monatliche_Bedeckung/Monatliche_Bedeckung_001.svg"/>
-  </div>
-  <div id="menu1" class="tab-pane">
-    <img src="/images/Monatliche_Bedeckung/Monatliche_Bedeckung_002.svg"/>
-  </div>
-  <div id="menu2" class="tab-pane">
-    <img src="/images/Monatliche_Bedeckung/Monatliche_Bedeckung_003.svg"/>
-  </div>
-</div>
-</div>
+
+<script type="text/javascript">
+var Monate = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
+var MonatsNav = d3.select("#Monatswerte").select("ul").selectAll("li");
+MonatsNav.data(Monate).enter().append("li").classed('active', function(d,i) { return i == 0; }).append("a").attr("data-toggle", "tab").attr("href", function(d) { return "#"+ d;}
+).attr("aria-expanded", "true").text(function(d) { return d; });
+
+var MonatsTabContent = d3.select("#BedTab").selectAll("div");
+MonatsTabContent.data(Monate).enter().append("div").attr("id", function(d) {return d;}).attr("class", "tab-pane").classed('active', function(d,i) { return i == 0; }).append("img").attr("src", function(d, i) {return "/images/Monatliche_Bedeckung/Monatliche_Bedeckung_" + (i+1)  + ".svg";});
+
+
+
+
+</script>
 
 
 # Regnet es nachts auch mehr?
