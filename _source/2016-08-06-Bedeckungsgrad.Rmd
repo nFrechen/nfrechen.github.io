@@ -1,13 +1,24 @@
 ---
 layout: post
-title: Interactive Data-Stories
+title: Daten als interaktive graphische Erzählung
 excerpt: Bedeckungsgrad
 category: showcase
 language: German
 ---
 
-Was Ihre Daten Ihnen zu erzählen haben.
-Geschichten, wie Sie Ihre Daten zu erzählen haben.
+Menschen sind keine Computer, die große Datenmengen einlesen und verarbeiten können. Allerdings sind wir sehr gut darin, grafische Muster zu erkennen und einzuordnen. Das visuelle Erfassen von Mustern erfolgt hochgradig parallel, im wahrsten Sinne des Wortes in wenigen Augenblicken. 
+
+Texte und Tabellen (die wiederum Text enthalten) müssen hingegen eher programmatisch (also seriell) abgearbeitet werden. Die Extraktion der enthaltenen Informationen nimmt viel mehr Zeit in Anspruch und erfordert auch mehr Denkleistung: Die nacheinander eingelesenen Informationen müssen im Kopf wieder zu einem Gesamtbild arrangiert werden -- aus dem eindimensionalen Strang von Worten muss im Kopf wieder ein Gewebe aus vernetzten Informationen entstehen.
+
+Tabellen und Formeln sind sicherlich die präziseren Arten, um Daten zu beschreiben. Jedoch ist es nicht so, dass die präziseste, knappeste Beschreibung diejenige ist, die auch am schnellsten vom Menschen erfasst werden kann. Wenn das Ziel der Datenanalyse also der Erkenntnisgewinn ist, sollte auch ein Output gewählt werden, den der Mensch leicht zum Erkenntnisgewinn nutzen kann. Wir wollen also als Output nicht weitere maschinenlesbare Daten erzeugen, sondern etwas, das vom Menschen leicht erfasst und verarbeitet werden kann.
+
+Allerdings stellt sich so eine Erkenntnis nicht unbedingt durch das Betrachten einer einzelnen Grafik ein. Meistens bedarf es einiges an Vorwissen: Um welche Daten handelt es sich? Wie wurden die Daten für die Grafik vorbereitet? Welche Darstellungsform wurde gewählt? Manchmal ist eine Grafik allein auch nicht ausreichend, um die Daten erschöpfend zu beschreiben und verständlich zu machen. Es müssen also meist mehrere Grafiken in einen erzählerischen Zusammenhang gebracht werden. Und ohne etwas Text wird das Ganze wahrscheinlich auch nicht auskommen.
+
+Daher soll in diesem Blogpost versucht werden, Daten durch eine solche grafische Erzählung erfahrbar zu machen. Im Folgenden soll also möglichst wenig Text verwendet werden. Der Text soll hauptsächlich auf Charakteristiken in den Grafiken aufmerksam machen und damit den Erkenntnisgewinn etwas leiten. Durch Interaktivität in den Grafiken soll ein mehr explorativer, also erforschender Erkenntnisgewinn ermöglicht werden und die Linearität der Erzählung durchbrochen werden, indem viele verschiedene Wege gewählt werden können, um die Daten zu verstehen.
+
+<!-- Dann lassen sich manche Daten auch grundsätzlich nicht in zwei Dimensionen darstellen. Durch vorgetäuschte Perspektive oder farbliche Schattierungen lassen sich noch dreidimensionale Daten darstellen. -->
+
+-------------------------
 
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css">
@@ -60,19 +71,16 @@ opts_chunk$set(message = F, error = F, warning = F, cache=T, autodep = T, fig.wi
 
 # Die Fragestellung
 
-Kennen Sie das Phänomen: Sie schauen nach dem Aufwachen aus dem Fenster und erblicken einen strahlend blauen Himmel. Sie freuen sich also auf einen sonnigen Tag! Aber als Sie das Haus verlassen, ist der Himmel schon wieder zugezogen und die Sonne scheint nicht so, wie sie das erwartet haben. Also die Frage: **"Kann es sein, dass wir in der Nacht und in den Morgenstunden häufiger klaren Himmel haben als tagsüber?"**. 
-
-Um diese Frage zu beantworten bieten sich die Daten der stündlichen Aufzeichnungen des Bedeckungsgrades des Deutschen Wetterdienstes an.
-
+Kennen Sie das Phänomen: Sie schauen nach dem Aufwachen aus dem Fenster und erblicken einen strahlend blauen Himmel. Sie freuen sich also auf einen sonnigen Tag! Aber als Sie nach dem Duschen und dem Frühstück das Haus verlassen, ist der Himmel schon wieder zugezogen und die Sonne scheint nicht so, wie sie das erwartet haben. Also die Frage: **"Kann es sein, dass wir in der Nacht und in den Morgenstunden häufiger klaren Himmel haben als tagsüber?"**. 
 
 ```{r download-stations}
 stations <- getDWDhourlyStations(Parameter = "cloudiness")
 ```
-
+Um diese Frage zu beantworten bieten sich ein Datensatz des Deutschen Wetterdienstes (DWD) an:
 Der Deutsche Wetterdienst unterscheidet neun Stufen des Bedeckungsgrades, die von 0 (keine Bedeckung) bis 8 (vollständige Bedeckung) reichen. Diese werden in stündlichen Intervallen aufgezeichnet. 
 Deutschlandweit werden `r nrow(stations)` Stationen betrieben, die auf diese Weise den Bedeckungsgrad aufzeichnen.
 
-Wir wollen uns nun anschauen, wie häufig die neun Stufen des Bedeckungsgrades in den Stunden 0 bis 23 gemessen wurden. Dazu erzeugen wir ein Raster aus 9 mal 24 Kästschen. Die Farbe der Kästschen definieren wir nach der Anzahl der Messwerte, die in diesem Kästschen liegen (zum Beispiel im <a data-toggle="tab" href="#Beispiel">Kästchen zum Bedeckungsgrad 3 zur Stunde 8</a>).
+Wir wollen uns nun anschauen, wie häufig die neun Stufen des Bedeckungsgrades in den Stunden 0 bis 23 gemessen wurden. Dazu erzeugen wir ein Raster aus 9 mal 24 Kästschen. Die Farbe der Kästschen definieren wir nach der Anzahl der Messwerte, die in diesem Kästschen liegen (zum Beispiel im <a data-toggle="tab" href="#Beispiel" onmouseover="highlight('none')">Kästchen zum Bedeckungsgrad 3 zur Stunde 8</a>).
 
 
 
@@ -179,7 +187,7 @@ invisible(dev.off())
   <div class="col-sm-4 ExplainPlot">
     <ul id="Bedeckung_nav" class="nav
     nav-stacked">
-      <li class="active"><a data-toggle="tab" href="#maximum" onmouseover="highlight('maximumLine')">Wenn es maximal bewölkt ist, macht es keinen Unterschied, ob es Tag oder Nacht ist.</a></li>
+      <li><a data-toggle="tab" href="#maximum" onmouseover="highlight('maximumLine')">Wenn es maximal bewölkt ist, macht es keinen Unterschied, ob es Tag oder Nacht ist.</a></li>
       <li><a data-toggle="tab" href="#Nacht" onmouseover="highlight('KlarLine')">Nachts ist die Wahrscheinlichkeit, dass der Himmel völlig klar ist wesentlich höher als tagsüber.</a></li>
       <li><a data-toggle="tab" href="#Tag_stark_bedeckt" onmouseover="highlight('starkLine')">Ein Bedeckungsgrad der Stufe 7 ist tagsüber wahrscheinlicher als nachts.</a></li>
       <li><a data-toggle="tab" href="#Tag" onmouseover="highlight('none')">Tagsüber sind geringe Bedeckungsgrade zwischen 0 und 5 ungefähr gleich wahrscheinlich.</a></li>
@@ -187,22 +195,25 @@ invisible(dev.off())
     </ul>
   </div>
   <div id="Bedeckung_Jahr" class="tab-content col-sm-8">
-    <div id="maximum" class="tab-pane in active">
+    <div id="base" class="tab-pane active">
+      <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad.svg"/>
+    </div>
+    <div id="maximum" class="tab-pane">
       <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_maximal.svg"/>
     </div>
-    <div id="Nacht" class="tab-pane in">
+    <div id="Nacht" class="tab-pane">
       <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Nacht_klar.svg"/>
     </div>
-    <div id="Tag_stark_bedeckt" class="tab-pane in">
+    <div id="Tag_stark_bedeckt" class="tab-pane">
       <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Tag_stark_bedeckt.svg"/>
     </div>
-    <div id="Tag" class="tab-pane in">
+    <div id="Tag" class="tab-pane">
       <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Tag.svg"/>
     </div>
-    <div id="Mittelbereich" class="tab-pane in">
+    <div id="Mittelbereich" class="tab-pane">
       <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Mittelbereich.svg"/>
     </div>
-    <div id="Beispiel" class="tab-pane in">
+    <div id="Beispiel" class="tab-pane">
       <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Beispiel.svg"/>
     </div>
     <div id="Line-plot">
