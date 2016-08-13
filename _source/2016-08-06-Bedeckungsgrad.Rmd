@@ -252,19 +252,62 @@ WolkenAggrMon <- aggregate(CBhWolkenSample$GESAMT_BEDECKUNGSGRAD, by=list(hour=C
 # Was ändert sich über den Jahresverlauf?
 
 ```{r image-plot-monatliche-Aggegierung}
-svg("../images/Monatliche_Bedeckung/Monatliche_Bedeckung_%d.svg", family = "'Open Sans', Helvetica, Arial, sans", height=4, bg=NA)
+svg("../images/Monatliche_Bedeckung/Monatliche_Bedeckung_%d.svg", family = "'Open Sans', Helvetica, Arial, sans", height=3, bg=NA)
 nmin <- min(table(month(CBhWolkenSample$MESS_DATUM)))
 zlim <- c(0, max(WolkenAggrMon$x))/nmin*100
 for(i in 1:12){
 	n <- sum(WolkenAggrMon$x[WolkenAggrMon$Monat==i])
-	par(mar=c(4.1, 4.1, 1.1, 3.1), mgp=c(2,1,0), lab=c(12, 8, 7))
+	par(mar=c(2.1, 4.1, 1.1, 1.1), mgp=c(2,0.7,0), lab=c(12, 8, 7))
 	
 	z <- matrix(WolkenAggrMon$x[WolkenAggrMon$Monat==i]/n*100, nrow = 24)
-	x <- matrix(rep(0:23, times=ncol(z)), ncol=ncol(z))
+	x <- matrix(rep((0:23)+0.5, times=ncol(z)), ncol=ncol(z))
 	y <- matrix(rep(0:8, times=nrow(z)), nrow=nrow(z), byrow=T)
 
-	image.plot(x=x, y=y, z=z, xlab="Uhrzeit", ylab="Bedeckungsgrad", col=viridis(100), legend.mar=7, legend.lab="Häufigkeit in % der Stunden im Monat", legend.line=2.5, graphics.reset = FALSE, las=1, main="", zlim=zlim, lwd=1, xaxs="i", yaxs="i")
+	image.plot(x=x, y=y, z=z, ylab="Bedeckungsgrad", col=viridis(100), legend.mar=6, legend.lab="Häufigkeit in %\n der Stunden im Monat", legend.line=3.5, graphics.reset = FALSE, las=1, main="", zlim=zlim, xlim=c(0,24), lwd=1, xaxs="i", yaxs="i")
 	#month.name[i]
+}
+invisible(dev.off())
+```
+
+```{r Sonnenverlauf}
+library(magrittr)
+library(astrolibR)
+
+png("../images/Monatliche_Bedeckung/Sonnenverlauf%d.png",width=7, height = 2.9, units="in", res=300, pointsize=12, bg = NA)
+  par(lab=c(12, 8, 7), mar=c(4.1, 4.1, 0.2, 6.4), mgp=c(2,0.7,0))
+for(Month in 1:12){
+  jd <- jdcnv(2016, Month, 21, 18) # get rough Julian date to determine Sun declination
+  sun_pos <- sunpos(jd)
+  breaks <- spline(y=c(-90, -16, -5, 0, 90), x=c(0, 15, 30, 65, 100), n = 500, method="hyman")
+  daylight <- colorRampPalette(c("#000099", "#C40101", "#FCEE9C", "#07C1FF"))( length(breaks$x)-1 )
+  #two.colors(n=length(breaks$x)-1, start="#000099", middle="#C40101", end="#00CBFF")
+  # image(x=0:100, y= 0, ylim=c(-100, 100), matrix(0:100, ncol=1), col=daylight)
+  # lines(breaks$x, breaks$y, ylim=c(-100,100))
+  ha <- 0:360
+  hadec2altaz(ha = ha, sun_pos$dec, 51) %>% as.data.frame() %>% .[order(.$az),] -> dd
+  dd$ha <- ha
+  dd$Uhrzeit <- ha/360*24
+
+  plot(dd$Uhrzeit, dd$alt, t="l", lwd=3, lty=2, ylim=c(-70,90), xaxs="i", yaxs="i", las=1, xlab="Uhrzeit", ylab="Höher der Sonne \n in Grad über dem Horizont",
+       panel.first={
+         image(y=matrix(0), x=matrix(dd$Uhrzeit, ncol=1), matrix(dd$alt, ncol=1), useRaster=TRUE,
+               col=daylight, add=T,
+               breaks=breaks$y)
+         twilight <- sort(order(abs(dd$alt))[1:2])
+         #stars:
+         points(runif(100, 0, dd$Uhrzeit[twilight[1]]), runif(100,-90, 90), col="white", pch=20, cex=runif(100, 0.001, 0.1))
+         points(runif(100, dd$Uhrzeit[twilight[2]], 24), runif(100,-90, 90), col="white", pch=20, cex=runif(100,0.001, 0.1))
+         #sun:
+         points(rep(12,8), rep(max(dd$alt),8), pch=20, col=rgb(255/255, 246/255,7/255, 0.3), cex=seq(4,10, length.out=8))
+         #ground:
+         rect(xleft = 0, ybottom = -100, xright = 360, ytop = 0, lwd=1, col="#703D33")
+         grid(col=rgb(0.5, 0.5, 0.5, 0.5))
+         rect(xleft = 0, ybottom = -90, xright = 360, ytop = 0, density = 4, lwd=1)
+       }
+  )
+  abline(h=0, lwd=4)
+  #abline(h=seq(-80,80, 20), lty=3)
+
 }
 invisible(dev.off())
 ```
@@ -285,10 +328,11 @@ var MonatsNav = d3.select("#Monatswerte").select("ul").selectAll("li");
 MonatsNav.data(Monate).enter().append("li").classed('active', function(d,i) { return i == 0; }).append("a").attr("data-toggle", "tab").attr("href", function(d) { return "#"+ d;}
 ).attr("aria-expanded", "true").text(function(d) { return d; });
 
-var MonatsTabContent = d3.select("#BedTab").selectAll("div");
-MonatsTabContent.data(Monate).enter().append("div").attr("id", function(d) {return d;}).attr("class", "tab-pane").classed('active', function(d,i) { return i == 0; }).append("img").attr("src", function(d, i) {return "/images/Monatliche_Bedeckung/Monatliche_Bedeckung_" + (i+1)  + ".svg";});
+var MonatsTabContent = d3.select("#BedTab").selectAll("div").data(Monate).enter().append("div").attr("id", function(d) {return d;}).attr("class", "tab-pane").classed('active', function(d,i) { return i == 0; });
 
+MonatsTabContent.append("img").attr("src", function(d, i) {return "/images/Monatliche_Bedeckung/Monatliche_Bedeckung_" + (i+1)  + ".svg";});
 
+MonatsTabContent.append("img").attr("src", function(d, i) {return "/images/Monatliche_Bedeckung/Sonnenverlauf" + (i+1)  + ".png";});
 
 
 </script>
