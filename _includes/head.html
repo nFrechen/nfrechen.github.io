@@ -6,9 +6,22 @@
     <title>{{ site.title }}</title>
     <meta name="description" content="{{ site.description }}">
 
-    <link rel="stylesheet" href="{{ "/css/main.css" | prepend: site.baseurl }}">
-    <link rel="stylesheet" href="{{ "/css/toc.css" | prepend: site.baseurl }}">
-    <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
+    {% if page.bootstrap %}
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.css">
+
+    <!-- jQuery library -->
+    <script src="/assets/jquery/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="/assets/bootstrap/js/bootstrap.js"></script>
+    <script src="//cdn.rawgit.com/tonystar/bootstrap-hover-tabs/master/bootstrap-hover-tabs.js"></script>
+    {% endif %}
+
+    {% if page.D3js %}
+    <!-- D3js library -->
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    {% endif %}
 
     {% if page.animation %}
     <link rel="stylesheet" href="/assets/css/scianimator.css">
@@ -45,6 +58,10 @@
     <script src="/assets/rglWebGL-binding/rglWebGL.js"></script>
     <script src="/assets/rglPlayer-binding/rglPlayer.js"></script>
     {% endif %}
+
+    <link rel="stylesheet" href="{{ "/css/main.css" | prepend: site.baseurl }}">
+    <link rel="stylesheet" href="{{ "/css/toc.css" | prepend: site.baseurl }}">
+    <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
 
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </head>

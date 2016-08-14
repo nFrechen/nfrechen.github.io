@@ -4,20 +4,10 @@ title: Ist der Himmel nachts häufiger klar?
 excerpt: Diese Frage soll auf interaktive Weise durch Daten beantwortet werden
 category: showcase
 language: German
+bootstrap: true
+D3js: true
 ---
 
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css">
-
-<!-- jQuery library -->
-<script src="/assets/jquery/jquery.min.js"></script>
-
-<!-- Latest compiled JavaScript -->
-<script src="/assets/bootstrap/js/bootstrap.js"></script>
-<script src="//cdn.rawgit.com/tonystar/bootstrap-hover-tabs/master/bootstrap-hover-tabs.js"></script>
-
-<!-- D3js library -->
-<script src="https://d3js.org/d3.v4.min.js"></script>
 
 <style>
 #BedTab{
