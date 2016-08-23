@@ -1,0 +1,20 @@
+---
+layout: post
+title: Daten als interaktive graphische Erzählung
+excerpt: Lass die Daten für sich sprechen!
+category: showcase
+language: German
+---
+
+Menschen sind keine Computer, die große Datenmengen einlesen und verarbeiten können. Allerdings sind wir sehr gut darin, grafische Muster zu erkennen und einzuordnen. Das visuelle Erfassen von Mustern erfolgt hochgradig parallel, im wahrsten Sinne des Wortes in wenigen Augenblicken. 
+
+Texte und Tabellen (die wiederum Text enthalten) müssen hingegen eher programmatisch (also seriell) abgearbeitet werden. Die Extraktion der enthaltenen Informationen nimmt viel mehr Zeit in Anspruch und erfordert auch mehr Denkleistung: Die nacheinander eingelesenen Informationen müssen im Kopf wieder zu einem Gesamtbild arrangiert werden -- aus dem eindimensionalen Strang von Worten muss im Kopf wieder ein Gewebe aus vernetzten Informationen entstehen.
+
+Tabellen und Formeln sind sicherlich die präziseren Arten, um Daten zu beschreiben. Jedoch ist es nicht so, dass die präziseste, knappeste Beschreibung diejenige ist, die auch am schnellsten vom Menschen erfasst werden kann. Wenn das Ziel der Datenanalyse also der Erkenntnisgewinn ist, sollte auch ein Output gewählt werden, den der Mensch leicht zum Erkenntnisgewinn nutzen kann. Wir wollen also als Output nicht weitere maschinenlesbare Daten erzeugen, sondern etwas, das vom Menschen leicht erfasst und verarbeitet werden kann.
+
+Allerdings stellt sich so eine Erkenntnis nicht unbedingt durch das Betrachten einer einzelnen Grafik ein. Meistens bedarf es einiges an Vorwissen: Um welche Daten handelt es sich? Wie wurden die Daten für die Grafik vorbereitet? Welche Darstellungsform wurde gewählt? Manchmal ist eine Grafik allein auch nicht ausreichend, um die Daten erschöpfend zu beschreiben und verständlich zu machen. Es müssen also meist mehrere Grafiken in einen erzählerischen Zusammenhang gebracht werden. Und ohne etwas Text wird das Ganze wahrscheinlich auch nicht auskommen, jedoch sollte er sparsam eingesetzt werden. Der Text sollte hauptsächlich auf Charakteristiken in den Grafiken aufmerksam machen und damit den Erkenntnisgewinn etwas leiten. Durch Interaktivität in den Grafiken kann ein mehr explorativer, also erforschender Erkenntnisgewinn ermöglicht werden und die Linearität der Erzählung durchbrochen werden, indem viele verschiedene Wege gewählt werden können, um die Daten zu verstehen.
+
+Ein Beispiel ist [dieser Blogpost](/showcase/Bedeckungsgrad.html), der der Frage nachgeht, ob der Himmel nachts häufiger klar ist, als tagsüber.
+
+<!-- Dann lassen sich manche Daten auch grundsätzlich nicht in zwei Dimensionen darstellen. Durch vorgetäuschte Perspektive oder farbliche Schattierungen lassen sich noch dreidimensionale Daten darstellen. -->
+

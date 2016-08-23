@@ -108,11 +108,11 @@ a {
  * Blockquotes
  */
 blockquote {
-    color: $grey-color;
+    /* color: $grey-color; */
     border-left: 4px solid $grey-color-light;
     padding-left: $spacing-unit / 2;
-    font-size: 18px;
-    letter-spacing: -1px;
+    /*font-size: 18px;
+    letter-spacing: -1px;*/
     font-style: italic;
 
     > :last-child {
@@ -223,4 +223,13 @@ pre {
             fill: $grey-color;
         }
     }
+}
+
+td {
+  vertical-align: top;
+  padding: 5px 5px;
+}
+th {
+  text-align: left;
+  padding: 5px 5px;
 }

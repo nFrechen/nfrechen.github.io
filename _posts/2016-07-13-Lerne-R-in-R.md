@@ -1,0 +1,43 @@
+---
+layout: post
+title: "Lerne R in R"
+author: "Nanu Frechen"
+excerpt: "Lerne R auf interaktive Weise mit swirl"
+category: howto
+language: German
+---
+
+`swirl` ist ein R-Paket, mit dem man den Umgang mit R durch interaktive Tutorials erlernen kann. Mit swirl lernt man R genau dort, wo man es später auch verwenden wird: in der Konsole von R. Jeweils einige Textzeilen erklären einem die nächsten Schritte, dann stellt swirl eine Aufgabe, die man durch Eingabe einer R-Formel in die Konsole lösen muss. Nach der Eingabe überprüft Swirl die Richtigkeit der eingegebenen Formel, des Ergebnisses oder von beidem. 
+
+Das Paket installiert man mit folgendem Befehl:
+
+{% highlight r %}
+install.packages("swirl")
+{% endhighlight %}
+
+Seit Frühjahr 2016 gibt es eine Deutsche Menüführung für swirl. An der Übersetzung habe ich selber mitgewirkt. Nach dem Laden des Pakets kann man die Sprache der Menüführung wie folgt umschalten:
+
+{% highlight r %}
+library(swirl)
+select_language(language = "german")
+{% endhighlight %}
+
+Es gibt eine Menge Tutorials, die man in swirl installieren kann. Die meisten sind jedoch auf Englisch. Stephan Weibelzahl von der Private University of Applied Sciences (PFH) in Göttingen hat den Englischen Grundkurs "R_Programming" ins Deutsche übersetzt und an die Bedürfnisse der Statistikausbildung für Psychologen an der PFH Göttingen angepasst. Dieser Kurs steht unter [https://github.com/weibelzahl/R_Programmieren](https://github.com/weibelzahl/R_Programmieren) zur Verfügung. Nebenbei hat er noch die ganzen Fehler korrigiert, die ich in die Übersetzung der Menüführung eingebaut hatte...
+
+
+Den deutschen Einführungskurs von Stephan Weibelzahl installiert man mit dem folgenden Befehl:
+
+
+{% highlight r %}
+install_course_github("weibelzahl", "R_Programmieren")
+{% endhighlight %}
+
+Danach kann man swirl mit dem Folgenden Befehl starten:
+
+{% highlight r %}
+swirl()
+{% endhighlight %}
+
+Den Rest erklärt swirl dann selber.
+
+Die anderen Kurse, die Weibelzahl unter [https://github.com/weibelzahl](https://github.com/weibelzahl) anbietet kann man sich sicherlich auch mal anschauen.

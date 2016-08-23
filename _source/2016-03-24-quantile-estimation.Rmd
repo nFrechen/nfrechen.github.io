@@ -8,8 +8,37 @@ category: discussion
 
 ```{r Settings, include=FALSE}
 library(knitr)
-opts_chunk$set(fig.height=7, echo=F, cache=T, dev="svg")
+opts_chunk$set(fig.height=7, echo=F, cache=T, dev="png")
 ```
+
+[Since 2004](https://stat.ethz.ch/pipermail/r-announce/2004/000427.html) R has implemented 9 types of quantile estimation recommended by Hyndman and Fan (1996):
+
+> $$Q_i(p)= (1-\gamma) x_j ++ \gamma x_{j+1}$$
+>
+> where $$1 ≤ i ≤ 9$$, $$(j-m)/n ≤ p < (j-m+1)/n$$, $$x_j$$ is the $$j$$th order statistic, $$n$$ is the sample size, the value of $$\gamma$$ is a function of $$j = floor(np + m)$$ and $$g = np + m - j$$, and $$m$$ is a constant determined by the sample quantile type.
+>
+> ### Discontinuous sample quantile types 1, 2, and 3
+>
+> For types 1, 2 and 3, $$Q_i(p)$$ is a discontinuous function of $$p$$, with $$m = 0$$ when $$i = 1$$ and $$i = 2$$, and $$m = -1/2$$ when $$i = 3$$.
+>
+> Type&nbsp;1: | Inverse of empirical distribution function. $$\gamma = 0$$ if $$g = 0$$, and $$1$$ otherwise.
+> Type&nbsp;2: | Similar to type 1 but with averaging at discontinuities. $$\gamma = 0.5$$ if $$g = 0$$, and $$1$$ otherwise.
+> Type&nbsp;3: | SAS definition: nearest even order statistic. $$\gamma = 0$$ if $$g = 0$$ and $$j$$ is even, and $$1$$ otherwise.
+>
+> ### Continuous sample quantile types 4 through 9
+> 
+> For types 4 through 9, $$Q_i(p)$$ is a continuous function of $$p$$, with $$\gamma = g$$ and $$m$$ given below. The sample quantiles can be obtained equivalently by linear interpolation between the points $$(p_k,x_k)$$ where $$x_k$$ is the $$k$$th order statistic. Specific expressions for $$p_k$$ are given below.
+>
+> Type&nbsp;4: | Parzen&nbsp;(1979) | $$m = 0$$ | $$p_k = \frac{k}{n}$$ | That is, linear interpolation of the empirical cdf.
+> Type&nbsp;5: | Hazen&nbsp;(1914) | $$m = \frac{1}{2}$$ | $$p_k = \frac{k - 0.5}{n}$$ | That is a piecewise linear function where the knots are the values midway through the steps of the empirical cdf. This is popular amongst hydrologists.
+> Type&nbsp;6: | Weibull&nbsp;(1939), Gumbel&nbsp;(1939) | $$m = p$$ | $$p_k = \frac{k}{n + 1}$$ | Thus $$p_k = E[F(x[k])]$$. This is used by Minitab and by SPSS.
+> Type&nbsp;7: | Gumbel&nbsp;(1939) | $$m = 1-p$$ |  $$p_k = \frac{k - 1}{n - 1}$$ | In this case, $$p_k = mode[F(x[k])]$$. This is used by S and by R < 2.0.0.
+> Type&nbsp;8: | Johnson and Kotz (1970) |$$m = \frac{p+1}{3}$$ | $$p_k = \frac{k - 1/3}{n + 1/3}$$ | Then $$p_k \approx median[F(x[k])]$$. The resulting quantile estimates are approximately median-unbiased regardless of the distribution of $$x$$.
+> Type&nbsp;9: | Blom&nbsp;(1958) | $$m = \frac{p}{4} + \frac{3}{8}$$ | $$p_k = \frac{k - 3/8}{n + 1/4}$$ | The resulting quantile estimates are approximately unbiased for the expected order statistics if $$x$$ is normally distributed.
+>
+> Further details are provided in Hyndman and Fan (1996) who recommended type 8. The default method is type 7, as used by S and by R < 2.0.0.
+
+--------------------
 
 There are many different ways to estimate the quantiles of an empirical distribution. R knows 9 different types (see help page of ```quantile()```). It is clear that for high $$n$$ the differences in these approaches become negligible. It is only the low $$n$$, where they deviate. There is a lof of mathematical argumentation and justification out there for each of these methods, but apparently non of them is convincing enough, that the whole statistical community would stick to that method. Every statistic software has different defaults and some have no alternative methods to choose from like R has.
 
@@ -22,12 +51,12 @@ My first Idea was to find a way to visualize the differences between these nine 
 What I came up with is illustrated in the next plot. I devided the probability range into equal lengths. For $$n=2$$ I devided it into two sections, for $$n=10$$ into 10 sections (visualized in the graph with alternating gray and white areas). Each section will be represented by a probability located in the middle of the section. This is represented in the graph with the horizontal dotted lines. Where the horizontal lines cut the theoretical distribution funtion (in this case a normal distribution) defines the value of the quantile corresponding to this probability. The quantiles can be read from the x-axis. Notice how the horizontal lines (the probabilities) are equidistant. The vertical lines (the quantiles) follow the distribution function which causes the outermost quantiles beeing further apart than the central ones.
 
 
-```{r theoretical-and-discrete-distribution-for-different-n, dev="svg"}
-par(mfrow=c(3,3), mar=c(0,1,2,.3), oma=c(5,4,4,6))
+```{r theoretical-and-discrete-distribution-for-different-n, dev="svg", fig.height=5}
+par(mfrow=c(2,3), mar=c(0,1,2,.3), oma=c(5,4,4,6))
 plotnum <- 1
 
 p_i.fine <- seq(0, 1, length.out=500)
-for(n in c(1,2, 3, 4, 5, 10, 20, 50, 30) ){
+for(n in c(3, 5, 10, 20, 50, 30) ){
   p_i <- seq(1/(n*2), 1-1/(n*2), length.out=n)
   if(n==30){
     q_i <- sort(rnorm(n))
@@ -58,7 +87,7 @@ for(n in c(1,2, 3, 4, 5, 10, 20, 50, 30) ){
   if(plotnum%%3==1){
     axis(2, las=1)
   }
-  if(plotnum>6){
+  if(plotnum>3){
     axis(1)
   }
   plotnum <- plotnum + 1
@@ -103,7 +132,7 @@ It shows the result of the `quantile()` function executed with different `type` 
 For very high $$n$$ all these estimations end up where the theoretical quantiles are located (compare secondary axis on the right). The difference is how fast they approach this value for low $$n$$.
 
 
-```{r distribution-estimation-with-different-methods}
+```{r distribution-estimation-with-different-methods, dev="svg"}
 par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,3,6))
 
 nmax <- 1000
@@ -119,7 +148,7 @@ for(type in 1:9){
   }
 }
 
-ylim <- range(Qmatrix[,,])
+ylim <- max(abs(Qmatrix[,,]))*c(-1,1)
 
 for(type in 1:9){
   #View(Qmatrix)
@@ -216,7 +245,7 @@ The systematics of the deviation can be seen in the next figure in red circles. 
 
 Every approach shows different deviations. Type 4 shows the already discussed overall underestimation of the quantiles, but also shows that the outer quantiles show even greater deviation than the inner. Type 7 shows overestimation of the lower quantiles and underestimation of the higher quantiles, resulting in a underestimation of the spread of the distribution. For type 5, 6, 8 and 9 it is the other way around. At $$n=10$$ they overestimate the spread especially of the outermost quantiles. This effect is strongest for type 6 and the weakest for type 5 which again seems to be the most reliable way to estimate the quantiles. Type 1 to 3 show jumping deviations. Here the deviations (with our first graph in mind) should be entirely different for $$n=11$$. For all methods the deviations should disappear with high $$n$$, but some methods, show already quite accurate estimation of the inner quantiles. Type 8 and 9 show high deviations only for the $$0.125$$ and $$0.875$$ quantiles and type 5 seems to be accurate even for these quantiles.
 
-```{r comparison-between-discrete-and-random-repetition}
+```{r comparison-between-discrete-and-random-repetition, dev="svg"}
 par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(8,5,3,6))
 
 ylim <- max(abs(range(c(t(MeanQuantile[,repetitions,])-qnorm(Q), t(Qmatrix[,n,])-qnorm(Q))))) * c(-1,1)
@@ -247,7 +276,7 @@ For $$n=20$$ the deviations of type 2 are quite low. But this is just, because t
 
 For other distributions there are similar deviations of the different estimation methods as they are for the normal distribution.
 
-```{r comparison-between-discrete-and-random-repetition-with-n-20, eval=F}
+```{r comparison-between-discrete-and-random-repetition-with-n-20, eval=F, dev="svg"}
 
 par(mfrow=c(3,3), mar=c(.1,1,2,.1), oma=c(5,4,3,6))
 
@@ -571,3 +600,37 @@ mtext("quantiles estimated from discrete distribution in black, from repeated ra
 mtext("quantiles", 1, outer=T, line=3)
 
 ```
+
+
+```{r boxplot_quantiles, fig.width=7, fig.height=6}
+par(mfrow=c(1,2), mar=c(0,1,2,.1), oma=c(5,4,3,6))
+
+
+Q <- seq(1/(d+1), 1-1/(d+1), length.out=d)
+nmax <- 1000
+Qmatrix <- data.frame(lower_whisker=NA, lower_hinge=NA, median=NA, upper_hinge=NA, upper_whisker=NA)
+
+for(n in 1:nmax){
+    x <- seq(1/(n*2), 1-1/(n*2), length.out=n)
+    Qmatrix[n,] <- boxplot(qnorm(x), plot = F)$stats
+}
+
+ylim <- max(abs(Qmatrix))*c(-1.3,1.3)
+cols <- c(1,2,3,2,1)
+
+plot(NULL, xlim=c(1,nmax), ylim=ylim, log="x", 
+     main='"quantiles" calculated to display boxplots', xlab="", ylab="", frame.plot=T, panel.first=abline(v=c(1,2,5,10,20,50,100,200,500,1000), h=qnorm(Q), col="lightgray"))
+for(i in 1:5){
+  lines(Qmatrix[,i], col=cols[i], type="l")
+}
+axis(4, at=qnorm(Q), Q, las=1)
+legend("topleft", legend = rev(colnames(Qmatrix)), col=cols, lty=1)
+mtext("theoretical probabilities corresponding to the quantiles", 4, line=4.5, outer=T)  
+mtext("estimated quantile", side = 2, outer = T, cex=1, line=2.5)
+mtext("number of points uniformly distributed over probabilities",1, outer=T, line=3.5)
+
+# plot example boxplot
+bxp(boxplot(qnorm(x), plot = F), medcol=3, staplecol=1, boxcol=2, lwd=2, ylim=ylim, axes=F)
+
+```
+
