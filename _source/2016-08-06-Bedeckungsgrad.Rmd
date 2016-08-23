@@ -1,0 +1,374 @@
+---
+layout: post
+title: Ist der Himmel nachts häufiger klar?
+excerpt: Diese Frage soll auf interaktive Weise durch Daten beantwortet werden
+category: showcase
+language: German
+author: Nanu Frechen
+bootstrap: true
+D3js: true
+---
+
+
+<style>
+#Monatswerte{
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  padding: 5px 5px;
+}
+ul, ol{
+  margin-left: 0px;
+}
+.nav > li > a {
+    padding: 1px 6px;
+}
+#Bedeckungsgrad{
+  background-image: url('/images/Monatliche_Bedeckung/Bedeckungsgrad.svg');
+  background-size: 100% auto;
+  background-repeat: none;
+}
+.ExplainPlot{
+  padding: 0;
+}
+svg {
+  width: 100%;
+  
+  height: auto;
+}
+</style>
+
+
+```{r setting, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+library(knitr)
+knit_hooks$set(small.mar = function(before, options, envir) {
+  if (before) {
+			par(pch=20)
+  	}
+})
+opts_chunk$set(message = F, error = F, warning = F, cache=T, autodep = T, fig.width = 8, fig.height = 8, dev="svg", small.mar=T, echo=F)
+```
+
+# Die Fragestellung
+
+Kennen Sie das Phänomen: Sie schauen nach dem Aufwachen aus dem Fenster und erblicken einen strahlend blauen Himmel. Sie freuen sich also auf einen sonnigen Tag! Aber als Sie nach dem Duschen und dem Frühstück das Haus verlassen, ist der Himmel schon wieder zugezogen und die Sonne scheint nicht so, wie sie das erwartet haben. Also die Frage: **"Kann es sein, dass wir in der Nacht und in den Morgenstunden häufiger klaren Himmel haben als tagsüber?"**. 
+
+```{r install}
+library(devtools)
+install_github("nFrechen/RgetDWDdata", ref = "feature/hourly_data")
+```
+```{r download-stations}
+library(RgetDWDdata)
+stations <- getDWDhourlyStations(Parameter = "cloudiness")
+```
+Um diese Frage zu beantworten bieten sich ein Datensatz des Deutschen Wetterdienstes (DWD) an:
+Der Deutsche Wetterdienst unterscheidet neun Stufen des Bedeckungsgrades, die von 0 (keine Bedeckung) bis 8 (vollständige Bedeckung) reichen. Diese werden in stündlichen Intervallen aufgezeichnet. 
+Deutschlandweit werden `r nrow(stations)` Stationen betrieben, die auf diese Weise den Bedeckungsgrad aufzeichnen.
+
+Wir wollen uns nun anschauen, wie häufig die neun Stufen des Bedeckungsgrades zwischen 0 und 24 Uhr gemessen wurden. Dazu erzeugen wir ein Raster aus 9 mal 24 Kästschen. Die Farbe der Kästschen definieren wir nach der Anzahl der Messwerte, die in diesem Kästschen liegen (zum Beispiel im <a data-toggle="tab" href="#Beispiel" onmouseover="highlight('none')">Kästchen zum Bedeckungsgrad 3 im Zeitraum zwischen Stunde 8 und 9</a>).
+
+
+
+```{r load-libraries, results='hide'}
+library(RgetDWDdata)
+library(viridis)
+library(fields)
+library(highcharter)
+Sys.setlocale(category = "LC_TIME", "de_DE")
+month.name <- format(ISOdate(2000, 1:12, 1), "%B")
+```
+
+
+
+
+```{r Wolken-Daten-download}
+CBhWolken <- getDWDhourly("00880", Parameter = "cloudiness", historisch = NA)
+
+CBhWolken$hour <- hour(CBhWolken$MESS_DATUM)
+#sort(unique(CBhWolken$GESAMT_BEDECKUNGSGRAD))
+sel <- which(CBhWolken$GESAMT_BEDECKUNGSGRAD>=0)
+#nrow(CBhWolken)
+n <- 200000
+CBhWolkenSample <- CBhWolken[sel,][sample(1:length(sel), n),]
+```
+
+
+```{r scatterplot, dev="png", eval=F}
+plot((CBhWolkenSample$hour+runif(n,0,1)), (CBhWolkenSample$GESAMT_BEDECKUNGSGRAD+runif(n,0,1)), pch=20, cex=0.1, col=rgb(0,0,0,0.2))
+```
+
+
+```{r Aggregierung}
+WolkenAggr <- aggregate(CBhWolkenSample$GESAMT_BEDECKUNGSGRAD, by=list(hour=CBhWolkenSample$hour, Bedeckung=CBhWolkenSample$GESAMT_BEDECKUNGSGRAD), FUN=length)
+```
+
+# Was zeigt die Statistik?
+
+```{r image-plot-ganzes-Jahr}
+svg("../images/Monatliche_Bedeckung/Bedeckungsgrad.svg", family = "'Open Sans', Helvetica, Arial, sans", height=5)
+
+n <- sum(WolkenAggr$x)
+par(mar=c(4.1, 4.1, 0.5, 3.1), mgp=c(2,1,0), lab=c(12, 8, 7))
+
+z <- matrix(WolkenAggr$x/n*100, nrow = 24)
+x <- matrix(rep((0:23)+0.5, times=ncol(z)), ncol=ncol(z))
+y <- matrix(rep(0:8, times=nrow(z)), nrow=nrow(z), byrow=T)
+	
+image.plot(x=x, y=y, z=z, xlab="Uhrzeit", ylab="Bedeckungsgrad", col=viridis(100), legend.mar=5, legend.lab="Häufigkeit in % der Stunden im Jahr", legend.line=2.5, graphics.reset = FALSE, las=1, horizontal=TRUE, lwd=1, xaxs="i", yaxs="i")
+
+invisible(dev.off())
+```
+
+```{r image-plot-ganzes-Jahr-annotated}
+svg("../images/Monatliche_Bedeckung/Bedeckungsgrad_annotated.svg", family = "'Open Sans', Helvetica, Arial, sans", height=5)
+
+n <- sum(WolkenAggr$x)
+par(mar=c(4.1, 4.1, 4.1, 3.1), mgp=c(2,1,0), lab=c(12, 8, 7))
+
+image.plot(x=0:23, y=0:8, z=matrix(WolkenAggr$x/n*100, nrow = 24), xlab="Uhrzeit", ylab="Bedeckungsgrad", col=viridis(100), legend.mar=7, legend.lab="Häufigkeit in % der Stunden im Jahr", legend.line=2.5, graphics.reset = FALSE, las=1)
+
+# Wenn es maximal bewölkt ist, macht es keinen Unterschied, ob es Tag oder Nacht ist
+rect(xleft = 0-0.5, ybottom = 8-0.5, xright = 24-0.5, ytop = 9-0.5, lwd=3, xpd=NA, border="red")
+
+# Nachts ist die Wahrscheinlichkeit, dass der Himmel völlig klar ist wesentlich höher als tagsüber
+rect(xleft = 0-0.5, ybottom = 0-0.5, xright = 9-0.5, ytop = 1-0.5, lwd=3, , xpd=NA, border ="green")
+rect(xleft = 17-0.5, ybottom = 0-0.5, xright = 24-0.5, ytop = 1-0.5, lwd=3, xpd=NA, border="green")
+
+# Tagsüber ist eine Bedeckung der Stufe 7 wahrscheinlicher als nachts
+rect(xleft = 9-0.5, ybottom = 7-0.5, xright = 17-0.5, ytop = 8-0.5, lwd=3, xpd=NA, border="blue")
+
+# Tagsüber sind geringe Bedeckungsgrade zwischen 0 und 5 ungefähr gleich wahrscheinlich
+rect(xleft = 9-0.5, ybottom = 0-0.5, xright = 17-0.5, ytop = 6-0.5, lwd=3, xpd=NA, border="orange")
+
+# Bedeckungsgrade von 1 bis 6 unterscheiden sich in ihrer Häufigkeit nicht groß zwischen Tag und Nacht
+rect(xleft = 0-0.5, ybottom = 1-0.45, xright = 24-0.5, ytop = 7-0.55, lwd=3, xpd=NA, border="yellow")
+
+invisible(dev.off())
+```
+
+
+```{r line-plots}
+svg("../images/Monatliche_Bedeckung/Line-plot.svg", family = "'Open Sans', Helvetica, Arial, sans", height=4
+    )
+
+par(mar=c(4.1, 4.1, 0.1, 3.1), mgp=c(3,1,0), lab=c(12, 4, 7))
+
+plot(0:23, WolkenAggr$x[WolkenAggr$Bedeckung==8]/n*100, type="l", ylim=c(0,2), col="green", pch=20, ylab="Häufigkeit in %", xlab="Uhrzeit", las=1,
+     panel.first=grid())
+  
+lines(0:23, WolkenAggr$x[WolkenAggr$Bedeckung==0]/n*100, type="l", pch=20)
+lines(0:23, WolkenAggr$x[WolkenAggr$Bedeckung==7]/n*100, type="l", col="blue", pch=20)
+lines(0:23, WolkenAggr$x[WolkenAggr$Bedeckung==4]/n*100, type="l", col="darkblue", pch=20)
+invisible(dev.off())
+```
+
+
+<div>
+  <div class="col-sm-4 ExplainPlot">
+    <ul id="Bedeckung_nav" class="nav
+    nav-stacked">
+      <li><a data-toggle="tab" href="#maximum" onmouseover="highlight('maximumLine')">Wenn es maximal bewölkt ist, macht es keinen Unterschied, ob es Tag oder Nacht ist.</a></li>
+      <li><a data-toggle="tab" href="#Nacht" onmouseover="highlight('KlarLine')">Nachts ist die Wahrscheinlichkeit, dass der Himmel völlig klar ist wesentlich höher als tagsüber.</a></li>
+      <li><a data-toggle="tab" href="#Tag_stark_bedeckt" onmouseover="highlight('starkLine')">Ein Bedeckungsgrad der Stufe 7 ist tagsüber wahrscheinlicher als nachts.</a></li>
+      <li><a data-toggle="tab" href="#Tag" onmouseover="highlight('none')">Tagsüber sind geringe Bedeckungsgrade zwischen 0 und 5 ungefähr gleich wahrscheinlich.</a></li>
+      <li><a data-toggle="tab" href="#Mittelbereich" onmouseover="highlight('MittelLine')">Bedeckungsgrade von 1 bis 6 unterscheiden sich in ihrer Häufigkeit nicht groß zwischen Tag und Nacht.</a></li>
+    </ul>
+  </div>
+  <div id="Bedeckung_Jahr" class="tab-content col-sm-8">
+    <div id="base" class="tab-pane active">
+      <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad.svg"/>
+    </div>
+    <div id="maximum" class="tab-pane">
+      <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_maximal.svg"/>
+    </div>
+    <div id="Nacht" class="tab-pane">
+      <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Nacht_klar.svg"/>
+    </div>
+    <div id="Tag_stark_bedeckt" class="tab-pane">
+      <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Tag_stark_bedeckt.svg"/>
+    </div>
+    <div id="Tag" class="tab-pane">
+      <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Tag.svg"/>
+    </div>
+    <div id="Mittelbereich" class="tab-pane">
+      <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Mittelbereich.svg"/>
+    </div>
+    <div id="Beispiel" class="tab-pane">
+      <img id="Bedeckungsgrad" src="/images/Monatliche_Bedeckung/Bedeckungsgrad_Beispiel.svg"/>
+    </div>
+    <div id="Line-plot">
+```{r ,results='asis', cache=F}
+cat(readLines("../images/Monatliche_Bedeckung/Line-plot-scriptable.svg"), fill=TRUE)
+```
+    </div>
+  </div>  
+</div>
+
+<p style="clear: both;"></p> <!-- Platzhaltertext -->
+
+
+<script  type="text/javascript">
+function highlight(id){
+  var i;
+  var lines = ["maximumLine", "KlarLine", "MittelLine", "starkLine"];
+  for(i = 0; i < lines.length; i++){
+      document.getElementById(lines[i]).style.strokeWidth = "0.75px";
+  }
+  if (id != "none"){
+    document.getElementById(id).style.strokeWidth = "3px";
+  }
+  
+  return false;
+}
+</script>
+
+
+
+```{r line-plot-highchart, cache=FALSE, eval=F}
+highchart() %>% 
+	hc_xAxis( title=list(text="hour")) %>%
+hc_add_series( name="8", data=WolkenAggr$x[WolkenAggr$Bedeckung==8]/n*100, type="spline", animation=FALSE) %>%
+hc_add_series(name="0", data=WolkenAggr$x[WolkenAggr$Bedeckung==0]/n*100, type="spline", animation=FALSE) %>%
+hc_add_series(name="7", data=WolkenAggr$x[WolkenAggr$Bedeckung==7]/n*100, type="spline", animation=FALSE) %>%
+hc_add_series(name="4", data=WolkenAggr$x[WolkenAggr$Bedeckung==4]/n*100, type="spline", animation=FALSE) %>%
+hc_legend(title=list(text="Bedeckung"))
+```
+
+
+```{r Monatliche-Aggegierung}
+CBhWolken <- CBhWolken[CBhWolken$GESAMT_BEDECKUNGSGRAD > -1,] # remove rows with -1
+WolkenAggrMon <- aggregate(CBhWolken$GESAMT_BEDECKUNGSGRAD, by=list(hour=CBhWolken$hour, Bedeckung=CBhWolken$GESAMT_BEDECKUNGSGRAD, Monat=month(CBhWolken$MESS_DATUM)), FUN=length)
+```
+
+
+# Was ändert sich über den Jahresverlauf?
+
+```{r image-plot-monatliche-Aggegierung}
+svg("../images/Monatliche_Bedeckung/Monatliche_Bedeckung_%d.svg", family = "'Open Sans', Helvetica, Arial, sans", height=3, bg=NA)
+nmin <- min(table(month(CBhWolkenSample$MESS_DATUM)))
+zlim <- c(0, max(WolkenAggrMon$x))/nmin*100
+for(i in 1:12){
+	n <- sum(WolkenAggrMon$x[WolkenAggrMon$Monat==i])
+	par(mar=c(2.1, 4.1, 1.1, 1.1), mgp=c(2,0.7,0), lab=c(12, 8, 7))
+	
+	z <- matrix(WolkenAggrMon$x[WolkenAggrMon$Monat==i]/n*100, nrow = 24)
+	x <- matrix(rep((0:23)+0.5, times=ncol(z)), ncol=ncol(z))
+	y <- matrix(rep(0:8, times=nrow(z)), nrow=nrow(z), byrow=T)
+
+	image.plot(x=x, y=y, z=z, ylab="Bedeckungsgrad", col=viridis(100), legend.mar=6, legend.lab="Häufigkeit in %\n der Stunden im Monat", legend.line=3.5, graphics.reset = FALSE, las=1, main="", zlim=zlim, xlim=c(0,24), lwd=1, xaxs="i", yaxs="i")
+	#month.name[i]
+}
+invisible(dev.off())
+```
+
+```{r Sonnenverlauf}
+library(magrittr)
+library(astrolibR)
+
+png("../images/Monatliche_Bedeckung/Sonnenverlauf%d.png",width=7, height = 2.9, units="in", res=300, pointsize=12, bg = NA)
+  par(lab=c(12, 8, 7), mar=c(4.1, 4.1, 0.2, 6.4), mgp=c(2,0.7,0))
+for(Month in 1:12){
+  jd <- jdcnv(2016, Month, 21, 18) # get rough Julian date to determine Sun declination
+  sun_pos <- sunpos(jd)
+  breaks <- spline(y=c(-90, -16, -5, 0, 90), x=c(0, 15, 30, 65, 100), n = 500, method="hyman")
+  daylight <- colorRampPalette(c("#000099", "#C40101", "#FCEE9C", "#07C1FF"))( length(breaks$x)-1 )
+  #two.colors(n=length(breaks$x)-1, start="#000099", middle="#C40101", end="#00CBFF")
+  # image(x=0:100, y= 0, ylim=c(-100, 100), matrix(0:100, ncol=1), col=daylight)
+  # lines(breaks$x, breaks$y, ylim=c(-100,100))
+  ha <- 0:360
+  hadec2altaz(ha = ha, sun_pos$dec, 51) %>% as.data.frame() %>% .[order(.$az),] -> dd
+  dd$ha <- ha
+  dd$Uhrzeit <- ha/360*24
+
+  plot(dd$Uhrzeit, dd$alt, t="l", lwd=3, lty=2, ylim=c(-70,90), xaxs="i", yaxs="i", las=1, xlab="Uhrzeit", ylab="Höher der Sonne \n in Grad über dem Horizont",
+       panel.first={
+         image(y=matrix(0), x=matrix(dd$Uhrzeit, ncol=1), matrix(dd$alt, ncol=1), useRaster=TRUE,
+               col=daylight, add=T,
+               breaks=breaks$y)
+         twilight <- sort(order(abs(dd$alt))[1:2])
+         #stars:
+         points(runif(100, 0, dd$Uhrzeit[twilight[1]]), runif(100,-90, 90), col="white", pch=20, cex=runif(100, 0.001, 0.1))
+         points(runif(100, dd$Uhrzeit[twilight[2]], 24), runif(100,-90, 90), col="white", pch=20, cex=runif(100,0.001, 0.1))
+         #sun:
+         points(rep(12,8), rep(max(dd$alt),8), pch=20, col=rgb(255/255, 246/255,7/255, 0.3), cex=seq(4,10, length.out=8))
+         #ground:
+         rect(xleft = 0, ybottom = -100, xright = 360, ytop = 0, lwd=1, col="#703D33")
+         grid(col=rgb(0.5, 0.5, 0.5, 0.5))
+         rect(xleft = 0, ybottom = -90, xright = 360, ytop = 0, density = 4, lwd=1)
+       }
+  )
+  abline(h=0, lwd=4)
+  #abline(h=seq(-80,80, 20), lty=3)
+
+}
+invisible(dev.off())
+```
+
+
+<div id="Monatswerte">
+  <ul class="nav nav-pills">
+  </ul>
+  
+  <div id="BedTab" class="tab-content">
+  </div>
+</div>
+
+
+<script type="text/javascript">
+var Monate = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
+var MonatsNav = d3.select("#Monatswerte").select("ul").selectAll("li");
+MonatsNav.data(Monate).enter().append("li").classed('active', function(d,i) { return i == 0; }).append("a").attr("data-toggle", "tab").attr("href", function(d) { return "#"+ d;}
+).attr("aria-expanded", "true").text(function(d) { return d; });
+
+var MonatsTabContent = d3.select("#BedTab").selectAll("div").data(Monate).enter().append("div").attr("id", function(d) {return d;}).attr("class", "tab-pane").classed('active', function(d,i) { return i == 0; });
+
+MonatsTabContent.append("img").attr("src", function(d, i) {return "/images/Monatliche_Bedeckung/Monatliche_Bedeckung_" + (i+1)  + ".svg";});
+
+MonatsTabContent.append("img").attr("src", function(d, i) {return "/images/Monatliche_Bedeckung/Sonnenverlauf" + (i+1)  + ".png";});
+
+
+</script>
+
+
+<!-- # Regnet es nachts auch mehr? -->
+
+```{r precipitation-download}
+library(lubridate)
+CBhPrecip <- getDWDhourly("00880", Parameter = "precipitation", historisch = NA)
+
+
+CBhPrecip$hour <- hour(CBhPrecip$MESS_DATUM)
+sel <- which(CBhPrecip$NIEDERSCHLAGSHOEHE>0)
+#n <- 10000
+n <- nrow(CBhPrecip[sel,])
+CBhPrecipSample <- CBhPrecip[sel,][sample(1:length(sel), n),]
+```
+
+
+```{r precipitiation-scatterplot, dev="png", eval=FALSE}
+plot((CBhPrecipSample$hour+runif(n,0,1)), (CBhPrecipSample$NIEDERSCHLAGSHOEHE+runif(n,0,0.1)), pch=20, cex=0.1, col=rgb(0,0,0,1), log="y")
+```
+
+
+```{r merge-precipitation-and-cloudiness, eval=FALSE}
+#CBhMerged <- merge(x=CBhPrecip$NIEDERSCHLAGSHOEHE, y=CBhWolken$GESAMT_BEDECKUNGSGRAD,)
+
+```
+
+
+
+
+
+
+
+
+
+<script>
+(function ($) {
+  $(function () {
+    $(document).off('click.bs.tab.data-api', '[data-hover="tab"]');
+    $(document).on('mouseenter.bs.tab.data-api', '[data-toggle="tab"], [data-hover="tab"]', function () {
+      $(this).tab('show');
+    });
+  });
+})(jQuery);
+</script>

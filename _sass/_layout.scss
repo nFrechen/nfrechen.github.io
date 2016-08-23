@@ -63,6 +63,9 @@
 
     .menu-icon {
         display: none;
+        -webkit-box-sizing: initial;
+        -moz-box-sizing: initial;
+        box-sizing: initial;
     }
 
     .page-link {
@@ -273,6 +276,7 @@
     font-size: 24px;
     color:rgb(21, 153, 87);
     padding-bottom: 0px;
+    line-height: 1.3;
     &:visited {
       color:rgb(21, 153, 87);
     }
