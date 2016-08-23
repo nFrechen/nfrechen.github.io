@@ -140,8 +140,8 @@ for(type in 1:9){
   }
 }
 mtext("quantile estimation from a discrete normal distribution", 3, outer=T, cex=1.2, line=1, font=2)
-mtext("theoretical probabilities corresponding to the quantiles", 4, line=4.5, outer=T)  
-mtext("estimated quantile", side = 2, outer = T, cex=1, line=2.5)
+mtext("probabilities corresponding to theoretical quantiles", 4, line=4.5, outer=T)  
+mtext("estimated quantiles", side = 2, outer = T, cex=1, line=2.5)
 mtext("number of points uniformly distributed over probabilities",1, outer=T, line=3.5)
 
 ```
@@ -202,10 +202,14 @@ for(type in 1:9){
   if(type%%3==0) axis(4, qnorm(Q), Q, las=1)
   
 }
-mtext(paste("mean of repeated quantile estimation with n =", n), 3, outer=T, line=1, font=2, cex=1.2)
-mtext("number of repetitions", 1, outer=T, line=3.5)
-mtext("quantiles of theoretical distribution", 4, outer=T, line=4.5)
-mtext("mean estimated value for standard distribution", side = 2, outer = T, cex=1, line=2.5)
+mtext(paste("running mean of repeated quantile estimation with n =", n), 3, outer=T, line=1, font=2, cex=1.2)
+#mtext("number of avaraged repetitions", 1, outer=T, line=3.5)
+#mtext("number of repetitions forming the running mean", 1, outer=T, line=3.5)
+#mtext("number of random drawings forming the avarage", 1, outer=T, line=3.5)
+mtext("number of random drawings contributing to running mean", 1, outer=T, line=3.5)
+mtext("probabilities corresponding to theoretical quantiles", 4, outer=T, line=4.5)
+#mtext("quantiles estimated from random distribution", side = 2, outer = T, cex=1, line=2.5)
+mtext("avaraged quantile estimations", side = 2, outer = T, cex=1, line=2.5)
 ```
 
 The systematics of the deviation can be seen in the next figure in red circles. And: Bingo!, they match the deviations from my first thoght experiment with the discrete theoretical distributions (black circles) quite well. This approves, that this approach was a reasonable way to investigate the systematics behind the different quantile estimation methods.
@@ -230,7 +234,7 @@ for(type in 1:9){
     axis(1)
   }
 }
-mtext(paste0("systematic deviation of estimated from theoretical quantiles"), 3, outer=T, line=1, font=2, cex=1)
+mtext(paste0("systematic deviation between estimated and theoretical quantiles"), 3, outer=T, line=1, font=2, cex=1)
 mtext("deviation from theoretical quantiles", 2, outer=T, line=3)
 mtext("Quantiles estimated from a distribution of n=10. \nQuantiles estimated from discrete distribution in black, from repeated random generation in red.", 1, outer = T, line=6, cex=0.9)
 mtext("probabilities", 1, outer=T, line=3)
@@ -400,7 +404,7 @@ for(type in 1:9){
     legend("right", legend=as.character(ns), col = 1:length(ns), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.45)
   }
 }
-mtext(paste0("systematic deviation from theoretical quantiles with varying n"), 3, outer=T, line=1, font=2, cex=1)
+mtext(paste0("systematic deviation from theoretical quantiles with variation of n"), 3, outer=T, line=1, font=2, cex=1)
 mtext("deviation from theoretical quantiles", 2, outer=T, line=3)
 mtext("probabilities", 1, outer=T, line=3)
 palette("default")
