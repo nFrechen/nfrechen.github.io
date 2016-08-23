@@ -4,21 +4,23 @@ title: Ist der Himmel nachts häufiger klar?
 excerpt: Diese Frage soll auf interaktive Weise durch Daten beantwortet werden
 category: showcase
 language: German
+author: Nanu Frechen
 bootstrap: true
 D3js: true
 ---
 
 
 <style>
-#BedTab{
+#Monatswerte{
   border: 1px solid #ddd;
-  border-top: none;
+  border-radius: 7px;
+  padding: 5px 5px;
 }
 ul, ol{
   margin-left: 0px;
 }
 .nav > li > a {
-    padding: 5px 5px;
+    padding: 1px 6px;
 }
 #Bedeckungsgrad{
   background-image: url('/images/Monatliche_Bedeckung/Bedeckungsgrad.svg');
@@ -50,7 +52,12 @@ opts_chunk$set(message = F, error = F, warning = F, cache=T, autodep = T, fig.wi
 
 Kennen Sie das Phänomen: Sie schauen nach dem Aufwachen aus dem Fenster und erblicken einen strahlend blauen Himmel. Sie freuen sich also auf einen sonnigen Tag! Aber als Sie nach dem Duschen und dem Frühstück das Haus verlassen, ist der Himmel schon wieder zugezogen und die Sonne scheint nicht so, wie sie das erwartet haben. Also die Frage: **"Kann es sein, dass wir in der Nacht und in den Morgenstunden häufiger klaren Himmel haben als tagsüber?"**. 
 
+```{r install}
+library(devtools)
+install_github("nFrechen/RgetDWDdata", ref = "feature/hourly_data")
+```
 ```{r download-stations}
+library(RgetDWDdata)
 stations <- getDWDhourlyStations(Parameter = "cloudiness")
 ```
 Um diese Frage zu beantworten bieten sich ein Datensatz des Deutschen Wetterdienstes (DWD) an:
@@ -60,10 +67,6 @@ Deutschlandweit werden `r nrow(stations)` Stationen betrieben, die auf diese Wei
 Wir wollen uns nun anschauen, wie häufig die neun Stufen des Bedeckungsgrades zwischen 0 und 24 Uhr gemessen wurden. Dazu erzeugen wir ein Raster aus 9 mal 24 Kästschen. Die Farbe der Kästschen definieren wir nach der Anzahl der Messwerte, die in diesem Kästschen liegen (zum Beispiel im <a data-toggle="tab" href="#Beispiel" onmouseover="highlight('none')">Kästchen zum Bedeckungsgrad 3 im Zeitraum zwischen Stunde 8 und 9</a>).
 
 
-```{r install}
-library(devtools)
-install_github("nFrechen/RgetDWDdata", ref = "feature/hourly_data")
-```
 
 ```{r load-libraries, results='hide'}
 library(RgetDWDdata)
@@ -232,7 +235,8 @@ hc_legend(title=list(text="Bedeckung"))
 
 
 ```{r Monatliche-Aggegierung}
-WolkenAggrMon <- aggregate(CBhWolkenSample$GESAMT_BEDECKUNGSGRAD, by=list(hour=CBhWolkenSample$hour, Bedeckung=CBhWolkenSample$GESAMT_BEDECKUNGSGRAD, Monat=month(CBhWolkenSample$MESS_DATUM)), FUN=length)
+CBhWolken <- CBhWolken[CBhWolken$GESAMT_BEDECKUNGSGRAD > -1,] # remove rows with -1
+WolkenAggrMon <- aggregate(CBhWolken$GESAMT_BEDECKUNGSGRAD, by=list(hour=CBhWolken$hour, Bedeckung=CBhWolken$GESAMT_BEDECKUNGSGRAD, Monat=month(CBhWolken$MESS_DATUM)), FUN=length)
 ```
 
 
@@ -301,7 +305,7 @@ invisible(dev.off())
 
 
 <div id="Monatswerte">
-  <ul class="nav nav-tabs">
+  <ul class="nav nav-pills">
   </ul>
   
   <div id="BedTab" class="tab-content">
@@ -325,7 +329,7 @@ MonatsTabContent.append("img").attr("src", function(d, i) {return "/images/Monat
 </script>
 
 
-# Regnet es nachts auch mehr?
+<!-- # Regnet es nachts auch mehr? -->
 
 ```{r precipitation-download}
 library(lubridate)
@@ -340,7 +344,7 @@ CBhPrecipSample <- CBhPrecip[sel,][sample(1:length(sel), n),]
 ```
 
 
-```{r precipitiation-scatterplot, dev="png"}
+```{r precipitiation-scatterplot, dev="png", eval=FALSE}
 plot((CBhPrecipSample$hour+runif(n,0,1)), (CBhPrecipSample$NIEDERSCHLAGSHOEHE+runif(n,0,0.1)), pch=20, cex=0.1, col=rgb(0,0,0,1), log="y")
 ```
 
