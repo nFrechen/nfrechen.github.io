@@ -8,7 +8,7 @@ category: discussion
 
 ```{r Settings, include=FALSE}
 library(knitr)
-opts_chunk$set(fig.height=7, echo=F, cache=T, dev="png")
+opts_chunk$set(fig.height=7, echo=F, cache=T, dev="svg")
 ```
 
 [Since 2004](https://stat.ethz.ch/pipermail/r-announce/2004/000427.html) R has implemented 9 types of quantile estimation recommended by Hyndman and Fan (1996):
@@ -40,9 +40,9 @@ opts_chunk$set(fig.height=7, echo=F, cache=T, dev="png")
 
 --------------------
 
-There are many different ways to estimate the quantiles of an empirical distribution. R knows 9 different types (see help page of ```quantile()```). It is clear that for high $$n$$ the differences in these approaches become negligible. It is only the low $$n$$, where they deviate. There is a lof of mathematical argumentation and justification out there for each of these methods, but apparently non of them is convincing enough, that the whole statistical community would stick to that method. Every statistic software has different defaults and some have no alternative methods to choose from like R has.
+There are many different ways to estimate the quantiles of an empirical distribution. R knows 9 different types (see help page of ```quantile()```). It is clear that for high $$n$$ the differences in these approaches become negligible. It is the low $$n$$ where they produce different estimations. All these methods where intruduced to optimize quantile estimation for sparse data sets, to get better estimations for the low $$n$$. There is a lof of mathematical argumentation and justification out there for each of these methods, but apparently non of them is convincing enough, that the whole statistical community would stick to that method. Every statistic software has different defaults and some have no alternative methods to choose from like R has.
 
-Not accepting this state of unclarity I wanted to find an answer that I can understand and comprehend---to the question "which quantile estimation is best".
+Not accepting this state of uncertainty I wanted to find an answer that I can understand and comprehend---to the question "which quantile estimation is best".
 
 My first Idea was to find a way to visualize the differences between these nine types. So I thougt about, how I could create input data for the ```quantile()``` function, that follows perferctly a theoretical distribution function---but is also discrete, featuring a limited $$n$$. 
 
@@ -97,7 +97,7 @@ mtext("probabilities", 2, 2.5, outer=T)
 mtext("quantiles", 1, 3.5, outer=T)
 ```
 
-Hence with this method we can calculate discrete values that behave like a perfect representation of the theoretical distribution function. In contrast to using a random generator, which give us values drawn from a theoretical distribution, but you have to draw a huge number before you actually can align these values perfectly along the theoretical distribution function (like is illustrated in the $$n=30$$ plot above).
+Hence with this method we can generate discrete values that behave like a perfect representation of the theoretical distribution function. In contrast to using a random generator, which give us values drawn from a theoretical distribution, but you have to draw a huge number before you actually can align these values perfectly along the theoretical distribution function (like is illustrated in the $$n=30$$ plot above).
 
 Mathematically this process is done like this: You define your $$n$$. For example $$n=10$$. Now you calculate the probabilities:
 
@@ -603,8 +603,7 @@ mtext("quantiles", 1, outer=T, line=3)
 
 
 ```{r boxplot_quantiles, fig.width=7, fig.height=6}
-par(mfrow=c(1,2), mar=c(0,1,2,.1), oma=c(5,4,3,6))
-
+par(mar=c(0,1,2,4), oma=c(4,3,3,1))
 
 Q <- seq(1/(d+1), 1-1/(d+1), length.out=d)
 nmax <- 1000
@@ -619,18 +618,18 @@ ylim <- max(abs(Qmatrix))*c(-1.3,1.3)
 cols <- c(1,2,3,2,1)
 
 plot(NULL, xlim=c(1,nmax), ylim=ylim, log="x", 
-     main='"quantiles" calculated to display boxplots', xlab="", ylab="", frame.plot=T, panel.first=abline(v=c(1,2,5,10,20,50,100,200,500,1000), h=qnorm(Q), col="lightgray"))
+     main='"quantiles" calculated to draw boxplots', xlab="", ylab="", frame.plot=T, panel.first=abline(v=c(1,2,5,10,20,50,100,200,500,1000), h=qnorm(Q), col="lightgray"))
 for(i in 1:5){
   lines(Qmatrix[,i], col=cols[i], type="l")
 }
 axis(4, at=qnorm(Q), Q, las=1)
-legend("topleft", legend = rev(colnames(Qmatrix)), col=cols, lty=1)
-mtext("theoretical probabilities corresponding to the quantiles", 4, line=4.5, outer=T)  
-mtext("estimated quantile", side = 2, outer = T, cex=1, line=2.5)
-mtext("number of points uniformly distributed over probabilities",1, outer=T, line=3.5)
+legend("topleft", legend = rev(colnames(Qmatrix)), col=cols, lty=1, bg="white")
+mtext("probabilities corresponding to theoretical quantiles", 4, line=0, outer=T)  
+mtext("estimated quantiles", side = 2, outer = T, cex=1, line=1.5)
+mtext("number of points uniformly distributed over probabilities",1, outer=T, line=2.5)
 
 # plot example boxplot
-bxp(boxplot(qnorm(x), plot = F), medcol=3, staplecol=1, boxcol=2, lwd=2, ylim=ylim, axes=F)
+bxp(boxplot(qnorm(x), plot = F), medcol=3, staplecol=1, boxcol=2, lwd=2, ylim=ylim, axes=F, add=T, at=1000)
 
 ```
 
