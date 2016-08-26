@@ -6,12 +6,20 @@ language: German
 category: discussion
 ---
 
-```{r Settings, include=FALSE}
+```{r Settings, include=FALSE, cache=F}
 library(knitr)
+library(kfigr)
+library(knitcitations)
+cleanbib()
+options("citation_format" = "pandoc")
+bib <- read.bibtex("references.bib")
+cite_options(style="html", hyperlink="to.bib")
 opts_chunk$set(fig.height=7, echo=F, cache=T, dev="svg")
 ```
 
-[Since 2004](https://stat.ethz.ch/pipermail/r-announce/2004/000427.html) R has implemented 9 types of quantile estimation recommended by Hyndman and Fan (1996):
+
+
+[Since 2004](https://stat.ethz.ch/pipermail/r-announce/2004/000427.html) R has implemented 9 types of quantile estimation recommended by `r citet("Hyndman and Fan (1996)")`:
 
 > $$Q_i(p)= (1-\gamma) x_j ++ \gamma x_{j+1}$$
 >
@@ -29,16 +37,16 @@ opts_chunk$set(fig.height=7, echo=F, cache=T, dev="svg")
 > 
 > For types 4 through 9, $$Q_i(p)$$ is a continuous function of $$p$$, with $$\gamma = g$$ and $$m$$ given below. The sample quantiles can be obtained equivalently by linear interpolation between the points $$(p_k,x_k)$$ where $$x_k$$ is the $$k$$th order statistic. Specific expressions for $$p_k$$ are given below.
 >
-> Type&nbsp;4: | Parzen&nbsp;(1979) | $$m = 0$$ | $$p_k = \frac{k}{n}$$ | That is, linear interpolation of the empirical cdf.
-> Type&nbsp;5: | Hazen&nbsp;(1914) | $$m = \frac{1}{2}$$ | $$p_k = \frac{k - 0.5}{n}$$ | That is a piecewise linear function where the knots are the values midway through the steps of the empirical cdf. This is popular amongst hydrologists.
-> Type&nbsp;6: | Weibull&nbsp;(1939), Gumbel&nbsp;(1939) | $$m = p$$ | $$p_k = \frac{k}{n + 1}$$ | Thus $$p_k = E[F(x[k])]$$. This is used by Minitab and by SPSS.
-> Type&nbsp;7: | Gumbel&nbsp;(1939) | $$m = 1-p$$ |  $$p_k = \frac{k - 1}{n - 1}$$ | In this case, $$p_k = mode[F(x[k])]$$. This is used by S and by R < 2.0.0.
-> Type&nbsp;8: | Johnson and Kotz (1970) |$$m = \frac{p+1}{3}$$ | $$p_k = \frac{k - 1/3}{n + 1/3}$$ | Then $$p_k \approx median[F(x[k])]$$. The resulting quantile estimates are approximately median-unbiased regardless of the distribution of $$x$$.
-> Type&nbsp;9: | Blom&nbsp;(1958) | $$m = \frac{p}{4} + \frac{3}{8}$$ | $$p_k = \frac{k - 3/8}{n + 1/4}$$ | The resulting quantile estimates are approximately unbiased for the expected order statistics if $$x$$ is normally distributed.
+> Type&nbsp;4: | `r citet("Parzen (1979) Nonparametric statistical data modeling")` | $$m = 0$$ | $$p_k = \frac{k}{n}$$ | That is, linear interpolation of the empirical cdf.
+> Type&nbsp;5: | `r citet(bib["hazen1914storage"])` | $$m = \frac{1}{2}$$ | $$p_k = \frac{k - 0.5}{n}$$ | That is a piecewise linear function where the knots are the values midway through the steps of the empirical cdf. This is popular amongst hydrologists.
+> Type&nbsp;6: | `r citet(bib["weibull1939phenomenon"])`, `r citet(bib["gumbel1939probabilite"])` | $$m = p$$ | $$p_k = \frac{k}{n + 1}$$ | Thus $$p_k = E[F(x[k])]$$. This is used by Minitab and by SPSS.
+> Type&nbsp;7: | `r citet(bib["gumbel1939probabilite"])` | $$m = 1-p$$ |  $$p_k = \frac{k - 1}{n - 1}$$ | In this case, $$p_k = mode[F(x[k])]$$. This is used by S and by R < 2.0.0.
+> Type&nbsp;8: | `r citet(bib["johnson1970"])` |$$m = \frac{p+1}{3}$$ | $$p_k = \frac{k - 1/3}{n + 1/3}$$ | Then $$p_k \approx median[F(x[k])]$$. The resulting quantile estimates are approximately median-unbiased regardless of the distribution of $$x$$.
+> Type&nbsp;9: | `r citet(bib["blom1958"])` | $$m = \frac{p}{4} + \frac{3}{8}$$ | $$p_k = \frac{k - 3/8}{n + 1/4}$$ | The resulting quantile estimates are approximately unbiased for the expected order statistics if $$x$$ is normally distributed.
 >
-> Further details are provided in Hyndman and Fan (1996) who recommended type 8. The default method is type 7, as used by S and by R < 2.0.0.
+> Further details are provided in `r citet("Hyndman_1996")` who recommended type 8. The default method is type 7, as used by S and by R < 2.0.0.
 
-```{r plotting-positions, fig.cap="Visualisation of plotting positions $p_k$ for a dataset of 10 values, as recommended by different authors", fig.height=4.5, dev="tikz", echo=F, fig.width=8, fig.show="hide"}
+```{r plotting-positions, anchor="figure", fig.cap="Visualisation of plotting positions $p_k$ for a dataset of 10 values, as recommended by different authors", fig.height=4.5, dev="tikz", echo=F, fig.width=8, fig.show="hide"}
 
 par(mar=c(3,3,3,15.5), pch=3, mgp=c(2,.5,0), cex=1.4, lwd=2)
 
@@ -102,10 +110,10 @@ My first Idea was to find a way to visualize the differences between these nine 
 
 
 
-What I came up with is illustrated in the next plot. I devided the probability range into equal lengths. For $$n=3$$ for example I devided it into three sections, for $$n=10$$ into 10 sections (visualized in the graph with alternating gray and white areas). Each section will be represented by a probability located in the middle of the section. This is represented in the graph with the horizontal dotted lines. Where the horizontal lines cut the theoretical distribution funtion (in this case a normal distribution) defines the value of the quantile corresponding to this probability. The quantiles can be read from the x-axis. Notice how the horizontal lines (the probabilities) are equidistant. The vertical lines (the quantiles) follow the distribution function which causes the outermost quantiles beeing further apart than the central ones.
+What I came up with is illustrated in `r figr("theoretical-and-discrete-distribution-for-different-n", TRUE, TRUE, type="figure")`. I devided the probability range into equal lengths. For $$n=3$$ for example I devided it into three sections, for $$n=10$$ into 10 sections (visualized in the graph with alternating gray and white areas). Each section will be represented by a probability located in the middle of the section. This is represented in the graph with the horizontal dotted lines. Where the horizontal lines cut the theoretical distribution funtion (in this case a normal distribution) defines the value of the quantile corresponding to this probability. The quantiles can be read from the x-axis. Notice how the horizontal lines (the probabilities) are equidistant. The vertical lines (the quantiles) follow the distribution function which causes the outermost quantiles beeing further apart than the central ones.
 
 
-```{r theoretical-and-discrete-distribution-for-different-n, dev="svg", fig.height=5}
+```{r theoretical-and-discrete-distribution-for-different-n, anchor="figure", dev="svg", fig.height=5}
 set.seed(1)
 par(mfrow=c(2,3), mar=c(0,1,2,.3), oma=c(5,4,4,6))
 plotnum <- 1
@@ -692,4 +700,11 @@ bxp(boxplot(qnorm(x), plot = F), medcol=3, staplecol=1, boxcol=2, whisklty=1, lw
 
 
 ```
+
+----------------------------
+
+```{r references, results='asis', echo=FALSE, cache=F}
+bibliography()
+```
+
 
