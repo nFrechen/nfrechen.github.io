@@ -5,6 +5,8 @@ author: "Nanu Frechen"
 excerpt: In dieser Übung wird erklärt, wie man die Grasreferenzverdunstung berechnet.
 category: tutorial
 language: German
+datasource: <a href="http://www.dwd.de/DE/klimaumwelt/cdc/cdc_node.html">Deutscher Wetterdienst</a>
+technique: <a href="http://r-project.org">R</a>, <a href="http://github.com/nFrechen/RgetDWDdata">RgetDWDdata</a>
 ---
 
 ```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}

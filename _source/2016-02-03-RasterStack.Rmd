@@ -5,6 +5,8 @@ excerpt: "Zeitreihen von räumlichen Daten mit Hilfe eines RasterStacks."
 category: tutorial
 language: German
 author: "Nanu Frechen"
+datasource: <a href="ftp://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/">gimms.gsfc.nasa.gov</a>
+technique: <a href="http://r-project.org">R</a>, <a href="https://cran.r-project.org/web/packages/raster/index.html">raster</a>, stack
 ---
 ```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 # Daten wirklich laden?

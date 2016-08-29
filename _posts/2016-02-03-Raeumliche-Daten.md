@@ -6,6 +6,8 @@ date: "2. Februar 2016"
 excerpt: Auswertung von räumlichen Daten mit dem raster package
 category: tutorial
 language: German
+datasource: <a href="ftp://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/">gimms.gsfc.nasa.gov</a>
+technique: <a href="http://r-project.org">R</a>, <a href="https://cran.r-project.org/web/packages/raster/index.html">raster</a>, stack
 ---
 
 

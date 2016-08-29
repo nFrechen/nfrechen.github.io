@@ -5,6 +5,7 @@ author: "Nanu Frechen <nanu.frechen@b-tu.de>"
 excerpt: Optimizing the calculation times of R code.
 category: howto
 language: English
+technique: <a href="http://r-project.org">R</a>, system.time, apply, plyr, fread, data.table
 ---
 
 

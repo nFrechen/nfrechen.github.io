@@ -7,11 +7,9 @@ language: German
 author: Nanu Frechen
 bootstrap: true
 D3js: true
-datasource: Deutscher Wetterdienst
-datasourceURL: http://dwd.de
-technique: <a href="http://r-project.org">R</a>, <a href="http://d3js.org">D3js</a>, <a href="https://cran.r-project.org/web/packages/astrolibR/index.html">astrolibR</a>
+datasource: <a href="http://www.dwd.de/DE/klimaumwelt/cdc/cdc_node.html">Deutscher Wetterdienst</a>
+technique: <a href="http://r-project.org">R</a>, <a href="http://d3js.org">D3js</a>, <a href="https://cran.r-project.org/web/packages/astrolibR/index.html">astrolibR</a>, <a href="https://github.com/nFrechen/RgetDWDdata">RgetDWDdata</a>
 ---
-
 
 <style>
 #Monatswerte{
@@ -49,12 +47,11 @@ Kennen Sie das Phänomen: Sie schauen nach dem Aufwachen aus dem Fenster und erb
 
 
 
-Um diese Frage zu beantworten bieten sich ein Datensatz des Deutschen Wetterdienstes (DWD) an:
+Um diese Frage zu beantworten bieten sich ein [Datensatz des Deutschen Wetterdienstes (DWD)](http://www.dwd.de/DE/klimaumwelt/cdc/cdc_node.html) an:
 Der Deutsche Wetterdienst unterscheidet neun Stufen des Bedeckungsgrades, die von 0 (keine Bedeckung) bis 8 (vollständige Bedeckung) reichen. Diese werden in stündlichen Intervallen aufgezeichnet. 
-Deutschlandweit werden 324 Stationen betrieben, die auf diese Weise den Bedeckungsgrad aufzeichnen.
+Deutschlandweit werden 324 Stationen betrieben, die auf diese Weise den Bedeckungsgrad aufzeichnen. Wir wollen uns die Daten der Station Cottbus anschauen.
 
 Wir wollen uns nun anschauen, wie häufig die neun Stufen des Bedeckungsgrades zwischen 0 und 24 Uhr gemessen wurden. Dazu erzeugen wir ein Raster aus 9 mal 24 Kästschen. Die Farbe der Kästschen definieren wir nach der Anzahl der Messwerte, die in diesem Kästschen liegen (zum Beispiel im <a data-toggle="tab" href="#Beispiel" onmouseover="highlight('none')">Kästchen zum Bedeckungsgrad 3 im Zeitraum zwischen Stunde 8 und 9</a>).
-
 
 
 

@@ -4,6 +4,8 @@ title: Shiny Apps
 excerpt: Create web-apps with your R calculations using the shiny package
 language: English
 category: showcase
+datasource: <a href="http://www.dwd.de/DE/klimaumwelt/cdc/cdc_node.html">Deutscher Wetterdienst</a>
+technique: <a href="http://r-project.org">R</a>, <a href="http://shiny.rstudio.com/gallery/">shiny</a>, <a href="https://rstudio.github.io/leaflet/">Leaflet for R</a>, <a href="http://rstudio.github.io/dygraphs/">dygraphs</a>
 ---
 
 [Shiny](http://shiny.rstudio.com) is an R package that you can use to produce interactive web-applications with your R code. In their [gallery](http://shiny.rstudio.com/gallery/) you can see a lot of examples about how to use shiny.

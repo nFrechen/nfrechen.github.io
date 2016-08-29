@@ -5,6 +5,8 @@ author: "Nanu Frechen"
 excerpt: Werfen Sie mit Streudiagrammen einen ersten Blick auf ihre Daten und zeigen Sie erste Abhängigkeiten zwischen ihren Messvariablen.
 category: tutorial
 language: German
+datasource: <a href="http://www.dwd.de/DE/klimaumwelt/cdc/cdc_node.html">Deutscher Wetterdienst</a>
+technique: <a href="http://r-project.org">R</a>, <a href="http://github.com/nFrechen/RgetDWDdata">RgetDWDdata</a>, plot
 ---
 
 

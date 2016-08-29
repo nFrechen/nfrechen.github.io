@@ -4,6 +4,8 @@ title: Add noise to see the pattern
 excerpt: "Adding noise usually degrades audio and image quality and makes seeing the details more difficult. In this case it is the other way around: it helps you to see the pattern."
 category: howto
 language: English
+datasource: <a href="http://www.dwd.de/DE/klimaumwelt/cdc/cdc_node.html">Deutscher Wetterdienst</a>
+technique: <a href="http://github.com/nFrechen/RgetDWDdata">RgetDWDdata</a>
 ---
 
 Adding noise usually degrades audio and image quality and makes seeing the details more difficult. In this case it is the other way around: it helps you to see the pattern.
@@ -22,15 +24,20 @@ knit_hooks$set(small.mar = function(before, options, envir) {
   	}
 })
 
-opts_chunk$set(message = F, error = F, warning = F, cache=F, autodep = T, fig.width = 7, fig.height = 5, dev="png", small.mar=T)
+opts_chunk$set(message = F, error = F, warning = F, cache=T, autodep = T, fig.width = 7, fig.height = 5, dev="png", small.mar=T)
 ```
 
 
 ```{r load data, echo=F}
-load("Cottbus.RData")
+#load("Cottbus.RData")
 ```
-```{r Werte Ableiten, echo=F}
+
+```{r}
 library(RgetDWDdata)
+Cottbus <- getDWDdata("00880", historisch=T)
+```
+
+```{r Werte Ableiten, echo=F}
 # calculate day of year
 Cottbus$JAHRESTAG <- yday(Cottbus$MESS_DATUM)
 Cottbus$ET0 <- with(Cottbus, calcET0(temp = LUFTTEMPERATUR, date = MESS_DATUM, sunshine = SONNENSCHEINDAUER, U = REL_FEUCHTE, v = WINDGESCHWINDIGKEIT, v_height = 16, latitude = 51))

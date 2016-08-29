@@ -5,6 +5,7 @@ author: "Nanu Frechen"
 excerpt: Füge deinen html-Seiten interaktive 3d-Grafiken hinzu mit dem rgl-package und WebGL
 category: howto
 language: German
+technique: <a href="http://rgl.neoscientists.org/about.shtml">rgl</a>, <a href="http://opengl.org/">OpenGL</a>, <a href="https://de.wikipedia.org/wiki/WebGL">WebGL</a>
 webgl: true
 ---
 

@@ -5,6 +5,8 @@ author: "Nanu Frechen"
 excerpt: Wie erzeugt man Dauerlinien für die Hoch- und Niedrigwasserstatistik?
 category: tutorial
 language: German
+datasource: <a href="http://www.dwd.de/DE/klimaumwelt/cdc/cdc_node.html">Deutscher Wetterdienst</a>
+technique: <a href="http://r-project.org">R</a>, <a href="http://github.com/nFrechen/RgetDWDdata">RgetDWDdata</a>, qnorm, qlnorm, qgumbel, qweibull
 ---
 
 ```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}

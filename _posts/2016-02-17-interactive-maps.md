@@ -5,6 +5,8 @@ author: "Nanu Frechen"
 excerpt: "Insert interactive maps into your html documents"
 category: howto
 language: English
+datasource: <a href="https://openstreetmap.org/">OpenStreetmap</a>, <a href="http://openweathermap.org/">OpenWeatherMap</a>, <a href="http://geoportal.de/">geoportal.de</a>
+technique: <a href="http://leafletjs.com/">Leaflet</a>, <a href="https://rstudio.github.io/leaflet/">Leaflet for R</a>, <a href="http://yihui.name/knitr">knitr</a>
 maps: true
 ---
 
@@ -48,23 +50,23 @@ The request is not done with a simple url. So we leave it to libraries like leaf
 Let's start by installing the package and loading it:
 
 
-```r
+{% highlight r %}
 install.packages("leaflet")
-```
+{% endhighlight %}
 
 
-```r
+{% highlight r %}
 library(leaflet)
-```
+{% endhighlight %}
 
 Then just type `leaflet()` to create a plain leaflet map. Add an openstreetmap tile with `addTiles()`.
 
-```r
+{% highlight r %}
 leaflet() %>% addTiles()
-```
+{% endhighlight %}
 
-<!--html_preserve--><div id="htmlwidget-9754" style="width:400px;height:200px;" class="leaflet html-widget"></div>
-<script type="application/json" data-for="htmlwidget-9754">{"x":{"calls":[{"method":"addTiles","args":["http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"&copy; <a href=\"http://openstreetmap.org\">OpenStreetMap\u003c/a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA\u003c/a>"}]}]},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-7135" style="width:400px;height:200px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-7135">{"x":{"calls":[{"method":"addTiles","args":["http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"&copy; <a href=\"http://openstreetmap.org\">OpenStreetMap\u003c/a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA\u003c/a>"}]}]},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 We use the [magrittr](https://github.com/smbache/magrittr) forward-pipe operator here to pipe the map object we created with `leaflet()` as first argument to the `addTiles()` function. openstreetmap.org is the default urlTemplate for `addTiles()` so we don't have to provide this argument either. Similarly you can access for example a global temperature map from [openweathermap.org](http://openweathermap.org) with `addTiles(urlTemplate = "http://{s}.tile.openweathermap.org/map/temp/{z}/{x}/{y}.png")` but for this you have even a different method: simply type `addProviderTiles("OpenWeatherMap.Temp)` and you get the same result. 
 
 With the addition of `%>% setView(-93.65, 42.0285, zoom = 4)` you can set the start view to a certain geolocation and zoom level.
@@ -77,8 +79,8 @@ Having one of these base layers you can start adding your own content with for e
 # Example: Weather map
 Our first example shows how to show one of several basemaps (openstreetmap, CartoDB, Esri Orthophotos or OpenTopoMap) and add additional weather information like clouds, rainfall, snowfall, temperature or wind speed on top of it. This also demonstrates how to [show and hide layers](http://rstudio.github.io/leaflet/showhide.html) on your maps. The code for the weather map is shown in the footnote[^1].
 
-<!--html_preserve--><div id="htmlwidget-3735" style="width:670px;height:500px;" class="leaflet html-widget"></div>
-<script type="application/json" data-for="htmlwidget-3735">{"x":{"calls":[{"method":"addTiles","args":["http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,"openstreetmap",{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"&copy; <a href=\"http://openstreetmap.org\">OpenStreetMap\u003c/a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA\u003c/a>"}]},{"method":"addProviderTiles","args":["CartoDB.Positron",null,"CartoDB Positron",{"errorTileUrl":"","noWrap":false,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addProviderTiles","args":["Esri.WorldImagery",null,"Esri WorldImagery",{"errorTileUrl":"","noWrap":false,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addProviderTiles","args":["OpenTopoMap",null,"OpenTopoMap",{"errorTileUrl":"","noWrap":false,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addProviderTiles","args":["OpenWeatherMap.Clouds",null,"clouds2",{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":0.6,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addTiles","args":["http://{s}.tile.openweathermap.org/map/temp/{z}/{x}/{y}.png",null,"temp",{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":0.6,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"Weather data © OpenWeatherMap"}]},{"method":"addTiles","args":["http://{s}.tile.openweathermap.org/map/precipitation/{z}/{x}/{y}.png",null,"precipitation",{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":0.6,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"Weather data © OpenWeatherMap"}]},{"method":"addTiles","args":["http://{s}.tile.openweathermap.org/map/snow/{z}/{x}/{y}.png",null,"snow",{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":0.6,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"Weather data © OpenWeatherMap"}]},{"method":"addTiles","args":["http://{s}.tile.openweathermap.org/map/wind/{z}/{x}/{y}.png",null,"wind",{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":0.6,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"Weather data © OpenWeatherMap"}]},{"method":"addProviderTiles","args":["Stamen.TonerLines",null,"Stamen Toner Lines",{"errorTileUrl":"","noWrap":false,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addLayersControl","args":[["openstreetmap","OpenTopoMap","CartoDB Positron","Esri WorldImagery","none"],["clouds2","temp","precipitation","snow","wind","Stamen Toner Lines"],{"collapsed":true,"autoZIndex":true,"position":"topright"}]},{"method":"hideGroup","args":[["temp","precipitation","snow","wind"]]}],"setView":[[51,10],3,[]]},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-2895" style="width:670px;height:500px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2895">{"x":{"calls":[{"method":"addTiles","args":["http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,"openstreetmap",{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"&copy; <a href=\"http://openstreetmap.org\">OpenStreetMap\u003c/a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA\u003c/a>"}]},{"method":"addProviderTiles","args":["CartoDB.Positron",null,"CartoDB Positron",{"errorTileUrl":"","noWrap":false,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addProviderTiles","args":["Esri.WorldImagery",null,"Esri WorldImagery",{"errorTileUrl":"","noWrap":false,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addProviderTiles","args":["OpenTopoMap",null,"OpenTopoMap",{"errorTileUrl":"","noWrap":false,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addProviderTiles","args":["OpenWeatherMap.Clouds",null,"clouds2",{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":0.6,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addTiles","args":["http://{s}.tile.openweathermap.org/map/temp/{z}/{x}/{y}.png",null,"temp",{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":0.6,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"Weather data © OpenWeatherMap"}]},{"method":"addTiles","args":["http://{s}.tile.openweathermap.org/map/precipitation/{z}/{x}/{y}.png",null,"precipitation",{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":0.6,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"Weather data © OpenWeatherMap"}]},{"method":"addTiles","args":["http://{s}.tile.openweathermap.org/map/snow/{z}/{x}/{y}.png",null,"snow",{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":0.6,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"Weather data © OpenWeatherMap"}]},{"method":"addTiles","args":["http://{s}.tile.openweathermap.org/map/wind/{z}/{x}/{y}.png",null,"wind",{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":0.6,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"Weather data © OpenWeatherMap"}]},{"method":"addProviderTiles","args":["Stamen.TonerLines",null,"Stamen Toner Lines",{"errorTileUrl":"","noWrap":false,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addLayersControl","args":[["openstreetmap","OpenTopoMap","CartoDB Positron","Esri WorldImagery","none"],["clouds2","temp","precipitation","snow","wind","Stamen Toner Lines"],{"collapsed":true,"autoZIndex":true,"position":"topright"}]},{"method":"hideGroup","args":[["temp","precipitation","snow","wind"]]}],"setView":[[51,10],3,[]]},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 # Find more maps
 
@@ -86,14 +88,14 @@ Now we will try to find some additional maps. A lot of agencies nowadays provide
 
 From [http://www.wms.nrw.de/gd/guek500](http://www.wms.nrw.de/gd/guek500) we can get for example a map of the geology of Western Germany.
 
-```r
+{% highlight r %}
 leaflet() %>% addTiles() %>% setView(7.5, 51.5, zoom = 7) %>% addWMSTiles("http://www.wms.nrw.de/gd/guek500", 
     layers = c(0), options = WMSTileOptions(format = "image/png", transparent = TRUE), 
     attribution = "© <a href='https://www.geoportal.nrw.de'>geoportal.nrw.de</a>")
-```
+{% endhighlight %}
 
-<!--html_preserve--><div id="htmlwidget-9695" style="width:670px;height:500px;" class="leaflet html-widget"></div>
-<script type="application/json" data-for="htmlwidget-9695">{"x":{"calls":[{"method":"addTiles","args":["http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"&copy; <a href=\"http://openstreetmap.org\">OpenStreetMap\u003c/a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA\u003c/a>"}]},{"method":"addWMSTiles","args":["http://www.wms.nrw.de/gd/guek500",null,null,{"styles":"","format":"image/png","transparent":true,"version":"1.1.1","crs":null,"attribution":"© <a href='https://www.geoportal.nrw.de'>geoportal.nrw.de\u003c/a>","layers":0}]}],"setView":[[51.5,7.5],7,[]]},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-1164" style="width:670px;height:500px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1164">{"x":{"calls":[{"method":"addTiles","args":["http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"&copy; <a href=\"http://openstreetmap.org\">OpenStreetMap\u003c/a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA\u003c/a>"}]},{"method":"addWMSTiles","args":["http://www.wms.nrw.de/gd/guek500",null,null,{"styles":"","format":"image/png","transparent":true,"version":"1.1.1","crs":null,"attribution":"© <a href='https://www.geoportal.nrw.de'>geoportal.nrw.de\u003c/a>","layers":0}]}],"setView":[[51.5,7.5],7,[]]},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 
 
@@ -101,17 +103,17 @@ leaflet() %>% addTiles() %>% setView(7.5, 51.5, zoom = 7) %>% addWMSTiles("http:
 
 
 ---------------------
-[geoportal-th-de](geoportal-th.de) provides a very detailed digital elevation model of the German state Thüringen:
+[geoportal-th.de](geoportal-th.de) provides a very detailed digital elevation model of the German state Thüringen:
 
-```r
+{% highlight r %}
 leaflet() %>% setView(10.5, 50.5, zoom = 13) %>% addWMSTiles("http://www.geoproxy.geoportal-th.de/geoproxy/services/DGM", 
     layers = "DGM5", options = WMSTileOptions(format = "image/png", transparent = TRUE), 
     attribution = "© <a href='http://geoportal-th-de'>geoportal-th.de</a>", 
     )
-```
+{% endhighlight %}
 
-<!--html_preserve--><div id="htmlwidget-5195" style="width:670px;height:500px;" class="leaflet html-widget"></div>
-<script type="application/json" data-for="htmlwidget-5195">{"x":{"setView":[[50.5,10.5],13,[]],"calls":[{"method":"addWMSTiles","args":["http://www.geoproxy.geoportal-th.de/geoproxy/services/DGM",null,null,{"styles":"","format":"image/png","transparent":true,"version":"1.1.1","crs":null,"attribution":"© <a href='http://geoportal-th-de'>geoportal-th.de\u003c/a>","layers":"DGM5"}]}]},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-4802" style="width:670px;height:500px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-4802">{"x":{"setView":[[50.5,10.5],13,[]],"calls":[{"method":"addWMSTiles","args":["http://www.geoproxy.geoportal-th.de/geoproxy/services/DGM",null,null,{"styles":"","format":"image/png","transparent":true,"version":"1.1.1","crs":null,"attribution":"© <a href='http://geoportal-th-de'>geoportal-th.de\u003c/a>","layers":"DGM5"}]}]},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 In [this pdf](http://www.geoportal-th.de/Portals/0/Downloads/Geoproxy/Geoproxy_Ebenenliste.pdf) you find a whole range of urls and layer names to display a whole variety of maps provided by [geoportal-th-de](geoportal-th.de). Unfortunately these maps are all referenced incorrectly or have to be loaded with a different reference system.
 
@@ -124,14 +126,14 @@ In [this pdf](http://www.geoportal-th.de/Portals/0/Downloads/Geoproxy/Geoproxy_E
 -----------------------------
 At [www.geoportal.nrw.de](https://www.geoportal.nrw.de/application-geokatalog/start/index.php) you can find WMS maps provided by the German state Nordrhein-Westfalen. For example this digital elevation model:
 
-```r
+{% highlight r %}
 leaflet() %>% setView(8, 51.277444, zoom = 15) %>% addWMSTiles("http://www.wms.nrw.de/geobasis/DGM_Relief", 
     layers = "DGM_Relief", options = WMSTileOptions(format = "image/png", 
         transparent = TRUE), attribution = "© <a href='https://www.geoportal.nrw.de'>geoportal.nrw.de</a>")
-```
+{% endhighlight %}
 
-<!--html_preserve--><div id="htmlwidget-7626" style="width:670px;height:500px;" class="leaflet html-widget"></div>
-<script type="application/json" data-for="htmlwidget-7626">{"x":{"setView":[[51.277444,8],15,[]],"calls":[{"method":"addWMSTiles","args":["http://www.wms.nrw.de/geobasis/DGM_Relief",null,null,{"styles":"","format":"image/png","transparent":true,"version":"1.1.1","crs":null,"attribution":"© <a href='https://www.geoportal.nrw.de'>geoportal.nrw.de\u003c/a>","layers":"DGM_Relief"}]}]},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-6425" style="width:670px;height:500px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-6425">{"x":{"setView":[[51.277444,8],15,[]],"calls":[{"method":"addWMSTiles","args":["http://www.wms.nrw.de/geobasis/DGM_Relief",null,null,{"styles":"","format":"image/png","transparent":true,"version":"1.1.1","crs":null,"attribution":"© <a href='https://www.geoportal.nrw.de'>geoportal.nrw.de\u003c/a>","layers":"DGM_Relief"}]}]},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 
 
@@ -143,7 +145,7 @@ Have a look at all the [plugins you can use with leaflet maps](http://leafletjs.
 
 [^1]: Code for the weather map:
     
-    ```r
+    {% highlight r %}
     leaflet() %>% addTiles(group = "openstreetmap") %>% addProviderTiles("CartoDB.Positron", 
         group = "CartoDB Positron") %>% addProviderTiles("Esri.WorldImagery", 
         group = "Esri WorldImagery") %>% addProviderTiles("OpenTopoMap", group = "OpenTopoMap") %>% 
@@ -166,5 +168,5 @@ Have a look at all the [plugins you can use with leaflet maps](http://leafletjs.
         "Esri WorldImagery", "none"), overlayGroups = c("clouds2", "temp", 
         "precipitation", "snow", "wind", "Stamen Toner Lines"), options = layersControlOptions(collapsed = TRUE)) %>% 
         hideGroup(c("temp", "precipitation", "snow", "wind"))
-    ```
+    {% endhighlight %}
 
