@@ -7,6 +7,9 @@ language: German
 author: Nanu Frechen
 bootstrap: true
 D3js: true
+datasource: Deutscher Wetterdienst
+datasourceURL: http://dwd.de
+technique: <a href="http://r-project.org">R</a>, <a href="http://d3js.org">D3js</a>, <a href="https://cran.r-project.org/web/packages/astrolibR/index.html">astrolibR</a>
 ---
 
 

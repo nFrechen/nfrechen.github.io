@@ -5,7 +5,21 @@ layout: default
 
   <header class="post-header">
     <h1 class="post-title">{{ page.title }}</h1>
-    <p class="post-meta">{{ page.date | date: "%b %-d, %Y" }}{% if page.author %} • {{ page.author }}{% endif %}{% if page.meta %} • {{ page.meta }}{% endif %}</p>
+    <p class="post-meta">
+      <i class="fa fa-calendar" aria-hidden="true">&nbsp;{{ page.date | date: "%b %-d, %Y" }}</i>
+      {% if page.author %} <i class="fa fa-pencil" aria-hidden="true">&nbsp;{{ page.author }}</i>{% endif %}
+      {% if page.meta %} {{ page.meta }}{% endif %}
+      {% if page.datasource %}
+        <i class="fa fa-database" aria-hidden="true">&nbsp;
+        {% if page.datasourceURL %} <a href="{{page.datasourceURL}}">{{ page.datasource }}</a>
+        {% else %} {{ page.datasource }}
+        {% endif %}
+        </i>
+      {% endif %}
+      {% if page.technique %}
+        <i class="fa fa-code" aria-hidden="true">&nbsp;{{ page.technique }}</i>
+      {% endif %}
+    </p>
   </header>
 
   <article class="post-content">

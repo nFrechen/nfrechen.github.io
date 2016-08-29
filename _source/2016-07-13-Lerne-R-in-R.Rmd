@@ -3,6 +3,8 @@ layout: post
 title: "Lerne R in R"
 author: "Nanu Frechen"
 excerpt: "Lerne R auf interaktive Weise mit swirl"
+datasource: <a href="https://github.com/weibelzahl">weibelzahl</a>
+technique: <a href="http://swirlstats.com">Swirl</a>
 category: howto
 language: German
 ---
