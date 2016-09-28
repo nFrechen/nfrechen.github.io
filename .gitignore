@@ -13,3 +13,4 @@ _source/*.html
 _source/*.md
 _source/*/
 *footnote-test*
+*tikzDictionary
