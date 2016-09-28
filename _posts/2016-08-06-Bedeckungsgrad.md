@@ -41,6 +41,13 @@ svg {
 
 
 
+---------------------
+
+Dieser Artikel ist noch in Bearbeitung und ist hier gezeigt, um Anregungen für die weitere Bearbeitung des Themas bzw. der Darstellungsweise zu sammeln.
+
+---------------------
+
+
 # Die Fragestellung
 
 Kennen Sie das Phänomen: Sie schauen nach dem Aufwachen aus dem Fenster und erblicken einen strahlend blauen Himmel. Sie freuen sich also auf einen sonnigen Tag! Aber als Sie nach dem Duschen und dem Frühstück das Haus verlassen, ist der Himmel schon wieder zugezogen und die Sonne scheint nicht so, wie sie das erwartet haben. Also die Frage: **"Kann es sein, dass wir in der Nacht und in den Morgenstunden häufiger klaren Himmel haben als tagsüber?"**. 
