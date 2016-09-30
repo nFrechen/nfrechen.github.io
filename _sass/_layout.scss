@@ -415,3 +415,8 @@ hr {
   width: 16px;
   display: inline-block;
 }
+
+a {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
