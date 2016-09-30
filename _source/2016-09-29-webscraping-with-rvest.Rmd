@@ -1,7 +1,7 @@
 ---
 layout: post
-title: Webscraping with rvest
-excerpt: Harvest data from any web page
+title: Webscraping  isotope data with rvest
+excerpt: Harvest data from the IAEA WISER database
 category: tutorial
 language: English
 author: Nanu Frechen
@@ -76,7 +76,7 @@ $$^{16}O$$ |  | 8 | $$99.76\,\%$$ | $$15.994\, u$$ | stable
 $$^{17}O$$ |  | 9 | $$0.04\,\%$$ | $$16.999\, u$$ | stable
 $$^{18}O$$ | | 10 | $$0.20\,\%$$ | $$17.999\, u$$ | stable
 
-\* abundance varies slightly in different water bodys (ocean, groundwater, river, cloud)
+\* abundance varies slightly in different water bodies (ocean, groundwater, river, cloud)
 
 -----------
 
