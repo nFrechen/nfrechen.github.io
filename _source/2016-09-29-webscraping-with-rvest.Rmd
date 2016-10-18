@@ -60,6 +60,8 @@ In follow-up tutorials linked to this tutorial we will show you:
 
 # Theoretical Background
 
+<!-- http://wwwrcamnl.wr.usgs.gov/isoig/period/o_iig.html -->
+
 Water containts not only the usual $$H$$ and $$O$$ atoms. It contains also small amounts of the slightly heavier isotopes $$^2H$$ and $$^{18}O$$. Isotopes are atoms containing one or multiple additional neutrons in the core than the more abundant variety of the atom. 
 
 Because of their slightly heavier mass (compare table below), they behave different from the abundant $$H$$ and $$O$$ isotopes. This shows mainly when the water evaporates or condensates: The heavier isotopes are slightly less likely to evaporate and a bit more likely to condensate before the lighter isotopes. Hence water that stems from evaporation (like clouds generally do) are depleted in the heavy isotopes (compared to the water remaining in the ocean). When clouds rain off, the water remaining in the cloud get's even more depleted of the heavy isotopes, since these condensate and rain down first.
