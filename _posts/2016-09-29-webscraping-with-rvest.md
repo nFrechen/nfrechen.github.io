@@ -6,8 +6,9 @@ category: tutorial
 language: English
 author: Nanu Frechen
 datasource: <a href="https://nucleus.iaea.org/wiser/gnip.php">IAEA WISER isotope data</a>
-technique: <a href="http://r-project.org">R</a>, <a href="https://github.com/hadley/rvest">rvest</a>
+technique: <a href="http://r-project.org">R</a>, <a href="https://github.com/hadley/rvest">rvest</a>, <a href="https://blog.rstudio.org/2014/07/22/introducing-tidyr/">tidyr</a>, <a href="https://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html">dplyr</a>, <a href="https://github.com/hadley/purrr">purrr</a>, <a href="https://blog.rstudio.org/2015/04/09/readr-0-1-0/">readr</a>
 ---
+
 
 
 <style type="text/css">
@@ -342,9 +343,9 @@ Because we can't pass the session info to `download.file()` we will use a differ
 With the command `jump_to()` we maintain the session while following the links. We then write the content of the loaded link to a file with `writeBin()` (the idea came from [this stackoverflow answer](http://stackoverflow.com/a/36204367/2427707)).
 
 {% highlight r %}
-for(i in 1:length(csv_links)){
-  jump_to(nucl2, url=csv_links[i])$response$content %>%
-    writeBin(file.path(folder, destfiles[i]))
+for(i in 1:nrow(stations)){
+  jump_to(nucl2, url=stations$link[i])$response$content %>%
+    writeBin(file.path(stations$destfile[i]))
   Sys.sleep(1)
 }
 {% endhighlight %}
@@ -411,6 +412,39 @@ stations
 ## 9              HALLEY BAY    8902200  Antarctica             EF         1965       2014             600           552          533          504           Map csv | xlsx Plots Statistics download.php?siteId=172144&page=gnip&action=download&format=csv data/8902200.csv <tibble [600 × 24]>
 ## 10          ROTHERA POINT    8906200  Antarctica             EF         1996       2014             228           196          196           57           Map csv | xlsx Plots Statistics download.php?siteId=172145&page=gnip&action=download&format=csv data/8906200.csv <tibble [228 × 24]>
 ## # ... with 907 more rows
+{% endhighlight %}
+
+# The short version
+
+Using the pipe operator `%>%` very often you can get rid of a lot of the temporary variables and compact the code quite a lot:
+
+
+{% highlight r %}
+password <- "myPassword"
+library(rvest)
+library(dplyr)
+folder <- "data"
+dir.create(folder)
+
+# establish session
+nucl <- html_session("https://websso.iaea.org/login/login.fcc?TYPE=33554433&REALMOID=06-ef4f28c9-f8dc-467e-8186-294fdf5e627b&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=$SM$e5utW7BvliO1ED%2btYsJY7ob8iaMTTe5bnP3rVRRDKcLtPDyvx7kOY%2b6YSwtMTLAv&TARGET=$SM$HTTPS%3a%2f%2fwebsso%2eiaea%2eorg%2flogin%2fbounce%2easp%3fDEST%3d$$SM$$HTTPS$%3a$%2f$%2fwebsso$%2eiaea$%2eorg$%2flogin$%2fredirect$%2easp$%3ftarget$%3dhttp$%3a$%2f$%2fnucleus$%2eiaea$%2eorg$%2fwiser$%2fgnip$%2ephp$%3fll_latlon$%3d$%26ur_latlon$%3d$%26country$%3d$%26wmo_region$%3d$%26date_start$%3d1953$%26date_end$%3d2016$%26iso_o18$%3don$%26iso_h2$%3don$%26result_start$%3d0$%26result_end$%3d1000$%26action$%3dSearch")
+form <- html_form(nucl)[[1]] %>% set_values(USER= "jklasd", PASSWORD=password)
+form$url <- ""
+nucl2 <- submit_form(session=nucl, form=form)
+
+# extract links
+links <- html_nodes(nucl2, css="a") %>% .[html_text(.) == "csv"] %>% html_attr(name="href") 
+
+# function for downloading the data
+readFun <- function(x) read_csv(jump_to(nucl2, url=x)$response$content)
+
+# downlaod station list
+stations <- html_table(nucl2)[[3]] %>% as.tbl %>%
+  mutate(`WMO Code`= formatC(`WMO Code`, width = 7, flag=0)) %>%
+  mutate(link=links) %>%
+  mutate(destfile=paste0(folder, "/", `WMO Code`, ".csv")) %>%
+  .[1:5,] %>% # for testing I download only the first 5 lines (remove this line to download all)
+  mutate(data=map(link, readFun))
 {% endhighlight %}
 
 

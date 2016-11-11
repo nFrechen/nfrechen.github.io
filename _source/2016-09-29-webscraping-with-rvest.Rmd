@@ -320,7 +320,7 @@ stations
 
 Using the pipe operator `%>%` very often you can get rid of a lot of the temporary variables and compact the code quite a lot:
 
-```{r compact-code}
+```{r compact-code, eval=F}
 password <- "myPassword"
 library(rvest)
 library(dplyr)
