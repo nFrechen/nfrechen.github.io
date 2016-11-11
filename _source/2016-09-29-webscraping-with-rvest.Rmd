@@ -47,18 +47,20 @@ First thing we have to do is to download the data from their website. Of course 
 * master the login page form
 * maintain a constant session from the login to the end of the last download
 * implement file download which is not explicitly implemented in the rvest package
+* do everything in a tidy dataframe
 
 In this post we will give you a short [theoretical background](#theoretical-background) as a motivation about why we want to work with this data. Then we will show you how to [download the data with rvest step by step](#how-is-the-server-setup).
 
 In follow-up tutorials linked to this tutorial we will show you:
 
-* how to read all the .csv files and merge them into a big database
 * how to derive the Local Meteoric Water Line (LMWL) for all stations with linear regression
 * how to show the variation of parameters on an interactive map
 * make correllations between the isotope signatures and parameters like longitude, latitude, elevation and climatic variables
 
 
 # Theoretical Background
+
+<!-- http://wwwrcamnl.wr.usgs.gov/isoig/period/o_iig.html -->
 
 Water containts not only the usual $$H$$ and $$O$$ atoms. It contains also small amounts of the slightly heavier isotopes $$^2H$$ and $$^{18}O$$. Isotopes are atoms containing one or multiple additional neutrons in the core than the more abundant variety of the atom. 
 
@@ -193,18 +195,44 @@ We save a new session with the return of the form submission. The return is a re
 
 With the session stored under `nucl2` we now can extract the data from the table displayed on the page. 
 
-```{r}
+```{r table-extraction}
 stations <- html_table(nucl2)[[3]]
-stations$`WMO Code` <- formatC(stations$`WMO Code`, width = 7, flag=0) 
 ```
 We use `[[3]]` to extract the third table.
 
-Note how we reconvert the statin WMO Code back to a string with leading zeros. R recognizes it as a integer and deletes the leading zeros per default.
+# Convert to tidy data.frame
 
-The station list looks like this:
-```{r show-station-list, echo=F}
-stations[1:5,]
+We want to work with a tidy datafram (also called `tibble`). A `data.frame` stores observations (the rows) in variables (the colums). Each column can have a different data type (like integer, character, logical, etc.). Have a look at `help(typeof)` to learn more about object types. What the rows of a column are not allowed to contain is other object classes like `list` or `matrix`. Consult `help(class)` to learn the difference between an object class and the object type.
+
+Therefore traditionally everyone tended to introduce a new variable (for example `data <- list()`) to store data that don't fit into the data.frame. The problem is, there is no direct link between the data.frame (let's say it is called `stations`) and the data stored in the list called `data`. If we change one of the objects (for example we drop some rows of the data.frame), the other object doesn't change. So later on we cannot link the rows of the table to the elements of the list.
+
+With a tibble we can store all the data we will later download in a column of the station list. This way we maintain a constant link between the data and the station list.
+
+Let's convert the station data.frame to a tibble. The package `tibble` is automatically loaded when loading the package `dplyr` (which contains additional useful functions like `mutate` for working with tidy data).
+
+```{r}
+library(dplyr)
 ```
+
+Convert the station list:
+
+```{r convert-to-tibble}
+stations <- as.tbl(stations)
+```
+
+If we display the tibble you see the difference to a data.frame:
+
+```{r}
+stations
+```
+
+With the `mutate()` function we can introduce new columns. Here we replace the column `WMO Code`:
+
+```{r}
+stations <- mutate(stations, `WMO Code`= formatC(`WMO Code`, width = 7, flag=0))
+```
+
+With this we add back the leading 0s of the WMO Code that where stripped in the table read process.
 
 # Extract links
 
@@ -232,18 +260,24 @@ Now we extract the `href` attribute of all links linking a csv file (note how we
 csv_links <- html_attr(links[is_csv_link], name="href")
 ```
 
-# Prepare download
+The extracted links we add into the station list with `mutate`:
 
-For the download we need a destination file name for every csv file. We will use the station WMO code for this:
-```{r destfiles}
-destfiles <- paste0( stations[, "WMO Code"], ".csv")
+```{r}
+stations <- mutate(stations, link=csv_links)
 ```
 
-We also create a download folder:
+# Prepare download
+
+First we create a download folder:
 ```{r prepare-download}
 folder <- "data"
 dir.create(folder)
 ```
+For the download we need a destination file name for every csv file. We will use the station WMO code for this:
+```{r destfiles}
+stations <- mutate(stations, destfile=paste0(folder, "/", `WMO Code`, ".csv"))
+```
+
 
 
 # Download data
@@ -260,11 +294,34 @@ for(i in 1:length(csv_links)){
 
 We set `Sys.sleep(1)` to prevent sending too many request in short time to the server. Some servers deny service when we send requests in sequence too fast.
 
-Now we populated our download folder with all the csv files linked in the station list. 
+# Read csv files
+Finally we want to add the station data to our tidy data.frame. For reading we use the package `readr`, which reads csv files a lot faster and reads it directly into a tibble. Advantage of the latter is for example, that column names get preserved in the format they have in the csv file.  We also need the function `map` of the 
+`purr` package. `map` is an apply function that can be executed on the elements of a vector. Install these packages with `install.packages("readr")` and `install.packages("purrr")`.
+
+```{r read}
+library(readr)
+library(purrr)
+stations <- mutate(stations, data=map(destfile, read_csv))
+```
+
+To check what we have done just now we display the data for the first station:
+
+```{r take-a-look}
+stations$data[[1]]
+```
+
+Finally have a look with what a "tidy dataframe" we ended up with:
+```{r show}
+stations
+```
+
+
+# Conclusion
+
+We now downloaded all the data and added it to our tidy data.frame. 
 
 In follow-up tutorials we will show you how to:
 
-* read all the .csv files and merge them into a big database
 * derive the Local Meteoric Water Line (LMWL) for all stations with linear regression
 * show the variation of parameters on an interactive map
 * make correllations between the isotope signatures and parameters like longitude, latitude, elevation and climatic variables
