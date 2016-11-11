@@ -6,7 +6,7 @@ category: tutorial
 language: English
 author: Nanu Frechen
 datasource: <a href="https://nucleus.iaea.org/wiser/gnip.php">IAEA WISER isotope data</a>
-technique: <a href="http://r-project.org">R</a>, <a href="https://github.com/hadley/rvest">rvest</a>
+technique: <a href="http://r-project.org">R</a>, <a href="https://github.com/hadley/rvest">rvest</a>, <a href="https://blog.rstudio.org/2014/07/22/introducing-tidyr/">tidyr</a>, <a href="https://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html">dplyr</a>, <a href="https://github.com/hadley/purrr">purrr</a>, <a href="https://blog.rstudio.org/2015/04/09/readr-0-1-0/">readr</a>
 ---
 ```{r setup, echo=F, results="hide", message=F, warning=F}
 library(knitr)
