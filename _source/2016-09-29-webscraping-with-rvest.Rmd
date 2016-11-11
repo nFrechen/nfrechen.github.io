@@ -8,6 +8,7 @@ author: Nanu Frechen
 datasource: <a href="https://nucleus.iaea.org/wiser/gnip.php">IAEA WISER isotope data</a>
 technique: <a href="http://r-project.org">R</a>, <a href="https://github.com/hadley/rvest">rvest</a>, <a href="https://blog.rstudio.org/2014/07/22/introducing-tidyr/">tidyr</a>, <a href="https://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html">dplyr</a>, <a href="https://github.com/hadley/purrr">purrr</a>, <a href="https://blog.rstudio.org/2015/04/09/readr-0-1-0/">readr</a>
 ---
+
 ```{r setup, echo=F, results="hide", message=F, warning=F}
 library(knitr)
 opts_chunk$set(message = F, error = F, warning = F, cache=T, autodep = T, fig.width = 7, fig.height = 5, dev="png")
@@ -313,6 +314,38 @@ stations$data[[1]]
 Finally have a look with what a "tidy dataframe" we ended up with:
 ```{r show}
 stations
+```
+
+# The short version
+
+Using the pipe operator `%>%` very often you can get rid of a lot of the temporary variables and compact the code quite a lot:
+
+```{r compact-code}
+password <- "myPassword"
+library(rvest)
+library(dplyr)
+folder <- "data"
+dir.create(folder)
+
+# establish session
+nucl <- html_session("https://websso.iaea.org/login/login.fcc?TYPE=33554433&REALMOID=06-ef4f28c9-f8dc-467e-8186-294fdf5e627b&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=$SM$e5utW7BvliO1ED%2btYsJY7ob8iaMTTe5bnP3rVRRDKcLtPDyvx7kOY%2b6YSwtMTLAv&TARGET=$SM$HTTPS%3a%2f%2fwebsso%2eiaea%2eorg%2flogin%2fbounce%2easp%3fDEST%3d$$SM$$HTTPS$%3a$%2f$%2fwebsso$%2eiaea$%2eorg$%2flogin$%2fredirect$%2easp$%3ftarget$%3dhttp$%3a$%2f$%2fnucleus$%2eiaea$%2eorg$%2fwiser$%2fgnip$%2ephp$%3fll_latlon$%3d$%26ur_latlon$%3d$%26country$%3d$%26wmo_region$%3d$%26date_start$%3d1953$%26date_end$%3d2016$%26iso_o18$%3don$%26iso_h2$%3don$%26result_start$%3d0$%26result_end$%3d1000$%26action$%3dSearch")
+form <- html_form(nucl)[[1]] %>% set_values(USER= "jklasd", PASSWORD=password)
+form$url <- ""
+nucl2 <- submit_form(session=nucl, form=form)
+
+# extract links
+links <- html_nodes(nucl2, css="a") %>% .[html_text(.) == "csv"] %>% html_attr(name="href") 
+
+# function for downloading the data
+readFun <- function(x) read_csv(jump_to(nucl2, url=x)$response$content)
+
+# downlaod station list
+stations <- html_table(nucl2)[[3]] %>% as.tbl %>%
+  mutate(`WMO Code`= formatC(`WMO Code`, width = 7, flag=0)) %>%
+  mutate(link=links) %>%
+  mutate(destfile=paste0(folder, "/", `WMO Code`, ".csv")) %>%
+  .[1:5,] %>% # for testing I download only the first 5 lines (remove this line to download all)
+  mutate(data=map(link, readFun))
 ```
 
 
