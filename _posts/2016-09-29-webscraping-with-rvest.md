@@ -36,18 +36,20 @@ First thing we have to do is to download the data from their website. Of course 
 * master the login page form
 * maintain a constant session from the login to the end of the last download
 * implement file download which is not explicitly implemented in the rvest package
+* do everything in a tidy dataframe
 
 In this post we will give you a short [theoretical background](#theoretical-background) as a motivation about why we want to work with this data. Then we will show you how to [download the data with rvest step by step](#how-is-the-server-setup).
 
 In follow-up tutorials linked to this tutorial we will show you:
 
-* how to read all the .csv files and merge them into a big database
 * how to derive the Local Meteoric Water Line (LMWL) for all stations with linear regression
 * how to show the variation of parameters on an interactive map
 * make correllations between the isotope signatures and parameters like longitude, latitude, elevation and climatic variables
 
 
 # Theoretical Background
+
+<!-- http://wwwrcamnl.wr.usgs.gov/isoig/period/o_iig.html -->
 
 Water containts not only the usual $$H$$ and $$O$$ atoms. It contains also small amounts of the slightly heavier isotopes $$^2H$$ and $$^{18}O$$. Isotopes are atoms containing one or multiple additional neutrons in the core than the more abundant variety of the atom. 
 
@@ -210,22 +212,65 @@ With the session stored under `nucl2` we now can extract the data from the table
 
 {% highlight r %}
 stations <- html_table(nucl2)[[3]]
-stations$`WMO Code` <- formatC(stations$`WMO Code`, width = 7, flag=0) 
 {% endhighlight %}
 We use `[[3]]` to extract the third table.
 
-Note how we reconvert the statin WMO Code back to a string with leading zeros. R recognizes it as a integer and deletes the leading zeros per default.
+# Convert to tidy data.frame
 
-The station list looks like this:
+We want to work with a tidy datafram (also called `tibble`). A `data.frame` stores observations (the rows) in variables (the colums). Each column can have a different data type (like integer, character, logical, etc.). Have a look at `help(typeof)` to learn more about object types. What the rows of a column are not allowed to contain is other object classes like `list` or `matrix`. Consult `help(class)` to learn the difference between an object class and the object type.
+
+Therefore traditionally everyone tended to introduce a new variable (for example `data <- list()`) to store data that don't fit into the data.frame. The problem is, there is no direct link between the data.frame (let's say it is called `stations`) and the data stored in the list called `data`. If we change one of the objects (for example we drop some rows of the data.frame), the other object doesn't change. So later on we cannot link the rows of the table to the elements of the list.
+
+With a tibble we can store all the data we will later download in a column of the station list. This way we maintain a constant link between the data and the station list.
+
+Let's convert the station data.frame to a tibble. The package `tibble` is automatically loaded when loading the package `dplyr` (which contains additional useful functions like `mutate` for working with tidy data).
+
+
+{% highlight r %}
+library(dplyr)
+{% endhighlight %}
+
+Convert the station list:
+
+
+{% highlight r %}
+stations <- as.tbl(stations)
+{% endhighlight %}
+
+If we display the tibble you see the difference to a data.frame:
+
+
+{% highlight r %}
+stations
+{% endhighlight %}
+
+
 
 {% highlight text %}
-##             Name of site WMO Code Country Climate Zone Start Year End Year Samples Total Samples ¹⁸O Samples ²H Samples ³H Show on Map   Download Plots Statistics
-## 1           QUITO-INAMHI  8407301 Ecuador          Cfb       1997     2014           204         160        163         13         Map csv | xlsx Plots Statistics
-## 2                 MANAUS  8233100  Brazil           Af       1965     1990           312         187        160        180         Map csv | xlsx Plots Statistics
-## 3                CALGARY  7187701  Canada          Dfb       1992     2001           120         116        118          0         Map csv | xlsx Plots Statistics
-## 4 LEON/VIRGEN DEL CAMINO  0805500   Spain          Cfb       2000     2010           132         120        120        126         Map csv | xlsx Plots Statistics
-## 5              ROVANIEMI  0284500 Finland          Dfc       2003     2010            96          83         83         54         Map csv | xlsx Plots Statistics
+## # A tibble: 917 × 14
+##            `Name of site` `WMO Code`     Country `Climate Zone` `Start Year` `End Year` `Samples Total` `Samples ¹⁸O` `Samples ²H` `Samples ³H` `Show on Map`   Download Plots Statistics
+##                     <chr>      <int>       <chr>          <chr>        <int>      <int>           <int>         <int>        <int>        <int>         <chr>      <chr> <chr>      <chr>
+## 1            QUITO-INAMHI    8407301     Ecuador            Cfb         1997       2014             204           160          163           13           Map csv | xlsx Plots Statistics
+## 2                  MANAUS    8233100      Brazil             Af         1965       1990             312           187          160          180           Map csv | xlsx Plots Statistics
+## 3                 CALGARY    7187701      Canada            Dfb         1992       2001             120           116          118            0           Map csv | xlsx Plots Statistics
+## 4  LEON/VIRGEN DEL CAMINO     805500       Spain            Cfb         2000       2010             132           120          120          126           Map csv | xlsx Plots Statistics
+## 5               ROVANIEMI     284500     Finland            Dfc         2003       2010              96            83           83           54           Map csv | xlsx Plots Statistics
+## 6       KABUL (KARIZIMIR)    4094900 Afghanistan            BSk         1962       1991             360           109           86          123           Map csv | xlsx Plots Statistics
+## 7                 MALANGE    6621500      Angola             Aw         1969       1983             180            85           66           74           Map csv | xlsx Plots Statistics
+## 8                MENONGUE    6641000      Angola            Cwa         1969       1983             180            59           46           57           Map csv | xlsx Plots Statistics
+## 9              HALLEY BAY    8902200  Antarctica             EF         1965       2014             600           552          533          504           Map csv | xlsx Plots Statistics
+## 10          ROTHERA POINT    8906200  Antarctica             EF         1996       2014             228           196          196           57           Map csv | xlsx Plots Statistics
+## # ... with 907 more rows
 {% endhighlight %}
+
+With the `mutate()` function we can introduce new columns. Here we replace the column `WMO Code`:
+
+
+{% highlight r %}
+stations <- mutate(stations, `WMO Code`= formatC(`WMO Code`, width = 7, flag=0))
+{% endhighlight %}
+
+With this we add back the leading 0s of the WMO Code that where stripped in the table read process.
 
 # Extract links
 
@@ -268,20 +313,27 @@ Now we extract the `href` attribute of all links linking a csv file (note how we
 csv_links <- html_attr(links[is_csv_link], name="href")
 {% endhighlight %}
 
-# Prepare download
+The extracted links we add into the station list with `mutate`:
 
-For the download we need a destination file name for every csv file. We will use the station WMO code for this:
 
 {% highlight r %}
-destfiles <- paste0( stations[, "WMO Code"], ".csv")
+stations <- mutate(stations, link=csv_links)
 {% endhighlight %}
 
-We also create a download folder:
+# Prepare download
+
+First we create a download folder:
 
 {% highlight r %}
 folder <- "data"
 dir.create(folder)
 {% endhighlight %}
+For the download we need a destination file name for every csv file. We will use the station WMO code for this:
+
+{% highlight r %}
+stations <- mutate(stations, destfile=paste0(folder, "/", `WMO Code`, ".csv"))
+{% endhighlight %}
+
 
 
 # Download data
@@ -299,11 +351,75 @@ for(i in 1:length(csv_links)){
 
 We set `Sys.sleep(1)` to prevent sending too many request in short time to the server. Some servers deny service when we send requests in sequence too fast.
 
-Now we populated our download folder with all the csv files linked in the station list. 
+# Read csv files
+Finally we want to add the station data to our tidy data.frame. For reading we use the package `readr`, which reads csv files a lot faster and reads it directly into a tibble. Advantage of the latter is for example, that column names get preserved in the format they have in the csv file.  We also need the function `map` of the 
+`purr` package. `map` is an apply function that can be executed on the elements of a vector. Install these packages with `install.packages("readr")` and `install.packages("purrr")`.
+
+
+{% highlight r %}
+library(readr)
+library(purrr)
+stations <- mutate(stations, data=map(destfile, read_csv))
+{% endhighlight %}
+
+To check what we have done just now we display the data for the first station:
+
+
+{% highlight r %}
+stations$data[[1]]
+{% endhighlight %}
+
+
+
+{% highlight text %}
+## # A tibble: 204 × 24
+##    `Name of site` Country `WMO Code`  Latitude Longitude Altitude                     `Type of Site`  `Source of Information` `Sample Name`                 `Media Type`    Date `Begin of Period` `End of Period` Comment   O18 `O18 Laboratory`    H2 `H2 Laboratory`    H3 `H3 Error` `H3 Laboratory` Precipitation `Air Temperature` `Vapour Pressure`
+##             <chr>   <chr>      <int>     <dbl>     <dbl>    <int>                              <chr>                    <chr>         <int>                        <chr>   <chr>            <date>          <date>   <chr> <dbl>            <chr> <dbl>           <chr> <dbl>      <dbl>           <chr>         <dbl>             <dbl>             <dbl>
+## 1    QUITO-INAMHI      EC    8407301 -0.166667 -78.48333     2789 Precipitation collectors - unknown [Partner: INAMHI, Quito]        199701 Water - Precipitation - rain 1997-01        1997-01-01      1997-01-31    <NA>    NA             <NA>    NA            <NA>    NA         NA            <NA>            NA                NA                NA
+## 2    QUITO-INAMHI      EC    8407301 -0.166667 -78.48333     2789 Precipitation collectors - unknown [Partner: INAMHI, Quito]        199702 Water - Precipitation - rain 1997-02        1997-02-01      1997-02-28    <NA>    NA             <NA>    NA            <NA>    NA         NA            <NA>            NA                NA                NA
+## 3    QUITO-INAMHI      EC    8407301 -0.166667 -78.48333     2789 Precipitation collectors - unknown [Partner: INAMHI, Quito]        199703 Water - Precipitation - rain 1997-03        1997-03-01      1997-03-31    <NA>    NA             <NA>    NA            <NA>    NA         NA            <NA>            NA                NA                NA
+## 4    QUITO-INAMHI      EC    8407301 -0.166667 -78.48333     2789 Precipitation collectors - unknown [Partner: INAMHI, Quito]        199704 Water - Precipitation - rain 1997-04        1997-04-01      1997-04-30    <NA>    NA             <NA>    NA            <NA>    NA         NA            <NA>            NA                NA                NA
+## 5    QUITO-INAMHI      EC    8407301 -0.166667 -78.48333     2789 Precipitation collectors - unknown [Partner: INAMHI, Quito]        199705 Water - Precipitation - rain 1997-05        1997-05-01      1997-05-31    <NA>    NA             <NA>    NA            <NA>    NA         NA            <NA>            NA                NA                NA
+## 6    QUITO-INAMHI      EC    8407301 -0.166667 -78.48333     2789 Precipitation collectors - unknown [Partner: INAMHI, Quito]        199706 Water - Precipitation - rain 1997-06        1997-06-01      1997-06-30    <NA>    NA             <NA>    NA            <NA>    NA         NA            <NA>            NA                NA                NA
+## 7    QUITO-INAMHI      EC    8407301 -0.166667 -78.48333     2789 Precipitation collectors - unknown [Partner: INAMHI, Quito]        199707 Water - Precipitation - rain 1997-07        1997-07-01      1997-07-31    <NA>    NA             <NA>    NA            <NA>    NA         NA            <NA>            NA                NA                NA
+## 8    QUITO-INAMHI      EC    8407301 -0.166667 -78.48333     2789 Precipitation collectors - unknown [Partner: INAMHI, Quito]        199708 Water - Precipitation - rain 1997-08        1997-08-01      1997-08-31    <NA>    NA             <NA>    NA            <NA>    NA         NA            <NA>            NA                NA                NA
+## 9    QUITO-INAMHI      EC    8407301 -0.166667 -78.48333     2789 Precipitation collectors - unknown [Partner: INAMHI, Quito]        199709 Water - Precipitation - rain 1997-09        1997-09-01      1997-09-30    <NA>    NA             <NA>    NA            <NA>    NA         NA            <NA>            NA                NA                NA
+## 10   QUITO-INAMHI      EC    8407301 -0.166667 -78.48333     2789 Precipitation collectors - unknown [Partner: INAMHI, Quito]        199710 Water - Precipitation - rain 1997-10        1997-10-01      1997-10-31    <NA>    NA             <NA>    NA            <NA>    NA         NA            <NA>           153                NA                NA
+## # ... with 194 more rows
+{% endhighlight %}
+
+Finally have a look with what a "tidy dataframe" we ended up with:
+
+{% highlight r %}
+stations
+{% endhighlight %}
+
+
+
+{% highlight text %}
+## # A tibble: 917 × 17
+##            `Name of site` `WMO Code`     Country `Climate Zone` `Start Year` `End Year` `Samples Total` `Samples ¹⁸O` `Samples ²H` `Samples ³H` `Show on Map`   Download Plots Statistics                                                            link         destfile                data
+##                     <chr>      <chr>       <chr>          <chr>        <int>      <int>           <int>         <int>        <int>        <int>         <chr>      <chr> <chr>      <chr>                                                           <chr>            <chr>              <list>
+## 1            QUITO-INAMHI    8407301     Ecuador            Cfb         1997       2014             204           160          163           13           Map csv | xlsx Plots Statistics download.php?siteId=172136&page=gnip&action=download&format=csv data/8407301.csv <tibble [204 × 24]>
+## 2                  MANAUS    8233100      Brazil             Af         1965       1990             312           187          160          180           Map csv | xlsx Plots Statistics download.php?siteId=172137&page=gnip&action=download&format=csv data/8233100.csv <tibble [312 × 24]>
+## 3                 CALGARY    7187701      Canada            Dfb         1992       2001             120           116          118            0           Map csv | xlsx Plots Statistics download.php?siteId=172138&page=gnip&action=download&format=csv data/7187701.csv <tibble [120 × 24]>
+## 4  LEON/VIRGEN DEL CAMINO    0805500       Spain            Cfb         2000       2010             132           120          120          126           Map csv | xlsx Plots Statistics download.php?siteId=172139&page=gnip&action=download&format=csv data/0805500.csv <tibble [132 × 24]>
+## 5               ROVANIEMI    0284500     Finland            Dfc         2003       2010              96            83           83           54           Map csv | xlsx Plots Statistics download.php?siteId=172140&page=gnip&action=download&format=csv data/0284500.csv  <tibble [96 × 24]>
+## 6       KABUL (KARIZIMIR)    4094900 Afghanistan            BSk         1962       1991             360           109           86          123           Map csv | xlsx Plots Statistics download.php?siteId=172141&page=gnip&action=download&format=csv data/4094900.csv <tibble [360 × 24]>
+## 7                 MALANGE    6621500      Angola             Aw         1969       1983             180            85           66           74           Map csv | xlsx Plots Statistics download.php?siteId=172142&page=gnip&action=download&format=csv data/6621500.csv <tibble [180 × 24]>
+## 8                MENONGUE    6641000      Angola            Cwa         1969       1983             180            59           46           57           Map csv | xlsx Plots Statistics download.php?siteId=172143&page=gnip&action=download&format=csv data/6641000.csv <tibble [180 × 24]>
+## 9              HALLEY BAY    8902200  Antarctica             EF         1965       2014             600           552          533          504           Map csv | xlsx Plots Statistics download.php?siteId=172144&page=gnip&action=download&format=csv data/8902200.csv <tibble [600 × 24]>
+## 10          ROTHERA POINT    8906200  Antarctica             EF         1996       2014             228           196          196           57           Map csv | xlsx Plots Statistics download.php?siteId=172145&page=gnip&action=download&format=csv data/8906200.csv <tibble [228 × 24]>
+## # ... with 907 more rows
+{% endhighlight %}
+
+
+# Conclusion
+
+We now downloaded all the data and added it to our tidy data.frame. 
 
 In follow-up tutorials we will show you how to:
 
-* read all the .csv files and merge them into a big database
 * derive the Local Meteoric Water Line (LMWL) for all stations with linear regression
 * show the variation of parameters on an interactive map
 * make correllations between the isotope signatures and parameters like longitude, latitude, elevation and climatic variables
