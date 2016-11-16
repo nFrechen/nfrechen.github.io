@@ -70,6 +70,8 @@ $$^{18}O$$ | | 10 | $$0.20\,\%$$ | $$17.999\, u$$ | stable
 
 \* abundance varies slightly in different water bodies (ocean, groundwater, river, cloud)
 
+Source: [https://de.wikipedia.org/wiki/Wasserstoff#Protium](), [http://www.wolframalpha.com/input/?i=16O+isotope]()
+
 -----------
 
 Due to this fractionation of the isotopes researchers can measure a difference in the isotope "fingerprint" of rainwater and water on the ground. The atmospheric fingerprint varies a lot, depending on the temperature and humidity conditions when the vater evaporated and during the time it traveled through the atmosphere. 
@@ -183,12 +185,13 @@ You see one input field for `'User'` and one for `'PASSWORD'`.
 We then fill these out:
 
 {% highlight r %}
-form2 <- set_values(form, USER= "jklasd", PASSWORD=password)
+form2 <- set_values(form, USER= user, PASSWORD=password)
 {% endhighlight %}
 
-Of course you first have to store a variable with the password:
+Of course you first have to store a variable with username and the password:
 
 {% highlight r %}
+user <- "myUser"
 password <- "myPassword"
 {% endhighlight %}
 
@@ -218,7 +221,7 @@ We use `[[3]]` to extract the third table.
 
 # Convert to tidy data.frame
 
-We want to work with a tidy datafram (also called `tibble`). A `data.frame` stores observations (the rows) in variables (the colums). Each column can have a different data type (like integer, character, logical, etc.). Have a look at `help(typeof)` to learn more about object types. What the rows of a column are not allowed to contain is other object classes like `list` or `matrix`. Consult `help(class)` to learn the difference between an object class and the object type.
+We want to work with a tidy data.frame (also called `tibble`). A `data.frame` stores observations (the rows) in variables (the colums). Each column can have a different data type (like integer, character, logical, etc.). Have a look at `help(typeof)` to learn more about object types. What the rows of a column are not allowed to contain is other object classes like `list` or `matrix`. Consult `help(class)` to learn the difference between an object class and the object type.
 
 Therefore traditionally everyone tended to introduce a new variable (for example `data <- list()`) to store data that don't fit into the data.frame. The problem is, there is no direct link between the data.frame (let's say it is called `stations`) and the data stored in the list called `data`. If we change one of the objects (for example we drop some rows of the data.frame), the other object doesn't change. So later on we cannot link the rows of the table to the elements of the list.
 
