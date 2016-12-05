@@ -16,9 +16,6 @@ filename <- "GMOD09Q1.A2001209.08d.latlon.x21y04.5v3.NDVI.tif"
 
 library(knitr)
 opts_chunk$set(message = F, error = F, warning = F, cache = T, autodep=T, fig.width=7, fig.height=5, dev="svg", dpi=100, tidy=T)
-
-library(rgl)
-knit_hooks$set(webgl = hook_webgl)
 ```
 
 
@@ -32,10 +29,21 @@ output:
     self_contained: yes
 ```
 
-Hier einige Beispiele:
-```{r , webgl=TRUE}
-library(rgl)
 
+Ausserdem müssen im ersten Chunk (z.B. im "Setup"-Chunk) folgende Befehle ausgeführt werden:
+
+```{r setup, cache=F}
+library(rgl)
+knit_hooks$set(webgl = hook_webgl)
+options(rgl.useNULL = TRUE)
+
+```
+
+Der erste Befehl lädt rgl, der zweite ermöglicht das setzen von `webgl=TRUE` in den Chunk-Einstellungen. Der letzte Befehl sorgt dafür, dass kein rgl Fenster beim Generieren der Seite geöffnet wird, sondern die Grafik direkt in die html-Seite eingebunden wird.
+
+Hier einige Beispiele:
+
+```{r volcano, webgl=TRUE}
 z <- 2 * volcano        # Exaggerate the relief
 x <- 10 * (1:nrow(volcano))   # 10 meter spacing (S to N)
 y <- 10 * (1:ncol(volcano))   # 10 meter spacing (E to W)
@@ -44,10 +52,10 @@ colors <- terrain.colors(n_colors)
 persp3d(x, y, z, col=colors[volcano - min(volcano)], aspect="iso", axes=F, box=F, xlab="", ylab="", zlab="")
 ```
 
-```{r, webgl=TRUE}
+```{r tetrahedron, webgl=TRUE, results="hide"}
+open3d() 
 shade3d( translate3d( tetrahedron3d(col = "red"), 0, 0, 0) )
 ```
-
 
 
 
