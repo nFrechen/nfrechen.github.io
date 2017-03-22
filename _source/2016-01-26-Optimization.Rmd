@@ -97,6 +97,7 @@ for(i in 1:nrow(performance)){
   Sys.sleep(1)
 }
 
+
 plot(vector~n, performance, type="b", ylim=range(performance[,2:3]), ylab="calculation time [s]")
 lines(performance$n, performance$loop, col="green", type="b")
 legend("topleft", col=c("black", "green", "red"), legend=c("vector", "loop", "increase"), title="method of calculation", lty=1, pch=20, bty="n")
@@ -110,10 +111,15 @@ As you can see the calculation time for the vector method barely exceeds `r sign
 
 ### Packages and functions to make your calculations faster
 
-* Use apply whenever possible
+* Use `apply` whenever possible
 * Use additional apply functions from the plyr package
-* Read csv tables with fread of the data.table package.
+* Read csv tables with `fread` of the data.table package.
 [^2]
+
+### Further readings:
+
+The section ["Optimising code"](http://adv-r.had.co.nz/Profiling.html) of Hadley Wickham's book "Advanced R" teaches you a lot about how to find the bottlenecks in your code and speed up your calculations.
+
 
 
 [^1]: About how to integrate compiled code written in C or Fortran into R consult the chapter 5.2 "Interface functions .C and .Fortran" of the manual "Writing R Extensions" you find in the home of the help system in R.

@@ -91,14 +91,19 @@ loop_function <- function(x){
 
 ![plot of chunk unnamed-chunk-3](/figure/source/2016-01-26-Optimization/unnamed-chunk-3-1.svg)
 
-As you can see the calculation time for the vector method barely exceeds 0.002 seconds, while the maximum calculation time  for the loop method is 9 seconds. The maximum increase in performance is over 10000 and will further increase with higher n!
+As you can see the calculation time for the vector method barely exceeds 0.002 seconds, while the maximum calculation time  for the loop method is 10 seconds. The maximum increase in performance is over 10000 and will further increase with higher n!
 
 ### Packages and functions to make your calculations faster
 
-* Use apply whenever possible
+* Use `apply` whenever possible
 * Use additional apply functions from the plyr package
-* Read csv tables with fread of the data.table package.
+* Read csv tables with `fread` of the data.table package.
 [^2]
+
+### Further readings:
+
+The section ["Optimising code"](http://adv-r.had.co.nz/Profiling.html) of Hadley Wickham's book "Advanced R" teaches you a lot about how to find the bottlenecks in your code and speed up your calculations.
+
 
 
 [^1]: About how to integrate compiled code written in C or Fortran into R consult the chapter 5.2 "Interface functions .C and .Fortran" of the manual "Writing R Extensions" you find in the home of the help system in R.
