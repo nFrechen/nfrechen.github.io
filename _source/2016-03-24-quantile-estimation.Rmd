@@ -140,7 +140,7 @@ ylim <- max(abs(Qmatrix[,,]))*c(-1,1)
 for(type in 1:9){
   #View(Qmatrix)
   
-  plot(NULL, xlim=c(1,nmax), ylim=ylim, log="x", main=paste("type =", type), xlab="", ylab="", axes=F, frame.plot=T, panel.first=abline(v=c(1,2,5,10,20,50,100,200,500,1000), h=qnorm(Q), col="lightgray"))
+  plot(NULL, xlim=c(1,nmax), ylim=ylim, log="x", main=paste("type ", type), xlab="", ylab="", axes=F, frame.plot=T, panel.first=abline(v=c(1,2,5,10,20,50,100,200,500,1000), h=qnorm(Q), col="lightgray"))
   for(i in 1:length(Q)){
     lines(Qmatrix[type,,i], col=1, type="l")
   }
@@ -209,7 +209,7 @@ for(type in 1:9){
 ylim <- range(MeanQuantile[,,])
 
 for(type in 1:9){
-  plot(NULL, xlim=c(1,repetitions), ylim=ylim, panel.first=abline(h=qnorm(Q), v=c(1,5,10,50,100,500,1000), col="lightgray"), main=paste("type =", type), log="x", axes=F, frame.plot = T)
+  plot(NULL, xlim=c(1,repetitions), ylim=ylim, panel.first=abline(h=qnorm(Q), v=c(1,5,10,50,100,500,1000), col="lightgray"), main=paste("type ", type), log="x", axes=F, frame.plot = T)
   if(type>6) axis(1, las=3)
   if(type%%3==1) axis(2, las=1)
   for(i in 1:length(Q)){
@@ -239,7 +239,7 @@ ylim <- max(abs(range(c(t(MeanQuantile[,repetitions,])-qnorm(Q), t(Qmatrix[,n,])
 
 for(type in 1:9){
   #plot(qnorm(Q),Q, xlim=range(qnorm(Q))*1.3)
-  plot(Q, Qmatrix[type,n,]-qnorm(Q), xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="lightgray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type =", type))
+  plot(Q, Qmatrix[type,n,]-qnorm(Q), xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="lightgray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type ", type))
        #ylim=)
   points(Q, MeanQuantile[type,repetitions,]-qnorm(Q), col="red")
   
@@ -293,7 +293,7 @@ ylim <- max(abs(range(c(t(MeanQuantile[,repetitions,])-qnorm(Q), t(Qmatrix[,n,])
 
 for(type in 1:9){
   #plot(qnorm(Q),Q, xlim=range(qnorm(Q))*1.3)
-  plot(Q, Qmatrix[type,n,]-qnorm(Q), xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="lightgray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type =", type))
+  plot(Q, Qmatrix[type,n,]-qnorm(Q), xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="lightgray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type ", type))
        #ylim=)
   points(Q, MeanQuantile[type,repetitions,]-qnorm(Q), col="red")
   
@@ -342,7 +342,7 @@ ylim <- max(abs(range(c(t(MeanQuantile[,repetitions,])-qnorm(Q), t(Qmatrix[,n,])
 
 for(type in 1:9){
   #plot(qnorm(Q),Q, xlim=range(qnorm(Q))*1.3)
-  plot(Q, Qmatrix[type,n,]-qnorm(Q), xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="lightgray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type =", type))
+  plot(Q, Qmatrix[type,n,]-qnorm(Q), xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="lightgray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type ", type))
        #ylim=)
   points(Q, MeanQuantile[type,repetitions,]-qnorm(Q), col="red")
   
@@ -395,7 +395,7 @@ ylim <- max(abs(range(c(t(MeanQuantile[,repetitions,,5])-qnorm(Q), t(Qmatrix[,5,
 
 
 for(type in 1:9){
-  plot(NULL, xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="gray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type =", type))
+  plot(NULL, xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="gray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type ", type))
   
   col=0
   palette(colorRampPalette(c("red", "green"),space = "rgb")(length(ns)))
@@ -453,7 +453,7 @@ for(type in 1:9){
 ylim <- range(MeanQuantile[,,])
 
 for(type in 1:9){
-  plot(NULL, xlim=c(1,repetitions), ylim=ylim, panel.first=abline(h=qnorm(Q), v=c(1,5,10,50,100,500,1000), col="lightgray"), main=paste("type =", type), log="x", axes=F, frame.plot = T)
+  plot(NULL, xlim=c(1,repetitions), ylim=ylim, panel.first=abline(h=qnorm(Q), v=c(1,5,10,50,100,500,1000), col="lightgray"), main=paste("type ", type), log="x", axes=F, frame.plot = T)
   if(type>6) axis(1, las=3)
   if(type%%3==1) axis(2, las=1)
   for(i in 1:length(Q)){
@@ -475,7 +475,7 @@ ylim <- max(abs(range(c(t(MeanQuantile[,repetitions,])-qnorm(Q), t(Qmatrix[,10,]
 
 for(type in 1:9){
   #plot(qnorm(Q),Q, xlim=range(qnorm(Q))*1.3)
-  plot(Q, Qmatrix[type,n,]-qnorm(Q), xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="lightgray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type =", type))
+  plot(Q, Qmatrix[type,n,]-qnorm(Q), xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="lightgray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type ", type))
        #ylim=)
   points(Q, MeanQuantile[type,repetitions,]-qnorm(Q), col="red")
   
@@ -514,7 +514,7 @@ ylim <- range(Qmatrix[,,])
 for(type in 1:9){
   #View(Qmatrix)
   
-  plot(NULL, xlim=c(1,nmax), ylim=ylim, log="x", main=paste("type =", type), xlab="", ylab="", axes=F, frame.plot=T, panel.first=abline(v=c(1,2,5,10,20,50,100,200,500,1000), h=qlnorm(Q), col="lightgray"))
+  plot(NULL, xlim=c(1,nmax), ylim=ylim, log="x", main=paste("type ", type), xlab="", ylab="", axes=F, frame.plot=T, panel.first=abline(v=c(1,2,5,10,20,50,100,200,500,1000), h=qlnorm(Q), col="lightgray"))
   for(i in 1:length(Q)){
     lines(Qmatrix[type,,i], col=1, type="l")
   }
@@ -568,7 +568,7 @@ ylim <- max(abs(range(c(t(MeanQuantile[,repetitions,])-qlnorm(Q), t(Qmatrix[,10,
 
 for(type in 1:9){
   #plot(qlnorm(Q),Q, xlim=range(qlnorm(Q))*1.3)
-  plot(Q, Qmatrix[type,n,]-qlnorm(Q), xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="lightgray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type =", type))
+  plot(Q, Qmatrix[type,n,]-qlnorm(Q), xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="lightgray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type ", type))
        #ylim=)
   points(Q, MeanQuantile[type,repetitions,]-qlnorm(Q), col="red")
   
