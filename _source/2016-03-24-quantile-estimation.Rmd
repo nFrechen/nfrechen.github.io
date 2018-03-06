@@ -26,6 +26,50 @@ This post is not yet finished. I post it here to get some input about how to imp
 
 ----------------------
 
+**Neustrukturierung:**
+
+1. Motivation
+
+    Compared to "true math", applied statistics is a fuzzy science: often there are no clear rules to follow – different approaches to tackle a problem exist.
+    Different disciplines settled on different methods, mostly to handle problems arising from low sample sizes.
+    Often methods are used because they where historically proposed by some of the "fathers of statistics" and no new approach was influencial enough to change common practice.
+    
+    Because most statistical tools were developed in the pre-computer era, they tend to favour easy computability. Also they were prooved theoreticaly because that was the only method at that time.
+    Today statistical methods can be benchmarked by applying them on large amounts of pseudo-randomly generated data using the strong computation power of modern computers. This can be helpful especially when statistics deviates from the theoretical and enters the messy world of real-world, low sample size datasets.
+    
+    In this article we investigate the differences between the 9 different quantile estimation methods implemented into the software package "R". We show how they perform especially for the low sample sizes of $$n<50$$ or even $$n<10$$ and how the deviations develope with increasing sample size.
+    We use a very visual approach, because we first of all want to create awareness about the differences.
+    We give some evidence about the best performing method according to our benchmarks and create some awareness about which quantiles can be calculated with tolerable bias for which sample size. 
+    Other than that we don't feel in the position to propose a change in pactice unless someone more rooted in the field of applied statistics picks up our approach and backs it up with more theoretical reasoning.
+    
+2. The 9 different approaches to quantile estimation in R
+3. Systematic bias for low sample sizes
+    * shown in repeated estimations of random generated data
+    * most methods show systematic bias
+    * type 5 shows the lowest bias
+    * Default R type (type 7) is not the best performing
+4. Evolution of the bias with varying sample size
+    * estimates applied a discretized theoretical normal distribution with varying sample size
+    * Type 1 to 3 are totally erratic and shouldn't be used at all
+    * all methods underestimate the spread of the outer quantiles at low sample sizes ($$q_{0.125}$$ to $$q_{0.875}$$ noticeable biased for  $$n<5$$)
+    * Type 7 approaches the true value conservatively, meaning it tends to underestimate the spread of the outer quantiles ($$q_{0.125}$$ to $$q_{0.875}$$ noticeable biased for  $$n<50$$)
+    * Type 6, 8 and 9 show severe overshooting in the estimation of the outer quantiles
+    * Type 4 estimate quantiles systematically lower than they are
+
+5. Evolution of the bias over the quantile range
+    * shown using the the discretized theoretical normal distribution 
+    * shown with random data
+    
+6. Which quantiles can be estimated with relatively low systematic bias?
+    * define tolerable deviation
+    * calculate probabilities for which the deviation starts to be greater than tolerable
+7. What are the reasons behind these differences?
+    * plotting positions
+8. Lessons learned
+    * Type 5 is the best performing (and also the first method proposed (1914) and the one that makes most sense)
+    * In application the systematic bias – more severe for the outer quantiles – should be considered: Know for which $n$ which probabilities are safe to estimate quantiles for. 
+
+----------------------
 
 There are many different ways to estimate the quantiles of an empirical distribution. R knows 9 different types (see help page of ```quantile()```). It is clear that for high $$n$$ the differences in these approaches become negligible. It is the low $$n$$ where they produce different estimations. All these methods where intruduced to optimize quantile estimation for sparse data sets, to get better estimations for the low $$n$$. There is a lof of mathematical argumentation and justification out there for each of these methods, but apparently non of them is convincing enough, that the whole statistical community would stick to that method. Every statistic software has different defaults and some have no alternative methods to choose from like R has.
 
