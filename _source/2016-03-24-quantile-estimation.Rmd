@@ -309,7 +309,8 @@ So I created the next figure starting with a single estimation with 10 random nu
 
 ```{r using-random-generator}
 
-par(mfrow=c(3,3), mar=c(.1,1,2,.1), oma=c(5,4,3,6))
+par(mfrow=c(3,3), mar=c(.1,1,2,.1), oma=c(5,4,5,6))
+palette("default")
 
 repetitions <- 1000
 d <- 7
@@ -334,24 +335,31 @@ for(type in 1:9){
 ylim <- range(MeanQuantile[,,])
 
 for(type in 1:9){
-  plot(NULL, xlim=c(1,repetitions), ylim=ylim, panel.first=abline(h=qnorm(Q), v=c(1,5,10,50,100,500,1000), col="lightgray"), main=paste("type ", type), log="x", axes=F, frame.plot = T)
+  plot(NULL, xlim=c(1,repetitions), ylim=ylim, panel.first=abline(h=qnorm(Q), v=c(1,5,10,50,100,500,1000), col="lightgray"), main=paste("type ", type), log="", axes=F, frame.plot = T)
   if(type>6) axis(1, las=3)
   if(type%%3==1) axis(2, las=1)
   for(i in 1:length(Q)){
+    #polygon(c(1,1:repetitions, repetitions), c(qnorm(Q[i]), MeanQuantile[type,,i], qnorm(Q[i])), col=c("red", "green"), border = NA)
+    polygon(c(1,1:repetitions, repetitions), c(qnorm(Q[i]), pmin(qnorm(Q[i]), MeanQuantile[type,,i]), qnorm(Q[i])), col="red", border = NA)
+    polygon(c(1,1:repetitions, repetitions), c(qnorm(Q[i]), pmax(qnorm(Q[i]), MeanQuantile[type,,i]), qnorm(Q[i])), col="#3fa309", border = NA)
+  }
+  for(i in 1:length(Q)){
     lines(MeanQuantile[type,,i], col=1)
   }
+    
   if(type%%3==0) axis(4, qnorm(Q), Q, las=1)
   
 }
-mtext(paste("running mean of repeated quantile estimation with n =", n), 3, outer=T, line=1, font=2, cex=1.2)
+mtext(paste("running mean of repeated quantile estimation\n for random drawings with n =", n), 3, outer=T, line=1, font=2, cex=1.2)
 #mtext("number of avaraged repetitions", 1, outer=T, line=3.5)
 #mtext("number of repetitions forming the running mean", 1, outer=T, line=3.5)
 #mtext("number of random drawings forming the avarage", 1, outer=T, line=3.5)
 mtext("number of random drawings contributing to running mean", 1, outer=T, line=3.5)
-mtext("probabilities corresponding to theoretical quantiles", 4, outer=T, line=4.5)
+mtext("probabilities of the theoretical quantiles", 4, outer=T, line=4.5)
 #mtext("quantiles estimated from random distribution", side = 2, outer = T, cex=1, line=2.5)
-mtext("avaraged quantile estimations", side = 2, outer = T, cex=1, line=2.5)
+mtext("quantiles", side = 2, outer = T, cex=1, line=2.5)
 ```
+
 
 The systematics of the deviation can be seen in the next figure in red circles. And: Bingo!, they match the deviations from my first thoght experiment with the discrete theoretical distributions (black circles) quite well. This approves, that this approach was a reasonable way to investigate the systematics behind the different quantile estimation methods.
 
