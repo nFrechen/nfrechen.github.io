@@ -335,7 +335,7 @@ for(type in 1:9){
 ylim <- range(MeanQuantile[,,])
 
 for(type in 1:9){
-  plot(NULL, xlim=c(1,repetitions), ylim=ylim, panel.first=abline(h=qnorm(Q), v=c(1,5,10,50,100,500,1000), col="lightgray"), main=paste("type ", type), log="", axes=F, frame.plot = T)
+  plot(NULL, xlim=c(1,repetitions), ylim=ylim, main=paste("type ", type), log="", axes=F, frame.plot = T)
   if(type>6) axis(1, las=3)
   if(type%%3==1) axis(2, las=1)
   for(i in 1:length(Q)){
