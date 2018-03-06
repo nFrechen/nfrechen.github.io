@@ -653,7 +653,7 @@ bxp(boxplot(qnorm(x), plot = F), medcol=3, staplecol=1, boxcol=2, whisklty=1, lw
 > 
 > For types 4 through 9, $$Q_i(p)$$ is a continuous function of $$p$$, with $$\gamma = g$$ and $$m$$ given below. The sample quantiles can be obtained equivalently by linear interpolation between the points $$(p_k,x_k)$$ where $$x_k$$ is the $$k$$th order statistic. Specific expressions for $$p_k$$ are given below.
 >
-> Type&nbsp;4: | `r citet("Parzen (1979) Nonparametric statistical data modeling")` | $$m = 0$$ | $$p_k = \frac{k}{n}$$ | That is, linear interpolation of the empirical cdf.
+> Type&nbsp;4: | `r #citet("Parzen (1979) Nonparametric statistical data modeling")` | $$m = 0$$ | $$p_k = \frac{k}{n}$$ | That is, linear interpolation of the empirical cdf.
 > Type&nbsp;5: | `r citet(bib["hazen1914storage"])` | $$m = \frac{1}{2}$$ | $$p_k = \frac{k - 0.5}{n}$$ | That is a piecewise linear function where the knots are the values midway through the steps of the empirical cdf. This is popular amongst hydrologists.
 > Type&nbsp;6: | `r citet(bib["weibull1939phenomenon"])`, `r citet(bib["gumbel1939probabilite"])` | $$m = p$$ | $$p_k = \frac{k}{n + 1}$$ | Thus $$p_k = E[F(x[k])]$$. This is used by Minitab and by SPSS.
 > Type&nbsp;7: | `r citet(bib["gumbel1939probabilite"])` | $$m = 1-p$$ |  $$p_k = \frac{k - 1}{n - 1}$$ | In this case, $$p_k = mode[F(x[k])]$$. This is used by S and by R < 2.0.0.
