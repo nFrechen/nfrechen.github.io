@@ -802,7 +802,6 @@ par(mar=c(3,3,3,15.5), pch=3, mgp=c(2,.5,0), cex=1.4, lwd=2)
 plot(0, type="n", axes=F, xlim=c(0,1), ylim=c(-7.2,0.2), xlab="plotting positions $p_k$ for $k=1,...,10$", ylab="", main="$p_k=\\frac{k-a}{n+1-2a}$", cex.main=1, font.main=1)
 axis(1, 0:10/10)
 abline(v=0:10/10, lty=1, col="lightgray")
-abline(h=0:-7)
 axis(4, 0:-7, c(
   'Parzen (1979), type 4', 
   "$$a=0$$, Weibull (1939), type 6", 
@@ -832,16 +831,38 @@ p <- function(i, n, a){
   return( (i-a)/(n+1-2*a))
 }
 
+greater <- function(p1, ypos){
+  p2 <- p(i,n,0.5)
+  rect(pmin(p1, p2), rep(0.1-ypos, n), pmax(p1, p2), rep(-0.1-ypos,n), col=c("#3fa309", "red")[(p1 < p2)+1], border=NA)
+  
+}
+
+
+greater( i/n, 0)
 points( i/n, rep(0, n)) # Parzen
+greater(p(i,n,0), 1)
 points( p(i,n, 0), rep(-1,n)) # Weibull
+greater(p(i,n, 1/3), 2)
 points( p(i,n, 1/3), rep(-2,n)) # Johnson and Kotz (1970)
+
+greater(p(i,n, 0.375), 3)
 points( p(i,n, 0.375), rep(-3,n)) # Blom
+
+greater(p(i,n, 0.4), 4)
 points( p(i,n, 0.4), rep(-4,n)) # Cunnane
+
+greater(p(i,n, 0.44), 5)
 points( p(i,n, 0.44), rep(-5,n)) # Gringorten
+
 points( p(i,n, 0.5), rep(-6,n)) # Hazen
+
+greater(p(i,n, 1), 7)
 points( p(i,n, 1), rep(-7,n)) # Gumbel S/R default
+abline(h=0:-7)
 
 ```
+
+
 
 ```{r potting-positions-figure, results="hide", cache=FALSE}
 system("pdf2svg ../figure/source/2016-03-24-quantile-estimation/plotting-positions-1.pdf ../figure/source/2016-03-24-quantile-estimation/plotting-positions-1.svg")
