@@ -97,8 +97,8 @@ n <- 10
 MeanQuantile <- array(NA, dim = c(9, repetitions, length(Q)), dimnames = list(type=1:9, repetitions=1:repetitions, Q=Q))
 
 
+set.seed(1)
 for(type in 1:9){
-  set.seed(1)
   MeanQuantile[type,1,] <-  quantile(rnorm(n), Q, type=type)
   for(i in 2:repetitions){
     MeanQuantile[type,i,] <- (MeanQuantile[type,i-1,]*(i-1) + quantile(rnorm(n), Q, type=type))/i
@@ -128,7 +128,8 @@ for(type in 1:9){
   if(type%%3==0) axis(4, qnorm(Q), Q, las=1)
   
 }
-mtext(paste("running mean of repeated quantile estimation\n of random samples with n =", n, "of the standard normal distribution"), 3, outer=T, line=1, font=2, cex=1)
+mtext("running mean of repeated quantile estimation", 3, outer=T, cex=1, line=2.2, font=2)
+mtext(paste("of random samples with n =", n, "of the standard normal distribution"), 3, outer=T, cex=0.9, line=0.5, font=1)
 #mtext("number of avaraged repetitions", 1, outer=T, line=3.5)
 #mtext("number of repetitions forming the running mean", 1, outer=T, line=3.5)
 #mtext("number of random drawings forming the avarage", 1, outer=T, line=3.5)
@@ -148,15 +149,16 @@ For very high $$n$$ all these estimations end up where the theoretical quantiles
 par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,5,6))
 
 nmax <- 1000
+nn <- 2:nmax
 d <- 7
 Q <- seq(1/(d+1), 1-1/(d+1), length.out=d)
-Qmatrix <- array(NA, dim=c(9, nmax, length(Q)), dimnames=list(type=1:9, n=1:nmax, Q=Q))
+Qmatrix <- array(NA, dim=c(9, length(nn), length(Q)), dimnames=list(type=1:9, n=nn, Q=Q))
 
 for(type in 1:9){
   
-  for(n in 1:nmax){
+  for(n in nn){
     x <- seq(1/(n*2), 1-1/(n*2), length.out=n)
-    Qmatrix[type,n,] <- quantile(qnorm(x), Q, type = type)
+    Qmatrix[type,as.character(n),] <- quantile(qnorm(x), Q, type = type)
   }
 }
 
@@ -165,9 +167,9 @@ ylim <- max(abs(Qmatrix[,,]))*c(-1,1)
 for(type in 1:9){
   #View(Qmatrix)
   
-  plot(NULL, xlim=c(1,nmax), ylim=ylim, log="x", main=paste("type ", type), xlab="", ylab="", axes=F, frame.plot=T, panel.first=abline(v=c(1,2,5,10,20,50,100,200,500,1000), h=qnorm(Q), col="lightgray"))
+  plot(NULL, xlim=c(2,nmax), ylim=ylim, log="x", main=paste("type ", type), xlab="", ylab="", axes=F, frame.plot=T, panel.first=abline(v=c(1,2,5,10,20,50,100,200,500,1000), h=qnorm(Q), col="lightgray"))
   for(i in 1:length(Q)){
-    lines(Qmatrix[type,,i], col=1, type="l")
+    lines(nn, Qmatrix[type,,i], col=1, type="l")
   }
 
   if(type%%3==0){
@@ -189,7 +191,8 @@ mtext("sample size (n)",1, outer=T, line=3.5)
 ```
 
 ```{r random-experiment, cache=T}
-nn <- signif(10^seq(0, 3, 1/4), 1)[-1]
+nn <- c(2:9, signif(10^seq(1, 3, 1/3), 1))
+nn2 <- c(2,3,5,10,20,50)
 
 d <- 2^8-1
 Q <- seq(1/(d+1), 1-1/(d+1), length.out=d)
@@ -228,7 +231,7 @@ ylim <- c(-1,1)* 1.5
 for(type in 1:9){
   #View(Qmatrix)
   
-  plot(NULL, xlim=c(1,nmax), ylim=ylim, log="x", main=paste("type ", type), xlab="", ylab="", axes=F, frame.plot=T, panel.first=abline(v=c(1,2,5,10,20,50,100,200,500,1000), h=qnorm(Q[Qselect]), col="lightgray"))
+  plot(NULL, xlim=c(2,nmax), ylim=ylim, log="x", main=paste("type ", type), xlab="", ylab="", axes=F, frame.plot=T, panel.first=abline(v=c(1,2,5,10,20,50,100,200,500,1000), h=qnorm(Q[Qselect]), col="lightgray"))
   for(i in Qselect){
     lines(nn, MeanQuantile[type,repetitions,i,], col=1, type="l")
   }
@@ -268,24 +271,24 @@ Type 5 seems to have the best performance of all methods, since it comes to a fa
 
 ```{r difference-theoretical-to-estimated-quantiles, dev="svg", cache=F}
 par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,3,6))
-Qmatrix <- array(NA, dim=c(9, length(nn), length(Q)), dimnames=list(type=1:9, n=nn, Q=Q))
 
+Qmatrix <- array(NA, dim=c(9, length(nn2), length(Q)), dimnames=list(type=1:9, n=nn2, Q=Q))
 for(type in 1:9){
   
-  for(i in seq_along(nn)){
-    x <- seq(1/(nn[i]*2), 1-1/(nn[i]*2), length.out=nn[i])
+  for(i in seq_along(nn2)){
+    x <- seq(1/(nn2[i]*2), 1-1/(nn2[i]*2), length.out=nn2[i])
     Qmatrix[type,i,] <- quantile(qnorm(x), Q, type = type)-qnorm(Q)
   }
 }
 
 ylim <- c(-1,1)*2.5
-palette(viridis(length(nn), direction=-1, end=0.9))
+palette(viridis(length(nn2), direction=-1, end=0.9))
 # type=5
 for(type in 1:9){
   plot(NULL, xlim=c(0,1), ylim=ylim, main=paste("type ", type), axes=F, frame.plot=T)
   abline(h=0)
   col=0
-  for(i in seq_along(nn)){
+  for(i in seq_along(nn2)){
     col = col +1
     lines(Q, Qmatrix[type,i,], col=col, type="l")
   }
@@ -296,7 +299,7 @@ for(type in 1:9){
     axis(1)
   }
   if(type==6){
-    legend("right", legend=as.character(nn), col = 1:length(nn), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.45)
+    legend("right", legend=as.character(nn2), col = 1:length(nn2), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.45)
   }
 }
 mtext(paste0("systematic deviation from theoretical quantiles with variation of n"), 3, outer=T, line=1, font=2, cex=1)
@@ -312,9 +315,9 @@ for(type in 1:9){
   plot(NULL, xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col=1), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type ", type))
   
   col=0
-  for(n in as.character(nn)){
+  for(n in as.character(nn2)){
     col=col + 1
-    
+ 
     #points(Q, Qmatrix[type,n,]-qnorm(Q), col=n)
     #plot(qnorm(Q),Q, xlim=range(qnorm(Q))*1.3)
          #ylim=)
@@ -328,7 +331,7 @@ for(type in 1:9){
     axis(1)
   }
   if(type==6){
-    legend("right", legend=as.character(nn), col = 1:length(nn), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.45)
+    legend("right", legend=as.character(nn2), col = 1:length(nn2), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.45)
   }
 }
 mtext(paste0("systematic deviation from theoretical quantiles with variation of n"), 3, outer=T, line=1, font=2, cex=1)
@@ -348,9 +351,9 @@ type=5
 plot(NULL, xlim=c(0,1), ylim=ylim, main=paste("type ", type), axes=F, frame.plot=T)
 abline(h=0)
 abline(h=c(-1,1)*tolerance, lty=2)
-in_tolerance_low <- seq_along(nn)
-in_tolerance_up <- seq_along(nn)
-for(i in seq_along(nn)){
+in_tolerance_low <- seq_along(nn2)
+in_tolerance_up <- seq_along(nn2)
+for(i in seq_along(nn2)){
   lines(Q, Qmatrix[type,i,], col=i, type="l")
   in_tolerance_low[i] <- as.numeric(names(which.max(diff(abs(Qmatrix[type,i,])<tolerance))))
   abline(v=in_tolerance_low[i], col=i)
@@ -362,7 +365,7 @@ axis(1, at=in_tolerance_low[1:3], labels = round(in_tolerance_low, 2)[1:3], las=
 axis(1, at=in_tolerance_up[1:3], labels = round(in_tolerance_up, 2)[1:3], las=2)
 axis(1, at=c(0,1,0.5), las=2)
 
-legend("right", legend=as.character(nn), col = 1:length(nn), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.25)
+legend("right", legend=as.character(nn2), col = 1:length(nn2), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.25)
 
 
 mtext(paste0("deviation greater than tolerance"), 3, outer=T, line=1, font=2, cex=1)
@@ -372,11 +375,11 @@ mtext("probabilities", 1, outer=T, line=3)
 ```
 
 ```{r probabilities-tolerable-to-estimate-type-5, fig.height=5, dependson="deviation-greater-than-tolerance-type-5"}
-plot(nn, in_tolerance_low, type="o", pch=20, main="type 5", ylab="probabilities tolerable to estimate", xlab="n", ylim=c(0,1), xlim=c(0,35), xaxt="n")
-text(nn, in_tolerance_low, labels = round(in_tolerance_low, 2), adj = c(0,-1))
-lines(nn, in_tolerance_up, type="o", pch=20)
-text(nn, in_tolerance_up, labels = round(in_tolerance_up, 2), adj = c(0,1.8))
-axis(1, at = nn)
+plot(nn2, in_tolerance_low, type="o", pch=20, main="type 5", ylab="probabilities tolerable to estimate", xlab="n", ylim=c(0,1), xlim=c(0,35), xaxt="n")
+text(nn2, in_tolerance_low, labels = round(in_tolerance_low, 2), adj = c(0,-1))
+lines(nn2, in_tolerance_up, type="o", pch=20)
+text(nn2, in_tolerance_up, labels = round(in_tolerance_up, 2), adj = c(0,1.8))
+axis(1, at = nn2)
 ```
 
 ```{r deviation-greater-than-tolerance-type-7, dev="svg", fig.height=5, cache=F}
@@ -387,9 +390,9 @@ type=7
 plot(NULL, xlim=c(0,1), ylim=ylim, main=paste("type ", type), axes=F, frame.plot=T)
 abline(h=0)
 abline(h=c(-1,1)*tolerance, lty=2)
-in_tolerance_low <- seq_along(nn)
-in_tolerance_up <- seq_along(nn)
-for(i in seq_along(nn)){
+in_tolerance_low <- seq_along(nn2)
+in_tolerance_up <- seq_along(nn2)
+for(i in seq_along(nn2)){
   lines(Q, Qmatrix[type,i,], col=i, type="l")
   in_tolerance_low[i] <- as.numeric(names(which.max(diff(abs(Qmatrix[type,i,])<tolerance))))
   abline(v=in_tolerance_low[i], col=i)
@@ -401,7 +404,7 @@ axis(1, at=in_tolerance_low[1:5], labels = round(in_tolerance_low, 2)[1:5], las=
 axis(1, at=in_tolerance_up[1:5], labels = round(in_tolerance_up, 2)[1:5], las=2)
 axis(1, at=c(0,1,0.5), las=2)
 
-legend("right", legend=as.character(nn), col = 1:length(nn), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.25)
+legend("right", legend=as.character(nn2), col = 1:length(nn2), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.25)
 
 
 mtext(paste0("systematic deviation from theoretical quantiles with variation of n"), 3, outer=T, line=1, font=2, cex=1)
@@ -411,11 +414,11 @@ mtext("probabilities", 1, outer=T, line=3)
 ```
 
 ```{r deviation-tolerable-type-7, fig.height=5, cache=F}
-plot(nn, in_tolerance_low, type="o", pch=20, main="type 7", ylab="probabilities tolerable to estimate", xlab="n", ylim=c(0,1), xlim=c(0,35), xaxt="n")
-text(nn, in_tolerance_low, labels = round(in_tolerance_low, 2), adj = c(0,-1))
-lines(nn, in_tolerance_up, type="o", pch=20)
-text(nn, in_tolerance_up, labels = round(in_tolerance_up, 2), adj = c(0,1.8))
-axis(1, at = nn)
+plot(nn2, in_tolerance_low, type="o", pch=20, main="type 7", ylab="probabilities tolerable to estimate", xlab="n", ylim=c(0,1), xlim=c(0,35), xaxt="n")
+text(nn2, in_tolerance_low, labels = round(in_tolerance_low, 2), adj = c(0,-1))
+lines(nn2, in_tolerance_up, type="o", pch=20)
+text(nn2, in_tolerance_up, labels = round(in_tolerance_up, 2), adj = c(0,1.8))
+axis(1, at = nn2)
 ```
 
 
@@ -637,11 +640,11 @@ par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,3,6))
 nmax <- 1000
 d <- 7
 Q <- seq(1/(d+1), 1-1/(d+1), length.out=d)
-Qmatrix <- array(NA, dim=c(9, nmax, length(Q)), dimnames=list(type=1:9, n=1:nmax, Q=Q))
+Qmatrix <- array(NA, dim=c(9, nmax, length(Q)), dimnames=list(type=1:9, n=2:nmax, Q=Q))
 
 for(type in 1:9){
   
-  for(n in 1:nmax){
+  for(n in 2:nmax){
     x <- seq(1/(n*2), 1-1/(n*2), length.out=n)
     Qmatrix[type,n,] <- quantile(qlnorm(x), Q, type = type)
   }
