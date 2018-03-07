@@ -41,7 +41,7 @@ This post is not yet finished. I post it here to get some input about how to imp
 4. Evolution of the bias with varying sample size
     * estimates applied a discretized theoretical normal distribution with varying sample size
     * Type 1 to 3 are totally erratic and shouldn't be used at all
-    * all methods underestimate the spread of the outer quantiles at low sample sizes ($$q_{0.125}$$ to $$q_{0.875}$$ noticeable biased for  $$n<5$$)
+    * all methods underestimate the spread of the outer quantiles at low sample sizes, the bias shifts outwards
     * Type 7 approaches the true value conservatively, meaning it tends to underestimate the spread of the outer quantiles ($$q_{0.125}$$ to $$q_{0.875}$$ noticeable biased for  $$n<50$$)
     * Type 6, 8 and 9 show severe overshooting in the estimation of the outer quantiles
     * Type 4 estimate quantiles systematically lower than they are
@@ -145,6 +145,61 @@ For very high $$n$$ all these estimations end up where the theoretical quantiles
 
 # Evolution of the bias with varying sample size 
 
+To visualize how the bias changes with increasing sample size we went two ways. For the first we applied the different quantile estimation methods on samples directly taken from the theretical distribution function (without randomness involved). You can think of it as discretizing the distribution function by taking a finite number of values along its trajectory as shown in the next graph.
+
+```{r theoretical-and-discrete-distribution-for-different-n, anchor="figure", dev="svg", fig.height=3.1}
+set.seed(1)
+par(mfrow=c(1,3), mar=c(0,1,2,.3), oma=c(5,4,4,6))
+plotnum <- 1
+
+p_i.fine <- seq(0, 1, length.out=500)
+for(n in c(5, 10, 30) ){
+  p_i <- seq(1/(n*2), 1-1/(n*2), length.out=n)
+  if(n==30){
+    q_i <- sort(rnorm(n))
+  }else{
+    q_i <- qnorm(p_i)
+  }
+  breaks <- seq(0, 1, length.out=n+1)
+
+  plot(p_i.fine, qnorm(p_i.fine), type="l", axes=F, panel.first=
+    if(n<20) {
+      for(i in 1:(length(breaks)/2)*2){
+        ylims <- par("usr")[3:4]
+        rect(breaks[i-1], ylims[1], breaks[i], ylims[2], col = gray(.9), border = NA)
+      }
+      for(i in 1:length(p_i)){
+        lines(rep(p_i[i], 2), c(ylims[1], q_i[i]), lty=3)
+        lines(c(p_i[i], -1), rep(q_i[i],2), lty=3)
+      }
+      
+    }
+    , frame.plot=T, main=paste0("n = ", n, if(n==30) ", randomly drawn"), xlab="", ylab="", las=1, xlim=c(0,1),
+    xaxs="i")
+
+  points(p_i, q_i)
+  #par(new=T)
+  #hist(qnorm(p_i), ann=F, axes=F, xlim=range(qnorm(p_i.fine),finite = T))
+  #axis(4, las=1)
+  
+  if(plotnum%%3==1){
+    axis(2, las=1)
+  }
+  if(plotnum>0){
+    axis(1)
+  }
+  plotnum <- plotnum + 1
+}
+mtext("discretizing the theoretical distribution function", cex=1, font=2, 3, outer=T, line=2.2)
+mtext("in contrast to random drawings", cex=1, font=1, 3, outer=T, line=0.5)
+mtext("quantiles q(p)", 2, 2.5, outer=T)
+mtext("probabilities p", 1, 3.5, outer=T)
+```
+
+The data points are taken from the center of a probability range (visualized by the checkerboard background in the graph), so all data points represent exactly the same length of the total probability range.
+
+To validate that we didn't introduce another bias by our approach we also used repeated random drawings. This was done by taking the mean of 1000 repeated random drawings from the standard normal distribution with different sample size. This is like taking the last value of our first graph and repeating the process for other sample sizes. We ended up with two very similar graphs:
+
 ```{r evolution-of-bias-with-varying-sample-size-discretized-normal-distribution, dev="svg"}
 par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,5,6))
 
@@ -162,7 +217,7 @@ for(type in 1:9){
   }
 }
 
-ylim <- max(abs(Qmatrix[,,]))*c(-1,1)
+ylim <- c(-1,1)*1.5
 
 for(type in 1:9){
   #View(Qmatrix)
@@ -254,23 +309,28 @@ mtext("estimated quantiles", side = 2, outer = T, cex=1, line=2.5)
 mtext("sample size (n)",1, outer=T, line=3.5)
 ```
 
-First the very obvious, which is clear already without any calculation or plotting: For a distribution consisting only of a single value no real "distribution" can be calculated. For the case $$n=1$$ all quantiles are $$0$$. 
+First of all we see that types 1 to 3 are totally erratic at low sample sizes. In the first graph we see that this jumping up an down is quite predefined by the math since it is very regular. These methods don't look like they should be used at all.
 
-For $$n=2$$ the inner $$50\%$$ of the quantiles can already be calculated quite accurate by some methods. The spread of the outer quantiles is underestimated by all methods for $$n=2$$. 
-
-For $$n\approx4$$ to $$20$$ some methods overestimate the spread of the outer quantiles. Others (type 3 and 4) estimate all quantiles lower in value than they actually are. Type 7 is special in that it never overestimates the spread of the quantiles, only underestimates.
-
+From the remaining all underestimate the spread of the outer quantiles ("the extremes") at low sample sizes. The systematic bias gets smaller with increasing sample size. The shrinking of the bias happens later (at larger sample sizes) the more to the extremes the quantile is located.
 The extreme low and upmost quantiles are apparently hardest to estimate. You need very high $$n$$ to estimate them within reasonable precision.
 
-In the region $$n<100$$ the different types show different deviations from the theoretical quantiles. There are the methods of type 1 to 3 that are made for easy calculation in pre-computer days which jump up and down with every change in $$n$$. Type 4 estimates all quantiles lower than they actually are for low $$n$$, resulting in a rising of all estimated quantiles with rising $$n$$. Type 7, which is the R default, underestimates the spread of all quantiles in the lower $$n$$. Then there are the methods 5, 6, 8 and 9 which for very low $$n$$ come to a good estimation of the inner quantiles. But they all overshoot and overestimate the spread of the outer quantiles, especially type 6. This overshoot shifts to the outer quantiles with rising $$n$$, while simultaniously the overestimation settles for the inner quantiles.
+Type 7 approaches the true value conservatively, meaning that it never overestimates the spread of the quantiles. In the contrary it tends to underestimate the spread of the outer quantiles (everything outside of $$q_{0.125}$$ and $$q_{0.875}$$ is noticeable biased for  $$n<50$$).
 
-Type 5 seems to have the best performance of all methods, since it comes to a fairly good estimation of the inner $$50\%$$ of quantiles for $$n=2$$ and for the inner $$75\%$$ for $$n=4$$. Both estimations don't change much if $$n$$ is further increased (like is the case for types 8, 9 and especially 6).
+Type 5, 8 and 9 show overshooting in the estimation of the outer quantiles. The overshooting phase happens later for quantiles located more at the extremes. Most severe is this overshooting for type 6. 
+The overshooting is more visible in the discretized version than in the graph deduced from random drawings. This also shows in the next graphs. 
+
+Type 4 shows a systematic underestimation of all quantiles additional to the underestimation of the spread of the outer quantiles.
+
+Type 5 seems to have the best performance of all methods, since it comes to a fairly good estimation of the inner $$50\%$$ of quantiles for $$n=2$$ and for the inner $$75\%$$ for $$n=4$$. It also shows minimal overshooting. Not far away is the performance of types 8 and 9, especially in the graph deduced from the random drawings.
+
 
 
 # Evolution of the bias over the quantile range 
 
+We already established that the outer quantiles show higher deviation from the expected value and loose this systematic bias later (at higher sample sizes). The next graphs show the deviation of the estimated quantiles from the expected values over the whole probability range for some selected sample sizes.
+
 ```{r difference-theoretical-to-estimated-quantiles, dev="svg", cache=F}
-par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,3,6))
+par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,5,6))
 
 Qmatrix <- array(NA, dim=c(9, length(nn2), length(Q)), dimnames=list(type=1:9, n=nn2, Q=Q))
 for(type in 1:9){
@@ -286,7 +346,7 @@ palette(viridis(length(nn2), direction=-1, end=0.9))
 # type=5
 for(type in 1:9){
   plot(NULL, xlim=c(0,1), ylim=ylim, main=paste("type ", type), axes=F, frame.plot=T)
-  abline(h=0)
+  abline(h=0, col="black")
   col=0
   for(i in seq_along(nn2)){
     col = col +1
@@ -302,8 +362,9 @@ for(type in 1:9){
     legend("right", legend=as.character(nn2), col = 1:length(nn2), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.45)
   }
 }
-mtext(paste0("systematic deviation from theoretical quantiles with variation of n"), 3, outer=T, line=1, font=2, cex=1)
-mtext("deviation from theoretical quantiles", 2, outer=T, line=3)
+mtext(paste0("deviation of the estimated quantiles from their expected values"), 3, outer=T, line=2.2, font=2, cex=1)
+mtext(paste0("calculated over the whole probability range"), 3, outer=T, line=0.5, font=1, cex=1)
+mtext("deviation from expected quantiles", 2, outer=T, line=3)
 mtext("probabilities", 1, outer=T, line=3)
 
 ```
@@ -312,7 +373,7 @@ mtext("probabilities", 1, outer=T, line=3)
 par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(8,5,3,6))
 
 for(type in 1:9){
-  plot(NULL, xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col=1), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type ", type))
+  plot(NULL, xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="black"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type ", type))
   
   col=0
   for(n in as.character(nn2)){
@@ -339,16 +400,26 @@ mtext("deviation from theoretical quantiles", 2, outer=T, line=3)
 mtext("probabilities", 1, outer=T, line=3)
 ```
 
+We can see that the results of methods 1 to 3 are not only erratic depending on what sample size you choose, but also depending on the quantile you choose to calculate. 
+
+We also see the severe underestimation of most of the quantile range for type 4 together with a clear asymmetry in the deviations of the lower and the upper quantiles.
+
+Type 5 to 9 show symmetric errors. The overshooting of methods 6, 8 and 9 for the outer quantiles is apparant, again less in the graph deduced from random drawings. 
+Again type 5 seems to be the best performing with type 8 and 9 not falling far behind.
+
+From these graphs we can learn how the deviation from the expected values is extremely more severe for the outer quantiles. But also how fast the deviation shifts to quantiles further outward with increasing sample size. This leads us to our next question about which quantiles can be safely calculated for which sample size without having to expect the large systematic deviations shown in these graphs.
 
 
 # Which quantiles can be estimated with relatively low systematic bias? 
 
-```{r deviation-greater-than-tolerance-type-5, dev="svg", fig.height=5, cache=F}
-par(mfrow=c(1,1), mar=c(0,1,2,.1), oma=c(5,4,3,6))
+Systematic deviations of the estimated quantiles to their expected value are evident from the graphs shown so far. To minimize these systematic deviations one could define a threshold, for example $$0.1\sigma$$. We then can calculate for which quantile deviations start to go well beyond this threshold. We end up with a collection of maximum probabilities that are safe to calculate quantiles for for specific sample sizes. This is exemplary done in the next graph for type 5 and 7:
+
+```{r deviation-greater-than-tolerance-type-5, dev="svg", fig.height=6, cache=F}
+par(mfrow=c(2,1), mar=c(3,1,2,.1), oma=c(2,4,3,4), cex.main=1)
 
 tolerance=0.1
 type=5
-plot(NULL, xlim=c(0,1), ylim=ylim, main=paste("type ", type), axes=F, frame.plot=T)
+plot(NULL, xlim=c(0,1), ylim=c(-0.5,0.5), main=paste("type ", type), axes=F, frame.plot=T)
 abline(h=0)
 abline(h=c(-1,1)*tolerance, lty=2)
 in_tolerance_low <- seq_along(nn2)
@@ -365,63 +436,50 @@ axis(1, at=in_tolerance_low[1:3], labels = round(in_tolerance_low, 2)[1:3], las=
 axis(1, at=in_tolerance_up[1:3], labels = round(in_tolerance_up, 2)[1:3], las=2)
 axis(1, at=c(0,1,0.5), las=2)
 
-legend("right", legend=as.character(nn2), col = 1:length(nn2), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.25)
+legend("right", legend=as.character(nn2), col = 1:length(nn2), xpd = NA, lty=1, cex = 0.8, horiz = F, title="n =", inset = -0.15)
 
 
-mtext(paste0("deviation greater than tolerance"), 3, outer=T, line=1, font=2, cex=1)
-mtext("deviation from theoretical quantiles", 2, outer=T, line=1.5)
-mtext("probabilities", 1, outer=T, line=3)
 
-```
-
-```{r probabilities-tolerable-to-estimate-type-5, fig.height=5, dependson="deviation-greater-than-tolerance-type-5"}
-plot(nn2, in_tolerance_low, type="o", pch=20, main="type 5", ylab="probabilities tolerable to estimate", xlab="n", ylim=c(0,1), xlim=c(0,35), xaxt="n")
-text(nn2, in_tolerance_low, labels = round(in_tolerance_low, 2), adj = c(0,-1))
-lines(nn2, in_tolerance_up, type="o", pch=20)
-text(nn2, in_tolerance_up, labels = round(in_tolerance_up, 2), adj = c(0,1.8))
-axis(1, at = nn2)
-```
-
-```{r deviation-greater-than-tolerance-type-7, dev="svg", fig.height=5, cache=F}
-par(mfrow=c(1,1), mar=c(0,1,2,.1), oma=c(5,4,3,6))
-
-tolerance=0.1
 type=7
-plot(NULL, xlim=c(0,1), ylim=ylim, main=paste("type ", type), axes=F, frame.plot=T)
+plot(NULL, xlim=c(0,1), ylim=c(-0.5,0.5), main=paste("type ", type), axes=F, frame.plot=T)
 abline(h=0)
 abline(h=c(-1,1)*tolerance, lty=2)
-in_tolerance_low <- seq_along(nn2)
-in_tolerance_up <- seq_along(nn2)
+in_tolerance_low_7 <- seq_along(nn2)
+in_tolerance_up_7 <- seq_along(nn2)
 for(i in seq_along(nn2)){
   lines(Q, Qmatrix[type,i,], col=i, type="l")
-  in_tolerance_low[i] <- as.numeric(names(which.max(diff(abs(Qmatrix[type,i,])<tolerance))))
-  abline(v=in_tolerance_low[i], col=i)
-  in_tolerance_up[i] <- as.numeric(names(which.min(diff(abs(Qmatrix[type,i,])<tolerance))))
-  abline(v=in_tolerance_up[i], col=i)
+  in_tolerance_low_7[i] <- as.numeric(names(which.max(diff(abs(Qmatrix[type,i,])<tolerance))))
+  abline(v=in_tolerance_low_7[i], col=i)
+  in_tolerance_up_7[i] <- as.numeric(names(which.min(diff(abs(Qmatrix[type,i,])<tolerance))))
+  abline(v=in_tolerance_up_7[i], col=i)
 }
 axis(2, las=1)
-axis(1, at=in_tolerance_low[1:5], labels = round(in_tolerance_low, 2)[1:5], las=2)
-axis(1, at=in_tolerance_up[1:5], labels = round(in_tolerance_up, 2)[1:5], las=2)
+axis(1, at=in_tolerance_low_7[1:5], labels = round(in_tolerance_low_7, 2)[1:5], las=2)
+axis(1, at=in_tolerance_up_7[1:5], labels = round(in_tolerance_up_7, 2)[1:5], las=2)
 axis(1, at=c(0,1,0.5), las=2)
+axis(4, at=c(-0.1,0.1), labels=c("-0.1", " 0.1"), las=1)
 
-legend("right", legend=as.character(nn2), col = 1:length(nn2), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.25)
-
-
-mtext(paste0("systematic deviation from theoretical quantiles with variation of n"), 3, outer=T, line=1, font=2, cex=1)
-mtext("deviation from theoretical quantiles", 2, outer=T, line=1.5)
-mtext("probabilities", 1, outer=T, line=3)
-
+mtext(paste0("deviation greater than tolerance"), 3, outer=T, line=1, font=2, cex=1)
+mtext("deviation from theoretical quantiles", 2, outer=T, line=2.5)
+mtext("probabilities", 1, outer=T, line=1)
 ```
 
-```{r deviation-tolerable-type-7, fig.height=5, cache=F}
-plot(nn2, in_tolerance_low, type="o", pch=20, main="type 7", ylab="probabilities tolerable to estimate", xlab="n", ylim=c(0,1), xlim=c(0,35), xaxt="n")
-text(nn2, in_tolerance_low, labels = round(in_tolerance_low, 2), adj = c(0,-1))
-lines(nn2, in_tolerance_up, type="o", pch=20)
-text(nn2, in_tolerance_up, labels = round(in_tolerance_up, 2), adj = c(0,1.8))
-axis(1, at = nn2)
+```{r probabilities-tolerable-to-estimate, fig.height=5, dependson="deviation-greater-than-tolerance-type-5"}
+plot(nn2, in_tolerance_low, type="o", pch=20, main="probabilities safe to estimate with tolerable bias", ylab="probabilities", xlab="n", ylim=c(0,1), xlim=c(0,53), xaxt="n", col=5, lwd=2, cex.main=1)
+text(nn2, in_tolerance_low, labels = round(in_tolerance_low, 2), adj = c(0,-.6), cex=0.9, col=5)
+lines(nn2, in_tolerance_up, type="o", pch=20, col=5, lwd=2)
+text(nn2, in_tolerance_up, labels = round(in_tolerance_up, 2), adj = c(0,1.8), cex=0.9, col=5)
+
+lines(nn2, in_tolerance_low_7, type="o", pch=20, col=2, lwd=2)
+text(nn2, in_tolerance_low_7, labels = round(in_tolerance_low_7, 2), adj = c(0,-.6), cex=0.9, col=2)
+lines(nn2, in_tolerance_up_7, type="o", pch=20, col=2, lwd=2)
+text(nn2, in_tolerance_up_7, labels = round(in_tolerance_up_7, 2), adj = c(0,1.6), cex=0.9, col=2)
+axis(1)
+
+legend("right", legend=c(5,7), col = c(5,2), xpd = NA, lty=1, horiz = F, title="type =", inset = 0.05, bty="n", lwd=2)
 ```
 
-
+We can see that for method type 5 the outer quantiles become calculable with bias less than $$0.1\sigma$$ for far lower sample sizes than is the case for type 7. 
 
 ## A valid approach for evaluating the performance of the different quantile estimations?
 
@@ -887,52 +945,6 @@ So I thought about, how I could create input data for the ```quantile()``` funct
 What I came up with is illustrated in `r figr("theoretical-and-discrete-distribution-for-different-n", TRUE, TRUE, type="figure")`. I devided the probability range into equal lengths. For $$n=3$$ for example I devided it into three sections, for $$n=10$$ into 10 sections (visualized in the graph with alternating gray and white areas). Each section will be represented by a probability located in the middle of the section. This is represented in the graph with the horizontal dotted lines. Where the horizontal lines cut the theoretical distribution funtion (in this case a normal distribution) defines the value of the quantile corresponding to this probability. The quantiles can be read from the x-axis. Notice how the horizontal lines (the probabilities) are equidistant. The vertical lines (the quantiles) follow the distribution function which causes the outermost quantiles beeing further apart than the central ones.
 
 
-```{r theoretical-and-discrete-distribution-for-different-n, anchor="figure", dev="svg", fig.height=5}
-set.seed(1)
-par(mfrow=c(2,3), mar=c(0,1,2,.3), oma=c(5,4,4,6))
-plotnum <- 1
-
-p_i.fine <- seq(0, 1, length.out=500)
-for(n in c(3, 5, 10, 20, 50, 30) ){
-  p_i <- seq(1/(n*2), 1-1/(n*2), length.out=n)
-  if(n==30){
-    q_i <- sort(rnorm(n))
-  }else{
-    q_i <- qnorm(p_i)
-  }
-  breaks <- seq(0, 1, length.out=n+1)
-
-  plot(qnorm(p_i.fine), p_i.fine, type="l", axes=F, panel.first=
-    if(n<20) {
-      for(i in 1:(length(breaks)/2)*2){
-        xlims <- par("usr")[1:2]
-        rect(xlims[1], breaks[i-1], xlims[2], breaks[i],col = gray(.9), border = NA)
-      }
-      for(i in 1:length(p_i)){
-        lines(c(xlims[1], q_i[i]), rep(p_i[i],2), lty=3)
-        lines(rep(q_i[i],2), c(p_i[i], -1), lty=3)
-      }
-      
-    }
-    , frame.plot=T, main=paste0("n = ", n, if(n==30) ", randomly drawn"), xlab="", ylab="", las=1, ylim=c(0,1))
-
-  points(q_i, p_i)
-  #par(new=T)
-  #hist(qnorm(p_i), ann=F, axes=F, xlim=range(qnorm(p_i.fine),finite = T))
-  #axis(4, las=1)
-  
-  if(plotnum%%3==1){
-    axis(2, las=1)
-  }
-  if(plotnum>3){
-    axis(1)
-  }
-  plotnum <- plotnum + 1
-}
-mtext("theoretical and discrete distribution for different n", cex=1.2, font=2, 3, outer=T, line=1.5)
-mtext("probabilities", 2, 2.5, outer=T)
-mtext("quantiles", 1, 3.5, outer=T)
-```
 
 This method generates discrete values that behave like a perfect representation of the theoretical distribution function. In contrast to using a random generator, which gives us values that jump around the theoretical distribution function  (like is illustrated in the $$n=30$$ plot above) and approach the theoretical distribution only for very high $$n$$.
 
