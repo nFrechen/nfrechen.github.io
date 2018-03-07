@@ -26,28 +26,18 @@ This post is not yet finished. I post it here to get some input about how to imp
 
 ----------------------
 
-**Neustrukturierung:**
+# Neustrukturierung:
 
 1. Motivation
-
-    Compared to "true math", applied statistics is a fuzzy science: often there are no clear rules to follow – different approaches to tackle a problem exist.
-    Different disciplines settled on different methods, mostly to handle problems arising from low sample sizes.
-    Often methods are used because they where historically proposed by some of the "fathers of statistics" and no new approach was influencial enough to change common practice.
-    
-    Because most statistical tools were developed in the pre-computer era, they tend to favour easy computability. Also they were prooved theoreticaly because that was the only method at that time.
-    Today statistical methods can be benchmarked by applying them on large amounts of pseudo-randomly generated data using the strong computation power of modern computers. This can be helpful especially when statistics deviates from the theoretical and enters the messy world of real-world, low sample size datasets.
-    
-    In this article we investigate the differences between the 9 different quantile estimation methods implemented into the software package "R". We show how they perform especially for the low sample sizes of $$n<50$$ or even $$n<10$$ and how the deviations develope with increasing sample size.
-    We use a very visual approach, because we first of all want to create awareness about the differences.
-    We give some evidence about the best performing method according to our benchmarks and create some awareness about which quantiles can be calculated with tolerable bias for which sample size. 
-    Other than that we don't feel in the position to propose a change in pactice unless someone more rooted in the field of applied statistics picks up our approach and backs it up with more theoretical reasoning.
     
 2. The 9 different approaches to quantile estimation in R
+
 3. Systematic bias for low sample sizes
     * shown in repeated estimations of random generated data
     * most methods show systematic bias
     * type 5 shows the lowest bias
     * Default R type (type 7) is not the best performing
+    
 4. Evolution of the bias with varying sample size
     * estimates applied a discretized theoretical normal distribution with varying sample size
     * Type 1 to 3 are totally erratic and shouldn't be used at all
@@ -71,99 +61,89 @@ This post is not yet finished. I post it here to get some input about how to imp
 
 ----------------------
 
+# Motivation
+
+Compared to "true math", applied statistics is a fuzzy science: often there are no clear rules to follow – different approaches to tackle a problem exist.
+Different disciplines settled on different methods, mostly to handle problems arising from low sample sizes.
+Often methods are used because they where historically proposed by some of the "fathers of statistics" and no new approach was influencial enough to change common practice.
+
+Because most statistical tools were developed in the pre-computer era, they tend to favour easy computability. Also they were prooved theoreticaly because that was the only method at that time.
+Today statistical methods can be benchmarked by applying them on large amounts of pseudo-randomly generated data using the strong computation power of modern computers. This can be helpful especially when statistics deviates from the theoretical and enters the messy world of real-world, low sample size datasets.
+
+In this article we investigate the differences between the 9 different quantile estimation methods implemented into the software package "R". We show how they perform especially for the low sample sizes of $$n<50$$ or even $$n<10$$ and how the deviations develope with increasing sample size.
+We use a very visual approach, because we first of all want to create awareness about the differences.
+We give some evidence about the best performing method according to our benchmarks and create some awareness about which quantiles can be calculated with tolerable bias for which sample size. 
+Other than that we don't feel in the position to propose a change in pactice unless someone more rooted in the field of applied statistics picks up our approach and backs it up with more theoretical reasoning.
+
+# The 9 different approaches to quantile estimation in R
+
+
 There are many different ways to estimate the quantiles of an empirical distribution. R knows 9 different types (see help page of ```quantile()```). It is clear that for high $$n$$ the differences in these approaches become negligible. It is the low $$n$$ where they produce different estimations. All these methods where intruduced to optimize quantile estimation for sparse data sets, to get better estimations for the low $$n$$. There is a lof of mathematical argumentation and justification out there for each of these methods, but apparently non of them is convincing enough, that the whole statistical community would stick to that method. Every statistic software has different defaults and some have no alternative methods to choose from like R has.
 
 Not accepting this state of uncertainty I wanted to find an answer that I can understand and comprehend, to the question "**which quantile estimation is best?**".
 
-My first Idea was to find a way to visualize the differences between these nine types. So I thought about, how I could create input data for the ```quantile()``` function, that follows perferctly a theoretical distribution function---but is also discrete, featuring a limited $$n$$. 
+My first Idea was to find a way to visualize the differences between these nine types. 
 
+# Systematic bias for low sample sizes
 
+```{r using-random-generator}
 
-What I came up with is illustrated in `r figr("theoretical-and-discrete-distribution-for-different-n", TRUE, TRUE, type="figure")`. I devided the probability range into equal lengths. For $$n=3$$ for example I devided it into three sections, for $$n=10$$ into 10 sections (visualized in the graph with alternating gray and white areas). Each section will be represented by a probability located in the middle of the section. This is represented in the graph with the horizontal dotted lines. Where the horizontal lines cut the theoretical distribution funtion (in this case a normal distribution) defines the value of the quantile corresponding to this probability. The quantiles can be read from the x-axis. Notice how the horizontal lines (the probabilities) are equidistant. The vertical lines (the quantiles) follow the distribution function which causes the outermost quantiles beeing further apart than the central ones.
+par(mfrow=c(3,3), mar=c(.1,1,2,.1), oma=c(5,4,5,6))
+palette("default")
 
-
-```{r theoretical-and-discrete-distribution-for-different-n, anchor="figure", dev="svg", fig.height=5}
-set.seed(1)
-par(mfrow=c(2,3), mar=c(0,1,2,.3), oma=c(5,4,4,6))
-plotnum <- 1
-
-p_i.fine <- seq(0, 1, length.out=500)
-for(n in c(3, 5, 10, 20, 50, 30) ){
-  p_i <- seq(1/(n*2), 1-1/(n*2), length.out=n)
-  if(n==30){
-    q_i <- sort(rnorm(n))
-  }else{
-    q_i <- qnorm(p_i)
-  }
-  breaks <- seq(0, 1, length.out=n+1)
-
-  plot(qnorm(p_i.fine), p_i.fine, type="l", axes=F, panel.first=
-    if(n<20) {
-      for(i in 1:(length(breaks)/2)*2){
-        xlims <- par("usr")[1:2]
-        rect(xlims[1], breaks[i-1], xlims[2], breaks[i],col = gray(.9), border = NA)
-      }
-      for(i in 1:length(p_i)){
-        lines(c(xlims[1], q_i[i]), rep(p_i[i],2), lty=3)
-        lines(rep(q_i[i],2), c(p_i[i], -1), lty=3)
-      }
-      
-    }
-    , frame.plot=T, main=paste0("n = ", n, if(n==30) ", randomly drawn"), xlab="", ylab="", las=1, ylim=c(0,1))
-
-  points(q_i, p_i)
-  #par(new=T)
-  #hist(qnorm(p_i), ann=F, axes=F, xlim=range(qnorm(p_i.fine),finite = T))
-  #axis(4, las=1)
-  
-  if(plotnum%%3==1){
-    axis(2, las=1)
-  }
-  if(plotnum>3){
-    axis(1)
-  }
-  plotnum <- plotnum + 1
-}
-mtext("theoretical and discrete distribution for different n", cex=1.2, font=2, 3, outer=T, line=1.5)
-mtext("probabilities", 2, 2.5, outer=T)
-mtext("quantiles", 1, 3.5, outer=T)
-```
-
-This method generates discrete values that behave like a perfect representation of the theoretical distribution function. In contrast to using a random generator, which gives us values that jump around the theoretical distribution function  (like is illustrated in the $$n=30$$ plot above) and approach the theoretical distribution only for very high $$n$$.
-
-
-Mathematically this process is done like this: You define your $$n$$. For example $$n=10$$. Now you calculate the probabilities:
-
-$$p_k = \frac{1}{2n} + \frac{k-1}{n}$$
-
-The last value is 
-
-$$p_n = \frac{1}{2n} + \frac{n-1}{n}= 1-\frac{1}{2n}$$
-
-In R this can be implemented like this:
-```{r, echo=T}
+repetitions <- 1000
+d <- 7
+Q <- seq(1/(d+1), 1-1/(d+1), length.out=d)
 n <- 10
-k <- 1:n
-(p_k <- 1/(2*n) + (k-1)/n)
+MeanQuantile <- array(NA, dim = c(9, repetitions, length(Q)), dimnames = list(type=1:9, repetitions=1:repetitions, Q=Q))
+
+
+for(type in 1:9){
+  set.seed(1)
+  MeanQuantile[type,1,] <-  quantile(rnorm(n), Q, type=type)
+  for(i in 2:repetitions){
+    MeanQuantile[type,i,] <- (MeanQuantile[type,i-1,]*(i-1) + quantile(rnorm(n), Q, type=type))/i
+  }
+  
+  #View(MeanQuantile)
+  #MeanQuantile[type,repetitions,]
+  #qnorm(Q)
+  #MeanQuantile[type,repetitions,] - t(qnorm(Q))
+}
+
+ylim <- range(MeanQuantile[,,])
+
+for(type in 1:9){
+  plot(NULL, xlim=c(1,repetitions), ylim=ylim, main=paste("type ", type), log="", axes=F, frame.plot = T)
+  if(type>6) axis(1, las=3)
+  if(type%%3==1) axis(2, las=1)
+  for(i in 1:length(Q)){
+    #polygon(c(1,1:repetitions, repetitions), c(qnorm(Q[i]), MeanQuantile[type,,i], qnorm(Q[i])), col=c("red", "green"), border = NA)
+    polygon(c(1,1:repetitions, repetitions), c(qnorm(Q[i]), pmin(qnorm(Q[i]), MeanQuantile[type,,i]), qnorm(Q[i])), col="red", border = NA)
+    polygon(c(1,1:repetitions, repetitions), c(qnorm(Q[i]), pmax(qnorm(Q[i]), MeanQuantile[type,,i]), qnorm(Q[i])), col="#3fa309", border = NA)
+  }
+  for(i in 1:length(Q)){
+    lines(MeanQuantile[type,,i], col=1)
+  }
+    
+  if(type%%3==0) axis(4, qnorm(Q), Q, las=1)
+  
+}
+mtext(paste("running mean of repeated quantile estimation\n for random drawings with n =", n), 3, outer=T, line=1, font=2, cex=1.2)
+#mtext("number of avaraged repetitions", 1, outer=T, line=3.5)
+#mtext("number of repetitions forming the running mean", 1, outer=T, line=3.5)
+#mtext("number of random drawings forming the avarage", 1, outer=T, line=3.5)
+mtext("number of random drawings contributing to running mean", 1, outer=T, line=3.5)
+mtext("probabilities of the theoretical quantiles", 4, outer=T, line=4.5)
+#mtext("quantiles estimated from random distribution", side = 2, outer = T, cex=1, line=2.5)
+mtext("quantiles", side = 2, outer = T, cex=1, line=2.5)
 ```
 
-Or like this:
 
-```{r, echo=T}
-(p_k <- seq(1/(n*2), 1-1/(n*2), length.out=n))
-```
-
-We then have to convert the probabilities $$p_k$$ to the quantiles. For example with a normal distribution:
-```{r echo=T}
-qnorm(p_k)
-```
-
-
-With this method I was able to produce the following graph. 
-It shows the result of the `quantile()` function executed with different `type` argument. Estimated are the quantiles  corresponding to probabilities $$p_k = 0.125, 0.25, 0.375, 0.5, 0.625, 0.75$$ and $$0.875$$. You can see that the results differ for different $$n$$ (varied on the x-axis).
 
 For very high $$n$$ all these estimations end up where the theoretical quantiles are located (compare secondary axis on the right). The difference is how fast they approach this value for low $$n$$.
 
+# Evolution of the bias with varying sample size 
 
 ```{r distribution-estimation-with-different-methods, dev="svg"}
 par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,3,6))
@@ -207,6 +187,22 @@ mtext("estimated quantiles", side = 2, outer = T, cex=1, line=2.5)
 mtext("number of points uniformly distributed over probabilities",1, outer=T, line=3.5)
 
 ```
+
+First the very obvious, which is clear already without any calculation or plotting: For a distribution consisting only of a single value no real "distribution" can be calculated. For the case $$n=1$$ all quantiles are $$0$$. 
+
+For $$n=2$$ the inner $$50\%$$ of the quantiles can already be calculated quite accurate by some methods. The spread of the outer quantiles is underestimated by all methods for $$n=2$$. 
+
+For $$n\approx4$$ to $$20$$ some methods overestimate the spread of the outer quantiles. Others (type 3 and 4) estimate all quantiles lower in value than they actually are. Type 7 is special in that it never overestimates the spread of the quantiles, only underestimates.
+
+The extreme low and upmost quantiles are apparently hardest to estimate. You need very high $$n$$ to estimate them within reasonable precision.
+
+In the region $$n<100$$ the different types show different deviations from the theoretical quantiles. There are the methods of type 1 to 3 that are made for easy calculation in pre-computer days which jump up and down with every change in $$n$$. Type 4 estimates all quantiles lower than they actually are for low $$n$$, resulting in a rising of all estimated quantiles with rising $$n$$. Type 7, which is the R default, underestimates the spread of all quantiles in the lower $$n$$. Then there are the methods 5, 6, 8 and 9 which for very low $$n$$ come to a good estimation of the inner quantiles. But they all overshoot and overestimate the spread of the outer quantiles, especially type 6. This overshoot shifts to the outer quantiles with rising $$n$$, while simultaniously the overestimation settles for the inner quantiles.
+
+Type 5 seems to have the best performance of all methods, since it comes to a fairly good estimation of the inner $$50\%$$ of quantiles for $$n=2$$ and for the inner $$75\%$$ for $$n=4$$. Both estimations don't change much if $$n$$ is further increased (like is the case for types 8, 9 and especially 6).
+
+
+# Evolution of the bias over the quantile range 
+
 ```{r difference-theoretical-to-estimated-quantiles, dev="svg", cache=F}
 par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,3,6))
 
@@ -251,6 +247,71 @@ mtext("probabilities", 1, outer=T, line=3)
 
 ```
 
+```{r systematic-deviation-from-theoretical-quantiles-with-varying-n}
+par(mfrow=c(3,3), mar=c(.1,1,2,.1), oma=c(5,4,3,6))
+
+repetitions <- 1000
+d <- 7
+Q <- seq(1/(d+1), 1-1/(d+1), length.out=d)
+ns <- c(5, 6, 7, 8,9,10,12,14,16,18,20, 21, 50, 100)
+
+MeanQuantile <- array(NA, dim = c(9, repetitions, length(Q), length(ns)), dimnames = list(type=1:9, repetitions=1:repetitions, Q=Q, n=ns))
+
+for(n in as.character(ns)){
+  for(type in 1:9){
+    set.seed(1)
+    MeanQuantile[type,1,,n] <-  quantile(rnorm(n), Q, type=type)
+    for(i in 2:repetitions){
+      MeanQuantile[type,i,,n] <- (MeanQuantile[type,i-1,,n]*(i-1) + quantile(rnorm(n), Q, type=type))/i
+    }
+    
+    #View(MeanQuantile)
+    #MeanQuantile[type,repetitions,]
+    #qnorm(Q)
+    #MeanQuantile[type,repetitions,] - t(qnorm(Q))
+  }
+  
+}
+
+#----------------------------
+
+par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(8,5,3,6))
+
+ylim <- max(abs(range(c(t(MeanQuantile[,repetitions,,5])-qnorm(Q), t(Qmatrix[,5,])-qnorm(Q))))) * c(-1,1)
+
+
+for(type in 1:9){
+  plot(NULL, xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="gray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type ", type))
+  
+  col=0
+  palette(colorRampPalette(c("red", "green"),space = "rgb")(length(ns)))
+  for(n in as.character(ns)){
+    col=col + 1
+    
+    #points(Q, Qmatrix[type,n,]-qnorm(Q), col=n)
+    #plot(qnorm(Q),Q, xlim=range(qnorm(Q))*1.3)
+         #ylim=)
+    lines(Q, MeanQuantile[type,repetitions,,n]-qnorm(Q), col=col)
+    
+  }
+  if(type%%3==1){
+    axis(2, las=1)
+  }
+  if(type>6){
+    axis(1)
+  }
+  if(type==6){
+    legend("right", legend=as.character(ns), col = 1:length(ns), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.45)
+  }
+}
+mtext(paste0("systematic deviation from theoretical quantiles with variation of n"), 3, outer=T, line=1, font=2, cex=1)
+mtext("deviation from theoretical quantiles", 2, outer=T, line=3)
+mtext("probabilities", 1, outer=T, line=3)
+palette("default")
+
+```
+
+# Which quantiles can be estimated with relatively low systematic bias? 
 
 ```{r deviation-greater-than-tolerance-type-5, dev="svg", fig.height=5, cache=F}
 par(mfrow=c(1,1), mar=c(0,1,2,.1), oma=c(5,4,3,6))
@@ -331,17 +392,6 @@ axis(1, at = nn)
 ```
 
 
-First the very obvious, which is clear already without any calculation or plotting: For a distribution consisting only of a single value no real "distribution" can be calculated. For the case $$n=1$$ all quantiles are $$0$$. 
-
-For $$n=2$$ the inner $$50\%$$ of the quantiles can already be calculated quite accurate by some methods. The spread of the outer quantiles is underestimated by all methods for $$n=2$$. 
-
-For $$n\approx4$$ to $$20$$ some methods overestimate the spread of the outer quantiles. Others (type 3 and 4) estimate all quantiles lower in value than they actually are. Type 7 is special in that it never overestimates the spread of the quantiles, only underestimates.
-
-The extreme low and upmost quantiles are apparently hardest to estimate. You need very high $$n$$ to estimate them within reasonable precision.
-
-In the region $$n<100$$ the different types show different deviations from the theoretical quantiles. There are the methods of type 1 to 3 that are made for easy calculation in pre-computer days which jump up and down with every change in $$n$$. Type 4 estimates all quantiles lower than they actually are for low $$n$$, resulting in a rising of all estimated quantiles with rising $$n$$. Type 7, which is the R default, underestimates the spread of all quantiles in the lower $$n$$. Then there are the methods 5, 6, 8 and 9 which for very low $$n$$ come to a good estimation of the inner quantiles. But they all overshoot and overestimate the spread of the outer quantiles, especially type 6. This overshoot shifts to the outer quantiles with rising $$n$$, while simultaniously the overestimation settles for the inner quantiles.
-
-Type 5 seems to have the best performance of all methods, since it comes to a fairly good estimation of the inner $$50\%$$ of quantiles for $$n=2$$ and for the inner $$75\%$$ for $$n=4$$. Both estimations don't change much if $$n$$ is further increased (like is the case for types 8, 9 and especially 6).
 
 ## A valid approach for evaluating the performance of the different quantile estimations?
 
@@ -350,60 +400,6 @@ Having this informative graphic the question remains, whether the chosen discret
 To justify my approach I couldn't come up with some fancy math, so I threw in bare processing power and calculated the quantiles of repeated generation of random numbers. The function ```rnorm()``` in R for example gives random numbers that stick to the probabilities of a normal function. To estimate the quantiles from a limited $$n$$ of these random numbers should lead to random deviation from the theoretical quantiles, but the mean of a high repetition of this process should equal out the statistical errors and hence result in the theoretical quantiles. -- Unless there is an inherent systematical error in the approach used to estimate the quantiles.
 
 So I created the next figure starting with a single estimation with 10 random numbers, repeating the process up to a 1,000 times and calculating the cumulative mean of the repeated estimation with ever new random seeds. Since the quantiles of most types apparently don't change much after 100 repetitions I concluded that the mean of 1,000 repetitions should show where this approach would end with an infinite repetition of the process. And: apparently the error is not statistical, but systematic. For most methods the cumulative means don't end up at the theoretical quantiles (secondary axis on the right) drawn in gray.
-
-```{r using-random-generator}
-
-par(mfrow=c(3,3), mar=c(.1,1,2,.1), oma=c(5,4,5,6))
-palette("default")
-
-repetitions <- 1000
-d <- 7
-Q <- seq(1/(d+1), 1-1/(d+1), length.out=d)
-n <- 10
-MeanQuantile <- array(NA, dim = c(9, repetitions, length(Q)), dimnames = list(type=1:9, repetitions=1:repetitions, Q=Q))
-
-
-for(type in 1:9){
-  set.seed(1)
-  MeanQuantile[type,1,] <-  quantile(rnorm(n), Q, type=type)
-  for(i in 2:repetitions){
-    MeanQuantile[type,i,] <- (MeanQuantile[type,i-1,]*(i-1) + quantile(rnorm(n), Q, type=type))/i
-  }
-  
-  #View(MeanQuantile)
-  #MeanQuantile[type,repetitions,]
-  #qnorm(Q)
-  #MeanQuantile[type,repetitions,] - t(qnorm(Q))
-}
-
-ylim <- range(MeanQuantile[,,])
-
-for(type in 1:9){
-  plot(NULL, xlim=c(1,repetitions), ylim=ylim, main=paste("type ", type), log="", axes=F, frame.plot = T)
-  if(type>6) axis(1, las=3)
-  if(type%%3==1) axis(2, las=1)
-  for(i in 1:length(Q)){
-    #polygon(c(1,1:repetitions, repetitions), c(qnorm(Q[i]), MeanQuantile[type,,i], qnorm(Q[i])), col=c("red", "green"), border = NA)
-    polygon(c(1,1:repetitions, repetitions), c(qnorm(Q[i]), pmin(qnorm(Q[i]), MeanQuantile[type,,i]), qnorm(Q[i])), col="red", border = NA)
-    polygon(c(1,1:repetitions, repetitions), c(qnorm(Q[i]), pmax(qnorm(Q[i]), MeanQuantile[type,,i]), qnorm(Q[i])), col="#3fa309", border = NA)
-  }
-  for(i in 1:length(Q)){
-    lines(MeanQuantile[type,,i], col=1)
-  }
-    
-  if(type%%3==0) axis(4, qnorm(Q), Q, las=1)
-  
-}
-mtext(paste("running mean of repeated quantile estimation\n for random drawings with n =", n), 3, outer=T, line=1, font=2, cex=1.2)
-#mtext("number of avaraged repetitions", 1, outer=T, line=3.5)
-#mtext("number of repetitions forming the running mean", 1, outer=T, line=3.5)
-#mtext("number of random drawings forming the avarage", 1, outer=T, line=3.5)
-mtext("number of random drawings contributing to running mean", 1, outer=T, line=3.5)
-mtext("probabilities of the theoretical quantiles", 4, outer=T, line=4.5)
-#mtext("quantiles estimated from random distribution", side = 2, outer = T, cex=1, line=2.5)
-mtext("quantiles", side = 2, outer = T, cex=1, line=2.5)
-```
-
 
 The systematics of the deviation can be seen in the next figure in red circles. And: Bingo!, they match the deviations from my first thoght experiment with the discrete theoretical distributions (black circles) quite well. This approves, that this approach was a reasonable way to investigate the systematics behind the different quantile estimation methods.
 
@@ -538,69 +534,7 @@ mtext("quantiles", 1, outer=T, line=3)
 ```
 
 
-```{r systematic-deviation-from-theoretical-quantiles-with-varying-n}
-par(mfrow=c(3,3), mar=c(.1,1,2,.1), oma=c(5,4,3,6))
 
-repetitions <- 1000
-d <- 7
-Q <- seq(1/(d+1), 1-1/(d+1), length.out=d)
-ns <- c(5, 6, 7, 8,9,10,12,14,16,18,20, 21, 50, 100)
-
-MeanQuantile <- array(NA, dim = c(9, repetitions, length(Q), length(ns)), dimnames = list(type=1:9, repetitions=1:repetitions, Q=Q, n=ns))
-
-for(n in as.character(ns)){
-  for(type in 1:9){
-    set.seed(1)
-    MeanQuantile[type,1,,n] <-  quantile(rnorm(n), Q, type=type)
-    for(i in 2:repetitions){
-      MeanQuantile[type,i,,n] <- (MeanQuantile[type,i-1,,n]*(i-1) + quantile(rnorm(n), Q, type=type))/i
-    }
-    
-    #View(MeanQuantile)
-    #MeanQuantile[type,repetitions,]
-    #qnorm(Q)
-    #MeanQuantile[type,repetitions,] - t(qnorm(Q))
-  }
-  
-}
-
-#----------------------------
-
-par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(8,5,3,6))
-
-ylim <- max(abs(range(c(t(MeanQuantile[,repetitions,,5])-qnorm(Q), t(Qmatrix[,5,])-qnorm(Q))))) * c(-1,1)
-
-
-for(type in 1:9){
-  plot(NULL, xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="gray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type ", type))
-  
-  col=0
-  palette(colorRampPalette(c("red", "green"),space = "rgb")(length(ns)))
-  for(n in as.character(ns)){
-    col=col + 1
-    
-    #points(Q, Qmatrix[type,n,]-qnorm(Q), col=n)
-    #plot(qnorm(Q),Q, xlim=range(qnorm(Q))*1.3)
-         #ylim=)
-    lines(Q, MeanQuantile[type,repetitions,,n]-qnorm(Q), col=col)
-    
-  }
-  if(type%%3==1){
-    axis(2, las=1)
-  }
-  if(type>6){
-    axis(1)
-  }
-  if(type==6){
-    legend("right", legend=as.character(ns), col = 1:length(ns), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.45)
-  }
-}
-mtext(paste0("systematic deviation from theoretical quantiles with variation of n"), 3, outer=T, line=1, font=2, cex=1)
-mtext("deviation from theoretical quantiles", 2, outer=T, line=3)
-mtext("probabilities", 1, outer=T, line=3)
-palette("default")
-
-```
 
 
 ```{r using-random-generator-with-n-100, eval=F}
@@ -811,6 +745,7 @@ bxp(boxplot(qnorm(x), plot = F), medcol=3, staplecol=1, boxcol=2, whisklty=1, lw
 
 # Appendix
 
+## R's 9 different quantile estimation functions
 
 [Since 2004](https://stat.ethz.ch/pipermail/r-announce/2004/000427.html) R has implemented 9 types of quantile estimation recommended by `r citet("Hyndman and Fan (1996)")`:
 
@@ -913,6 +848,95 @@ system("pdf2svg ../figure/source/2016-03-24-quantile-estimation/plotting-positio
 ```
 
 ![svg-graphic](../figure/source/2016-03-24-quantile-estimation/plotting-positions-1.svg)
+
+## The discretized standard normal distribution
+
+
+So I thought about, how I could create input data for the ```quantile()``` function, that follows perferctly a theoretical distribution function---but is also discrete, featuring a limited $$n$$. 
+
+What I came up with is illustrated in `r figr("theoretical-and-discrete-distribution-for-different-n", TRUE, TRUE, type="figure")`. I devided the probability range into equal lengths. For $$n=3$$ for example I devided it into three sections, for $$n=10$$ into 10 sections (visualized in the graph with alternating gray and white areas). Each section will be represented by a probability located in the middle of the section. This is represented in the graph with the horizontal dotted lines. Where the horizontal lines cut the theoretical distribution funtion (in this case a normal distribution) defines the value of the quantile corresponding to this probability. The quantiles can be read from the x-axis. Notice how the horizontal lines (the probabilities) are equidistant. The vertical lines (the quantiles) follow the distribution function which causes the outermost quantiles beeing further apart than the central ones.
+
+
+```{r theoretical-and-discrete-distribution-for-different-n, anchor="figure", dev="svg", fig.height=5}
+set.seed(1)
+par(mfrow=c(2,3), mar=c(0,1,2,.3), oma=c(5,4,4,6))
+plotnum <- 1
+
+p_i.fine <- seq(0, 1, length.out=500)
+for(n in c(3, 5, 10, 20, 50, 30) ){
+  p_i <- seq(1/(n*2), 1-1/(n*2), length.out=n)
+  if(n==30){
+    q_i <- sort(rnorm(n))
+  }else{
+    q_i <- qnorm(p_i)
+  }
+  breaks <- seq(0, 1, length.out=n+1)
+
+  plot(qnorm(p_i.fine), p_i.fine, type="l", axes=F, panel.first=
+    if(n<20) {
+      for(i in 1:(length(breaks)/2)*2){
+        xlims <- par("usr")[1:2]
+        rect(xlims[1], breaks[i-1], xlims[2], breaks[i],col = gray(.9), border = NA)
+      }
+      for(i in 1:length(p_i)){
+        lines(c(xlims[1], q_i[i]), rep(p_i[i],2), lty=3)
+        lines(rep(q_i[i],2), c(p_i[i], -1), lty=3)
+      }
+      
+    }
+    , frame.plot=T, main=paste0("n = ", n, if(n==30) ", randomly drawn"), xlab="", ylab="", las=1, ylim=c(0,1))
+
+  points(q_i, p_i)
+  #par(new=T)
+  #hist(qnorm(p_i), ann=F, axes=F, xlim=range(qnorm(p_i.fine),finite = T))
+  #axis(4, las=1)
+  
+  if(plotnum%%3==1){
+    axis(2, las=1)
+  }
+  if(plotnum>3){
+    axis(1)
+  }
+  plotnum <- plotnum + 1
+}
+mtext("theoretical and discrete distribution for different n", cex=1.2, font=2, 3, outer=T, line=1.5)
+mtext("probabilities", 2, 2.5, outer=T)
+mtext("quantiles", 1, 3.5, outer=T)
+```
+
+This method generates discrete values that behave like a perfect representation of the theoretical distribution function. In contrast to using a random generator, which gives us values that jump around the theoretical distribution function  (like is illustrated in the $$n=30$$ plot above) and approach the theoretical distribution only for very high $$n$$.
+
+
+Mathematically this process is done like this: You define your $$n$$. For example $$n=10$$. Now you calculate the probabilities:
+
+$$p_k = \frac{1}{2n} + \frac{k-1}{n}$$
+
+The last value is 
+
+$$p_n = \frac{1}{2n} + \frac{n-1}{n}= 1-\frac{1}{2n}$$
+
+In R this can be implemented like this:
+```{r, echo=T}
+n <- 10
+k <- 1:n
+(p_k <- 1/(2*n) + (k-1)/n)
+```
+
+Or like this:
+
+```{r, echo=T}
+(p_k <- seq(1/(n*2), 1-1/(n*2), length.out=n))
+```
+
+We then have to convert the probabilities $$p_k$$ to the quantiles. For example with a normal distribution:
+```{r echo=T}
+qnorm(p_k)
+```
+
+
+With this method I was able to produce the following graph. 
+It shows the result of the `quantile()` function executed with different `type` argument. Estimated are the quantiles  corresponding to probabilities $$p_k = 0.125, 0.25, 0.375, 0.5, 0.625, 0.75$$ and $$0.875$$. You can see that the results differ for different $$n$$ (varied on the x-axis).
+
 
 --------------------
 
