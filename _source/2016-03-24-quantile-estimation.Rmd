@@ -86,8 +86,7 @@ My first Idea was to find a way to visualize the differences between these nine 
 
 # Systematic bias for low sample sizes
 
-```{r using-random-generator}
-
+```{r systematic-bias-for-low-sample-sizes, cache=T}
 par(mfrow=c(3,3), mar=c(.1,1,2,.1), oma=c(5,4,5,6))
 palette("default")
 
@@ -129,7 +128,7 @@ for(type in 1:9){
   if(type%%3==0) axis(4, qnorm(Q), Q, las=1)
   
 }
-mtext(paste("running mean of repeated quantile estimation\n for random drawings with n =", n), 3, outer=T, line=1, font=2, cex=1.2)
+mtext(paste("running mean of repeated quantile estimation\n of random samples with n =", n, "of the standard normal distribution"), 3, outer=T, line=1, font=2, cex=1)
 #mtext("number of avaraged repetitions", 1, outer=T, line=3.5)
 #mtext("number of repetitions forming the running mean", 1, outer=T, line=3.5)
 #mtext("number of random drawings forming the avarage", 1, outer=T, line=3.5)
@@ -145,8 +144,8 @@ For very high $$n$$ all these estimations end up where the theoretical quantiles
 
 # Evolution of the bias with varying sample size 
 
-```{r distribution-estimation-with-different-methods, dev="svg"}
-par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,3,6))
+```{r evolution-of-bias-with-varying-sample-size-discretized-normal-distribution, dev="svg"}
+par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,5,6))
 
 nmax <- 1000
 d <- 7
@@ -181,11 +180,75 @@ for(type in 1:9){
     axis(1, las=3)
   }
 }
-mtext("quantile estimation from a discrete normal distribution", 3, outer=T, cex=1.2, line=1, font=2)
+mtext("Evolution of quantile estimation bias with varying sample size", 3, outer=T, cex=1, line=2.2, font=2)
+mtext("using a discretized standard normal distribution as input", 3, outer=T, cex=0.9, line=0.5, font=1)
 mtext("probabilities corresponding to theoretical quantiles", 4, line=4.5, outer=T)  
 mtext("estimated quantiles", side = 2, outer = T, cex=1, line=2.5)
-mtext("number of points uniformly distributed over probabilities",1, outer=T, line=3.5)
+mtext("sample size (n)",1, outer=T, line=3.5)
 
+```
+
+```{r random-experiment, cache=T}
+nn <- signif(10^seq(0, 3, 1/4), 1)[-1]
+
+d <- 2^8-1
+Q <- seq(1/(d+1), 1-1/(d+1), length.out=d)
+repetitions <- 1000
+
+MeanQuantile <- array(NA, dim = c(9, repetitions, length(Q), length(nn)), dimnames = list(type=1:9, repetitions=1:repetitions, Q=Q, n=nn))
+
+for(n in as.character(nn)){
+  for(type in 1:9){
+    set.seed(1)
+    MeanQuantile[type,1,,n] <-  quantile(rnorm(n), Q, type=type)
+    for(i in 2:repetitions){
+      MeanQuantile[type,i,,n] <- (MeanQuantile[type,i-1,,n]*(i-1) + quantile(rnorm(n), Q, type=type))/i
+    }
+    
+    #View(MeanQuantile)
+    #MeanQuantile[type,repetitions,]
+    #qnorm(Q)
+    #MeanQuantile[type,repetitions,] - t(qnorm(Q))
+  }
+  
+}
+
+#----------------------------
+
+```
+
+```{r evoultion-of-bias-with-varying-sample-size-random, dependson="random-experiment"}
+par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,6,6))
+palette("default")
+
+
+Qselect <- 2^5*1:7
+ylim <- c(-1,1)* 1.5
+
+for(type in 1:9){
+  #View(Qmatrix)
+  
+  plot(NULL, xlim=c(1,nmax), ylim=ylim, log="x", main=paste("type ", type), xlab="", ylab="", axes=F, frame.plot=T, panel.first=abline(v=c(1,2,5,10,20,50,100,200,500,1000), h=qnorm(Q[Qselect]), col="lightgray"))
+  for(i in Qselect){
+    lines(nn, MeanQuantile[type,repetitions,i,], col=1, type="l")
+  }
+
+  if(type%%3==0){
+    axis(4, at=qnorm(Q[Qselect]), Q[Qselect], las=1)
+  }
+  if(type%%3==1){
+    axis(2, las=1)
+  }
+  if(type>6){
+    axis(1, las=3)
+  }
+}
+mtext("Evolution of quantile estimation bias with varying sample size", 3, outer=T, cex=1, line=3.9, font=2)
+mtext("using random samples drawn from a standard normal distribution", 3, outer=T, cex=0.9, line=2.2, font=1)
+mtext("(mean of 1000 estimations)", 3, outer=T, cex=0.9, line=0.5, font=1)
+mtext("probabilities of the theoretical", 4, line=4.5, outer=T)  
+mtext("estimated quantiles", side = 2, outer = T, cex=1, line=2.5)
+mtext("sample size (n)",1, outer=T, line=3.5)
 ```
 
 First the very obvious, which is clear already without any calculation or plotting: For a distribution consisting only of a single value no real "distribution" can be calculated. For the case $$n=1$$ all quantiles are $$0$$. 
@@ -205,11 +268,6 @@ Type 5 seems to have the best performance of all methods, since it comes to a fa
 
 ```{r difference-theoretical-to-estimated-quantiles, dev="svg", cache=F}
 par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(5,4,3,6))
-
-nn <- signif(10^seq(0, 1.5, 1/4), 1)[-1]
-
-d <- 500
-Q <- seq(1/(d+1), 1-1/(d+1), length.out=d)
 Qmatrix <- array(NA, dim=c(9, length(nn), length(Q)), dimnames=list(type=1:9, n=nn, Q=Q))
 
 for(type in 1:9){
@@ -220,7 +278,7 @@ for(type in 1:9){
   }
 }
 
-ylim <- max(abs(Qmatrix[,,]))*c(-1,1)
+ylim <- c(-1,1)*2.5
 palette(viridis(length(nn), direction=-1, end=0.9))
 # type=5
 for(type in 1:9){
@@ -247,45 +305,14 @@ mtext("probabilities", 1, outer=T, line=3)
 
 ```
 
-```{r systematic-deviation-from-theoretical-quantiles-with-varying-n}
-par(mfrow=c(3,3), mar=c(.1,1,2,.1), oma=c(5,4,3,6))
-
-repetitions <- 1000
-d <- 7
-Q <- seq(1/(d+1), 1-1/(d+1), length.out=d)
-ns <- c(5, 6, 7, 8,9,10,12,14,16,18,20, 21, 50, 100)
-
-MeanQuantile <- array(NA, dim = c(9, repetitions, length(Q), length(ns)), dimnames = list(type=1:9, repetitions=1:repetitions, Q=Q, n=ns))
-
-for(n in as.character(ns)){
-  for(type in 1:9){
-    set.seed(1)
-    MeanQuantile[type,1,,n] <-  quantile(rnorm(n), Q, type=type)
-    for(i in 2:repetitions){
-      MeanQuantile[type,i,,n] <- (MeanQuantile[type,i-1,,n]*(i-1) + quantile(rnorm(n), Q, type=type))/i
-    }
-    
-    #View(MeanQuantile)
-    #MeanQuantile[type,repetitions,]
-    #qnorm(Q)
-    #MeanQuantile[type,repetitions,] - t(qnorm(Q))
-  }
-  
-}
-
-#----------------------------
-
+```{r systematic-deviation-from-theoretical-quantiles-with-varying-n, dependson="random-experiment"}
 par(mfrow=c(3,3), mar=c(0,1,2,.1), oma=c(8,5,3,6))
 
-ylim <- max(abs(range(c(t(MeanQuantile[,repetitions,,5])-qnorm(Q), t(Qmatrix[,5,])-qnorm(Q))))) * c(-1,1)
-
-
 for(type in 1:9){
-  plot(NULL, xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col="gray"), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type ", type))
+  plot(NULL, xlim=c(0,1), ylim=ylim, panel.first = abline(h=0, col=1), axes=F, frame.plot=T, xlab="", ylab="", main=paste("type ", type))
   
   col=0
-  palette(colorRampPalette(c("red", "green"),space = "rgb")(length(ns)))
-  for(n in as.character(ns)){
+  for(n in as.character(nn)){
     col=col + 1
     
     #points(Q, Qmatrix[type,n,]-qnorm(Q), col=n)
@@ -301,15 +328,15 @@ for(type in 1:9){
     axis(1)
   }
   if(type==6){
-    legend("right", legend=as.character(ns), col = 1:length(ns), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.45)
+    legend("right", legend=as.character(nn), col = 1:length(nn), xpd = NA, lty=1, horiz = F, title="n =", inset = -0.45)
   }
 }
 mtext(paste0("systematic deviation from theoretical quantiles with variation of n"), 3, outer=T, line=1, font=2, cex=1)
 mtext("deviation from theoretical quantiles", 2, outer=T, line=3)
 mtext("probabilities", 1, outer=T, line=3)
-palette("default")
-
 ```
+
+
 
 # Which quantiles can be estimated with relatively low systematic bias? 
 
