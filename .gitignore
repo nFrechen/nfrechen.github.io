@@ -14,9 +14,9 @@ _source/*.md
 _source/*/
 *footnote-test*
 *tikzDictionary
-
 additional/*
 data/*
 images/*
 assets/*
 .DS_Store
+Gemfile.lock

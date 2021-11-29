@@ -233,3 +233,11 @@ th {
   text-align: left;
   padding: 5px 5px;
 }
+
+/*fix for fontawesome links*/
+.fa{
+   font-family: $base-font-family !important;
+}
+.fa::before{
+    font: normal normal normal 14px/1 FontAwesome !important;
+}
