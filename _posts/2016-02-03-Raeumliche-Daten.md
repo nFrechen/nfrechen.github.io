@@ -27,15 +27,15 @@ Das Ergebnis sind Bilder, die besonders gut den Bedeckungsgrad an Vegetation und
 [^NDVI]:http://desktop.arcgis.com/de/desktop/latest/manage-data/raster-and-images/ndvi-function.htm
 
 In diesem Tutorial verwenden wir den durch Moderate Resolution Imaging Spectroradiometer (MODIS) normalisierte
-Difference Vegetation Index (NDVI), der durch die Global Inventory Modeling and Mapping Studies (GIMMS) Group des NASA/Goddard Space Flight Center aufgenommen und verarbeitet wurde, sowie finanziell unterstützt wurde vom Global Agricultural Monitoring project der USDA’s Foreign Agricultural Service (FAS). Die Daten können unter [ftp://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/](ftp://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/) abgerufen werden.
+Difference Vegetation Index (NDVI), der durch die Global Inventory Modeling and Mapping Studies (GIMMS) Group des NASA/Goddard Space Flight Center aufgenommen und verarbeitet wurde, sowie finanziell unterstützt wurde vom Global Agricultural Monitoring project der USDA’s Foreign Agricultural Service (FAS). Die Daten können unter [https://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/](https://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/) abgerufen werden.
 
 Die Daten liegen im [GeoTIFF-Format](https://de.wikipedia.org/wiki/GeoTIFF) vor. Messungen von 8 Tagen werden jeweils zu einer Datei zusammen gefasst. Der tatsächliche Messzeitpunkt für jeden Pixel wird seit 2012 in einem zweiten Raster gespeichert. Dies soll aber hier vernachlässigt werden und stattdessen nur der Beginn der 8-Tages-Periode verwendet werden.
 
-Die folgende Readme-Datei gibt Auskunft über die Formatierung der Daten und die Konvention für die Dateinamenvergabe: [ftp://gimms.gsfc.nasa.gov/MODIS/README.txt](ftp://gimms.gsfc.nasa.gov/MODIS/README.txt)
+Die folgende Readme-Datei gibt Auskunft über die Formatierung der Daten und die Konvention für die Dateinamenvergabe: [https://gimms.gsfc.nasa.gov/MODIS/README.txt](https://gimms.gsfc.nasa.gov/MODIS/README.txt)
 
 # Daten herunterladen
 
-Die Daten befinden sich in Unterordnern zu der oben genannten URL. Der erste Unterordner definiert das Jahr (z.B. 2001), der zweite Unterordner den Tag des Jahres (z.B. 049 für den 49. Tag). In diesem Ordner liegen dann die Dateien, die ähnlich wie diese Datei benannt sind: `GMOD09Q1.A2010001.08d.latlon.x00y02.5v3.NDVI.tif`
+Die Daten befinden sich in Unterordnern zu der oben genannten URL. Der erste Unterordner definiert das Jahr (z.B. 2001), der zweite Unterordner den Tag des Jahres (z.B. 049 für den 49. Tag). In diesem Ordner liegen dann die Dateien, die ähnlich wie diese Datei benannt sind: `GMOD09Q1.A2010001.08d.latlon.x00y02.6v1.NDVI.tif`
 
 Dabei bedeuten laut der Readme-Datei die einzelnen Teile des Dateinamen folgendes:
 
@@ -46,7 +46,7 @@ Dabei bedeuten laut der Readme-Datei die einzelnen Teile des Dateinamen folgende
     Composite period    08d         8-day composite
     Projection          latlon      Lat/Lon grid
     9x9 Tile index      x00y02      Column 00, Row 02
-    Versions            5v3         MODAPS collection 5, GIMMS version 3
+    Versions            6v1         MODAPS collection 6, GIMMS version 1
     Layer name          NDVI        Normalized Vegetation Index
     File format         tif         Tagged Image File
 
@@ -69,7 +69,7 @@ Wir wählen uns eine Datei aus, auf der Mitteleuropa zu sehen ist und verwenden 
 
 
 {% highlight r %}
-url <- "ftp://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/2001/209/GMOD09Q1.A2001209.08d.latlon.x21y04.5v3.NDVI.tif.gz"
+url <- "https://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/2001/209/GMOD09Q1.A2001209.08d.latlon.x21y04.6v1.NDVI.tif.gz"
 {% endhighlight %}
 
 
@@ -77,10 +77,10 @@ Diese laden wir nun herunter und entpacken sie:
 
 {% highlight r %}
 # Komprimierte Datei runterladen
-download.file(url, basename(url), method = "curl", quiet = T)
+download.file(url, basename(url), method="curl", quiet=T)
 
 # Datei enptacken
-filename <- R.utils::gunzip(basename(url), overwrite = T)
+filename <- R.utils::gunzip(basename(url), overwrite=T)
 {% endhighlight %}
 
 Zum entpacken der `.gz` Dateien muss das Paket `R.utils` installiert sein. Falls dies noch nicht installiert ist einfach vorher `install.packages("R.utils")` ausführen.
@@ -133,10 +133,10 @@ Wir definieren deshalb eine Funktion, die alle Werte über 250 durch NA ersezt u
 
 
 {% highlight r %}
-remap <- function(x) {
-    x[x > 250] <- NA
-    x <- x * 0.004
-    return(x)
+remap <- function(x){
+	x[x>250] <- NA
+	x <- x * 0.004
+	return(x)
 }
 {% endhighlight %}
 
@@ -144,8 +144,7 @@ Mit dieser Funktion können wir nun das Raster umrechnen. Dazu benutzen wir die 
 
 
 {% highlight r %}
-NDVI_raster_remapped <- calc(NDVI_raster, fun = remap, filename = "NDVI_raster_remapped.tif", 
-    overwrite = TRUE)
+NDVI_raster_remapped <- calc(NDVI_raster, fun=remap, filename="NDVI_raster_remapped.tif", overwrite=TRUE)
 {% endhighlight %}
 
 Diese Datei können wir dann später direkt mit dem `raster()` Befehl laden, wie oben mit der Originaldatei gezeigt.
@@ -170,7 +169,7 @@ ext <- drawExtent(show = T)
 Oder wir definieren den Ausschnitt mit vier Koordinaten:
 
 {% highlight r %}
-ext <- extent(10, 11, 46, 47)
+ext <- extent(10,11, 46,47)
 {% endhighlight %}
 
 Egal auf welche Weise wir `ext` definiert haben können wir damit eine Karte plotten, die nur diesen Ausschnitt enthält:
@@ -217,7 +216,7 @@ NDVI_raster_remapped_crop <- crop(NDVI_raster_remapped, elevation)
 Wenn wir uns das digitale Höhenmodell anschauen, fällt sofort eine Ähnlichkeit mit dem räumlichen Muster im NDVI-Bild auf.
 
 {% highlight r %}
-plot(elevation, col = terrain.colors(100))
+plot(elevation, col=terrain.colors(100))
 {% endhighlight %}
 
 ![plot of chunk plot-elevation-data](/figure/source/2016-02-03-Raeumliche-Daten/plot-elevation-data-1.svg)
@@ -234,14 +233,14 @@ elevation
 
 
 {% highlight text %}
-## class       : RasterLayer 
-## dimensions  : 3601, 3601, 12967201  (nrow, ncol, ncell)
-## resolution  : 0.0002777778, 0.0002777778  (x, y)
-## extent      : 9.999861, 11.00014, 45.99986, 47.00014  (xmin, xmax, ymin, ymax)
-## coord. ref. : +proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs 
-## data source : /Users/nf/Documents/tutorial-homepage/_source/N46E010.hgt 
-## names       : N46E010 
-## values      : -32768, 32767  (min, max)
+## class      : RasterLayer 
+## dimensions : 3601, 3601, 12967201  (nrow, ncol, ncell)
+## resolution : 0.0002777778, 0.0002777778  (x, y)
+## extent     : 9.999861, 11.00014, 45.99986, 47.00014  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : N46E010.hgt 
+## names      : N46E010 
+## values     : -32768, 32767  (min, max)
 {% endhighlight %}
 
 
@@ -253,14 +252,14 @@ NDVI_raster_remapped_crop
 
 
 {% highlight text %}
-## class       : RasterLayer 
-## dimensions  : 445, 445, 198025  (nrow, ncol, ncell)
-## resolution  : 0.00225, 0.00225  (x, y)
-## extent      : 9.999, 11.00025, 45.999, 47.00025  (xmin, xmax, ymin, ymax)
-## coord. ref. : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 
-## data source : in memory
-## names       : NDVI_raster_remapped 
-## values      : 0, 0.996  (min, max)
+## class      : RasterLayer 
+## dimensions : 445, 445, 198025  (nrow, ncol, ncell)
+## resolution : 0.00225, 0.00225  (x, y)
+## extent     : 9.999, 11.00025, 45.999, 47.00025  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : memory
+## names      : NDVI_raster_remapped 
+## values     : 0, 1  (min, max)
 {% endhighlight %}
 
 Dies lässt sich beheben, indem wir die Funktion `resample()` verwenden. In diesem Falle berechnen wir die Auflösung des höher aufgelösten Rasters auf die des geringer aufgelösten um. Das DGM ist in diesem Falle höher aufgelöst und das NDVI-Raster ist das mit der geringeren Auflösung. Es würde auch anders herum funktionieren, allerdings müsste R dafür interpolieren. Wir wollen aber nicht künstlich Informationen erzeugen, wo eigentlich keine sind. Daher aggregieren wir lieber die Höheninformationen zu einem geringer aufgelösten Raster:
@@ -279,14 +278,14 @@ elevation_resampled
 
 
 {% highlight text %}
-## class       : RasterLayer 
-## dimensions  : 445, 445, 198025  (nrow, ncol, ncell)
-## resolution  : 0.00225, 0.00225  (x, y)
-## extent      : 9.999, 11.00025, 45.999, 47.00025  (xmin, xmax, ymin, ymax)
-## coord. ref. : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 
-## data source : in memory
-## names       : N46E010 
-## values      : 231.8971, 3839.372  (min, max)
+## class      : RasterLayer 
+## dimensions : 445, 445, 198025  (nrow, ncol, ncell)
+## resolution : 0.00225, 0.00225  (x, y)
+## extent     : 9.999, 11.00025, 45.999, 47.00025  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : memory
+## names      : N46E010 
+## values     : 231.8971, 3839.372  (min, max)
 {% endhighlight %}
 Nun können wir jeder Zelle aus dem einen Raster exakt eine Zelle aus dem anderen Raster gegenüberstellen.
 
@@ -294,15 +293,17 @@ Nun können wir jeder Zelle aus dem einen Raster exakt eine Zelle aus dem andere
 Um jeder Zelle aus dem einen Raster eine Zelle aus dem anderen Raster gegenüber zu stellen verwenden wir den Befehl `getValues()`. Dieser formt das Raster in einen Vektor aus Werten um. Wir erzeugen nun einen `data.frame`, der die Zellwerte aus den beiden Rastern zeilenweise gegenüber stellt:
 
 {% highlight r %}
-scatterData <- data.frame(elev = getValues(elevation_resampled), NDVI = getValues(NDVI_raster_remapped_crop))
+scatterData <- data.frame(
+  elev = getValues(elevation_resampled),
+  NDVI = getValues(NDVI_raster_remapped_crop)
+)
 {% endhighlight %}
 
 Diesen data.frame können wir nun nutzen um einen scatterplot darzustellen:
 
 {% highlight r %}
-plot(scatterData, pch = 20, cex = 0.2, xlab = "elevation [m]", ylab = "NDVI", 
-    col = rgb(0, 0, 0, 0.1))
-abline(v = 2000, lty = 4)
+plot(scatterData, pch=20, cex=0.2, xlab="elevation [m]", ylab="NDVI", col=rgb(0,0,0,0.1))
+abline(v=2000, lty=4)
 {% endhighlight %}
 
 ![plot of chunk plot-NDVI-against-elevation](/figure/source/2016-02-03-Raeumliche-Daten/plot-NDVI-against-elevation-1.png)

@@ -12,7 +12,7 @@ technique: <a href="http://r-project.org">R</a>, <a href="https://cran.r-project
 ```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 
 load=FALSE
-filename <- "GMOD09Q1.A2001209.08d.latlon.x21y04.5v3.NDVI.tif"
+filename <- "GMOD09Q1.A2001209.08d.latlon.x21y04.6v1.NDVI.tif"
 
 library(knitr)
 
@@ -44,15 +44,15 @@ Das Ergebnis sind Bilder, die besonders gut den Bedeckungsgrad an Vegetation und
 [^NDVI]:http://desktop.arcgis.com/de/desktop/latest/manage-data/raster-and-images/ndvi-function.htm
 
 In diesem Tutorial verwenden wir den durch Moderate Resolution Imaging Spectroradiometer (MODIS) normalisierte
-Difference Vegetation Index (NDVI), der durch die Global Inventory Modeling and Mapping Studies (GIMMS) Group des NASA/Goddard Space Flight Center aufgenommen und verarbeitet wurde, sowie finanziell unterstützt wurde vom Global Agricultural Monitoring project der USDA’s Foreign Agricultural Service (FAS). Die Daten können unter [ftp://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/](ftp://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/) abgerufen werden.
+Difference Vegetation Index (NDVI), der durch die Global Inventory Modeling and Mapping Studies (GIMMS) Group des NASA/Goddard Space Flight Center aufgenommen und verarbeitet wurde, sowie finanziell unterstützt wurde vom Global Agricultural Monitoring project der USDA’s Foreign Agricultural Service (FAS). Die Daten können unter [https://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/](https://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/) abgerufen werden.
 
 Die Daten liegen im [GeoTIFF-Format](https://de.wikipedia.org/wiki/GeoTIFF) vor. Messungen von 8 Tagen werden jeweils zu einer Datei zusammen gefasst. Der tatsächliche Messzeitpunkt für jeden Pixel wird seit 2012 in einem zweiten Raster gespeichert. Dies soll aber hier vernachlässigt werden und stattdessen nur der Beginn der 8-Tages-Periode verwendet werden.
 
-Die folgende Readme-Datei gibt Auskunft über die Formatierung der Daten und die Konvention für die Dateinamenvergabe: [ftp://gimms.gsfc.nasa.gov/MODIS/README.txt](ftp://gimms.gsfc.nasa.gov/MODIS/README.txt)
+Die folgende Readme-Datei gibt Auskunft über die Formatierung der Daten und die Konvention für die Dateinamenvergabe: [https://gimms.gsfc.nasa.gov/MODIS/README.txt](https://gimms.gsfc.nasa.gov/MODIS/README.txt)
 
 # Daten herunterladen
 
-Die Daten befinden sich in Unterordnern zu der oben genannten URL. Der erste Unterordner definiert das Jahr (z.B. 2001), der zweite Unterordner den Tag des Jahres (z.B. 049 für den 49. Tag). In diesem Ordner liegen dann die Dateien, die ähnlich wie diese Datei benannt sind: `GMOD09Q1.A2010001.08d.latlon.x00y02.5v3.NDVI.tif`
+Die Daten befinden sich in Unterordnern zu der oben genannten URL. Der erste Unterordner definiert das Jahr (z.B. 2001), der zweite Unterordner den Tag des Jahres (z.B. 049 für den 49. Tag). In diesem Ordner liegen dann die Dateien, die ähnlich wie diese Datei benannt sind: `GMOD09Q1.A2010001.08d.latlon.x00y02.6v1.NDVI.tif`
 
 Dabei bedeuten laut der Readme-Datei die einzelnen Teile des Dateinamen folgendes:
 
@@ -63,7 +63,7 @@ Dabei bedeuten laut der Readme-Datei die einzelnen Teile des Dateinamen folgende
     Composite period    08d         8-day composite
     Projection          latlon      Lat/Lon grid
     9x9 Tile index      x00y02      Column 00, Row 02
-    Versions            5v3         MODAPS collection 5, GIMMS version 3
+    Versions            6v1         MODAPS collection 6, GIMMS version 1
     Layer name          NDVI        Normalized Vegetation Index
     File format         tif         Tagged Image File
 
@@ -85,7 +85,7 @@ Den 9x9 tile index kann man nach der Readme-Datei wie folgt berechnen:
 Wir wählen uns eine Datei aus, auf der Mitteleuropa zu sehen ist und verwenden den Datensatz von 2001 vom 209. Tag des Jahres, also einem Tag Ende Juli. Die url zu dieser Datei ist folgende:
 
 ```{r url}
-url <- "ftp://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/2001/209/GMOD09Q1.A2001209.08d.latlon.x21y04.5v3.NDVI.tif.gz"
+url <- "https://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/2001/209/GMOD09Q1.A2001209.08d.latlon.x21y04.6v1.NDVI.tif.gz"
 ```
 
 
