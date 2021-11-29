@@ -19,4 +19,3 @@ data/*
 images/*
 assets/*
 .DS_Store
-Gemfile.lock
