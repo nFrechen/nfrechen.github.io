@@ -26,11 +26,11 @@ Als Vorbereitung auf diese Übung empfiehlt sich die [Übung zu räumlichen Date
 # Einleitung
 
 In diesem Tutorial wird der durch Moderate Resolution Imaging Spectroradiometer (MODIS) normalisierte
-Difference Vegetation Index (NDVI) verwendet, der durch die Global Inventory Modeling and Mapping Studies (GIMMS) Group des NASA/Goddard Space Flight Center aufgenommen und verarbeitet wurde, sowie finanziell unterstützt wurde vom Global Agricultural Monitoring project der USDA’s Foreign Agricultural Service (FAS). Die Daten können unter ftp://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/ abgerufen werden.
+Difference Vegetation Index (NDVI) verwendet, der durch die Global Inventory Modeling and Mapping Studies (GIMMS) Group des NASA/Goddard Space Flight Center aufgenommen und verarbeitet wurde, sowie finanziell unterstützt wurde vom Global Agricultural Monitoring project der USDA’s Foreign Agricultural Service (FAS). Die Daten können unter <a href="https://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/" target="_blank">https://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/</a> abgerufen werden.
 
 Die Daten liegen im GeoTIFF-Format vor. Messungen von 8 Tagen werden jeweils zu einer Datei zusammen gefasst. Der tatsächliche Messzeitpunkt für jeden Pixel wird seit 2012 in einem zweiten Raster gespeichert. Dies soll aber hier vernachlässigt werden und stattdessen nur der Beginn der 8-Tages-Periode verwendet werden.
 
-Die folgende Readme-Datei gibt Auskunft über die Formatierung der Daten und die Konvention für die Dateinamenvergabe: ftp://gimms.gsfc.nasa.gov/MODIS/README.txt
+Die folgende Readme-Datei gibt Auskunft über die Formatierung der Daten und die Konvention für die Dateinamenvergabe: <a href="https://gimms.gsfc.nasa.gov/MODIS/README.txt" target="_blank">https://gimms.gsfc.nasa.gov/MODIS/README.txt</a>
 
 Wir wollen nun eine ganze Reihe dieser Raster-Dateien herunterladen, als RasterStack in R laden und anschließend mit dem `raster` package Zeitreihen für einzelne Koordinaten extrahieren.
 
@@ -39,12 +39,13 @@ Wir wollen nun eine ganze Reihe dieser Raster-Dateien herunterladen, als RasterS
 Definieren wir zuerst die URL, von der wir die Daten herunter laden möchten:
 
 ```{r}
-baseurl <- "ftp://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"
+baseurl <- "https://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"
 ```
 
-Die Daten befinden sich in Unterordnern zu dieser baseurl. Der erste Unterordner definiert das Jahr (z.B. 2001), der zweite Unterordner den Tag des Jahres (z.B. 049 für den 49. Tag). In diesem Ordner liegen dann die Dateien, die ähnlich wie diese Datei benannt sind: `GMOD09Q1.A2010001.08d.latlon.x00y02.5v3.NDVI.tif`
+Die Daten befinden sich in Unterordnern zu dieser baseurl. Der erste Unterordner definiert das Jahr (z.B. 2001), der zweite Unterordner den Tag des Jahres (z.B. 049 für den 49. Tag). In diesem Ordner liegen dann die Dateien, die ähnlich wie diese Datei benannt sind: `GMOD09Q1.A2010001.08d.latlon.x00y02.6v1.NDVI.tif`
 
 Dabei bedeuten laut der Readme-Datei die einzelnen Teile des Dateinamen folgendes:
+
 
     Qualifier           Value       Description
     ---------           -----       -----------
@@ -53,9 +54,10 @@ Dabei bedeuten laut der Readme-Datei die einzelnen Teile des Dateinamen folgende
     Composite period    08d         8-day composite
     Projection          latlon      Lat/Lon grid
     9x9 Tile index      x00y02      Column 00, Row 02
-    Versions            5v3         MODAPS collection 5, GIMMS version 3
+    Versions            6v1         MODAPS collection 6, GIMMS version 1
     Layer name          NDVI        Normalized Vegetation Index
     File format         tif         Tagged Image File
+
 
 Wir wollen z.B. die Daten von zwei Jahren herunterladen. Deshalb definieren wir zuersteinmal von welchen Jahren:
 ```{r Jahre definieren}
@@ -119,9 +121,9 @@ Und starten dann die Schleife:
 for(year in Years){
 	for(day in Days){
 		try({
-			file <- paste0(baseurl, year, "/", day, "/GMOD09Q1.A", year, day, ".08d.latlon.x",x, "y", y, ".5v3.NDVI.tif.gz")
+			file <- paste0(baseurl, year, "/", day, "/GMOD09Q1.A", year, day, ".08d.latlon.x",x, "y", y, ".6v1.NDVI.tif.gz")
 			cat("downloading", file, "\n")
-			
+
 			# Zip-Datei runterladen
 			download.file(file, file.path(folder, basename(file)), method="curl", quiet=T)
 			
@@ -168,6 +170,8 @@ timeline <- data.frame(
 )
 # Datum für jede Datei errechnen:
 timeline$date <- as.Date(paste0(timeline$year, "-01-01")) + days(timeline$doy - 1)
+
+timeline$date
 ```
 
 
@@ -238,7 +242,7 @@ plot(NDVI~date, timeline, col="green", type="b", lwd=2, pch=20)
 
 Auch in der Zeitreihe erkennt man, dass einige Daten fehlen.
 
-#### Ein kleiner Tipp zum Schluss:
+**Ein kleiner Tipp zum Schluss:**
 
 Um weitere Koordinaten abzufragen kann man z.B. mit folgender Methode von Grad, Minuten und Sekunden in Dezimalgrad umrechnen:
 ```{r Dezimalgrad}

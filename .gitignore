@@ -14,3 +14,4 @@ _source/*.md
 _source/*/
 *footnote-test*
 *tikzDictionary
+.DS_Store
