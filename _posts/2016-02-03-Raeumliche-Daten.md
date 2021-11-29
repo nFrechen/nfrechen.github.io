@@ -11,6 +11,7 @@ technique: <a href="http://r-project.org">R</a>, <a href="https://cran.r-project
 ---
 
 
+
 * auto-gen TOC:
 {:toc}
 
