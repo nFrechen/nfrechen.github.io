@@ -1,0 +1,133 @@
+---
+layout: post
+title: "Downloading DWD 1 Minute Data"
+excerpt: "Downloading precipitation data with 1 minute resolution from the DWD"
+category: tutorial
+language: English
+author: "Nanu Frechen"
+datasource: <a href="https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/1_minute">DWD opendata</a>
+technique: <a href="https://readr.tidyverse.org/">readr</a>, <a href="https://httr.r-lib.org/index.html">httr</a>, <a href="https://stringr.tidyverse.org/articles/stringr.html">stringr</a>
+---
+
+```{r settings, results='hide', echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+library(knitr)
+opts_chunk$set(message = F, error = F, warning = F, cache = T, autodep=T, dev="svg", fig.width=5.4, fig.height=7)
+```
+
+* auto-gen TOC:
+{:toc}
+
+
+The [DWD](https://www.dwd.de/EN/Home/home_node.html) (German weather Service) provides precipitation data with 1 minute resolution at the following [url](https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/1_minute/precipitation/historical/).
+
+To get information about the parameters in the dataset download the [meta data](https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/1_minute/precipitation/meta_data/). Inside this zip folder you will find a file called `Metadaten_Parameter_... .html` with the relevant information.
+
+In this tutorial we will use the following packages:
+```{r load packages, error=F, message=F, warning=F, results='hide'}
+library(dplyr) # for a tidy workflow
+library(rvest) # to scrape web page data
+library(readr) # to read csv files
+library(stringr) # for string conversions
+library(lubridate) # to do datetime tasks
+```
+
+
+To download the data we first set the base url:
+
+```{r}
+baseurl <- "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/1_minute/precipitation/historical/"
+```
+
+# get folder structure
+
+Files are stored in folders named after the year. To scrape the available years we use the [rvest package](https://rvest.tidyverse.org/):
+
+```{r scape year folders}
+years <- read_html(baseurl) %>%
+  html_elements("a") %>%
+  html_attr("href")
+```
+
+This queries all the `a` elements (links) of the page and extracts the `href` attribute.
+
+We get a vector with the follwing content:
+
+```{r}
+years
+```
+
+Since the first element is a link to the parent folder, we exclude it:
+
+```{r exclude link to parent folder}
+years <- years[-1]
+```
+
+To extract the month folders we use a similar approach. Let's explain it first without a loop:
+
+```{r extract month example}
+station <- "00880"
+year <- years[1]
+months <- read_html(paste0(baseurl, year)) %>%
+    html_elements("a") %>%
+    html_attr("href") %>%
+    str_subset(paste0("1minutenwerte_nieder_", station))
+```
+With `paste0(baseurl, year)` we add the year to the url. With `str_subset` we extract only those filenames that correspond to the station that we want to download.
+
+The station id can be taken from [this file](https://opendata.dwd.de/climate_environment/CDC/help/ein_min_rr_Beschreibung_Stationen.txt).
+
+# Downloading all data
+
+To start downloading data we first have to create a download folder:
+```{r create download folder}
+data_folder = "DWD_data_1minute"
+dir.create(data_folder)
+```
+
+
+With a nested loop we download the data for every month for every year.
+
+```{r download data, eval=F}
+for(year in years){
+  months <- read_html(paste0(baseurl, year)) %>%
+    html_elements("a") %>%
+    html_attr("href") %>%
+    str_subset(paste0("1minutenwerte_nieder_", station))
+  
+  for(month in months){
+    url <- paste0(baseurl, year, month)
+    download.file(url, destfile = file.path(data_folder, basename(url)))
+  }
+}
+```
+
+# read data
+
+To read the downloaded data we use the [readr package](https://readr.tidyverse.org/). The function [read_delim](https://readr.tidyverse.org/reference/read_delim.html) offers two functionalities that come in handy here:
+- read several files at once and combine the data into a data frame.
+- read directly from zip file without the need to extract the files first.
+
+```{r read files, eval=T}
+files <- list.files(data_folder, full.names = T)
+data <- read_delim(files, delim = ";", trim_ws = T, na = "-999", col_types = "dccddddd-") %>%
+  mutate(MESS_DATUM_BEGINN = as.POSIXct(MESS_DATUM_BEGINN, format="%Y%m%d%H%M")) %>%
+  mutate(MESS_DATUM_ENDE = as.POSIXct(MESS_DATUM_ENDE, format="%Y%m%d%H%M")) 
+```
+
+The options we use here are:
+- `delim`: set the delimiter to `;`
+- `na`: set the value `-999` to be `NA`
+- `trim_ws`: trim whitespace around the data values
+- `col_types`: define column types as double (`d`) or character (`c`)
+
+We use the character column type to read the datetime columns, since the date time column format (`T`) fails in this case. We use `as.POSIXct()` with a custom format string to convert the datetime columns without errors.
+
+# save data
+
+We can save the data with the following command:
+
+```{r save data}
+save(data, file = "DWD_1_minute_rainfall.RData")
+```
+
+This way we can load it directly into our next data analysis project.
