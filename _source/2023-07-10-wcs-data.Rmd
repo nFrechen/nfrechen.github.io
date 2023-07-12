@@ -1,0 +1,287 @@
+---
+title: "Web Coverage Service (wcs) data"
+author: "Nanu Frechen"
+excerpt: download dems and orthophotos with wcs
+category: tutorial
+language: English
+layout: post
+datasource: <a href="https://www.bezreg-koeln.nrw.de/geobasis-nrw/produkte-und-dienste" target="_blank">Geobasis NRW</a>, <a href="https://www.bezreg-koeln.nrw.de/geobasis-nrw/produkte-und-dienste/hoehenmodelle/digitale-gelaendemodelle/digitales-gelaendemodell"  target="_blank">dgm</a>, <a href="https://www.bezreg-koeln.nrw.de/geobasis-nrw/produkte-und-dienste/luftbild-und-satellitenbildinformationen/aktuelle-luftbild-und-0" target="_blank">dop</a>
+technique: <a href="https://www.ogc.org/standard/wcs/" target="_blank">wcs</a>, <a href = "https://r-spatial.github.io/sf/index.html" target="_blank">sf</a>, <a href="https://docs.ropensci.org/osmdata/" target="_blank">osmdata</a>, <a href="https://rspatial.org/raster/pkg/index.html" target="_blank">raster</a>, <a href="https://www.rayshader.com" target="_blank">rayshader</a>
+---
+
+* auto-gen TOC:
+{:toc}
+
+If you have worked with digital elevation models (dem), you probably downloaded big files and had to cut out your region of interest. Or you stitched together multiple files to get the desired coverage. With [Web Coverage Service (WCS)](https://www.ogc.org/standard/wcs/){:target="_blank"}  you can download raster files in exactly the extent and resolution you want to work with.
+
+We will show how to use the wcs service of the German state Nordrhein-Westfalen (NRW). If you can read German you can read more in the [manual about wcs](https://www.bezreg-koeln.nrw.de/system/files/media/document/file/geobasis_webdienste_anleitung_wcs.pdf){:target="_blank"}.
+
+We will be working with a [digtial elevation model (dem or dgm in German)](https://www.bezreg-koeln.nrw.de/geobasis-nrw/produkte-und-dienste/hoehenmodelle/digitale-gelaendemodelle/digitales-gelaendemodell){:target="_blank"}.
+We will also be using [digital ortho photos (dop)](https://www.bezreg-koeln.nrw.de/geobasis-nrw/produkte-und-dienste/luftbild-und-satellitenbildinformationen/aktuelle-luftbild-und-0){:target="_blank"}.
+
+```{r setup, echo=F,message = F, error = F, warning = F}
+knitr::opts_chunk$set(message = F, error = F, warning = F, cache=T)
+```
+
+
+```{r, eval=F, echo=F}
+library(ows4R)
+nw_dop <- "https://www.wcs.nrw.de/geobasis/wcs_nw_dop"
+wcs_client <- WCSClient$new(nw_dop, serviceVersion = "2.0.1")
+wcs_client$describeCoverage()
+wcs_client$getCapabilities()
+```
+
+# get a bounding box
+
+In order to download data we need a bounding box. We can use the the [osmdata package](https://docs.ropensci.org/osmdata/){:target="_blank"} to search for coordinates of a landmark (or region) with the `getbb()` function. We will be searching for the "Drachenfels", a famous mountaintop near the river Rhine.
+
+```{r get bbox}
+library(osmdata)
+library(units)
+library(sf)
+
+WGS_crs <- st_crs(4326)    # coordinate system of the bbox function
+UTM_crs <- st_crs(25832)   # coordinate system of the dem query
+
+# download bounding box as matrix
+Drachenfels <- getbb("Drachenfels", featuretype="landmark", format_out = "matrix", limit=1)
+
+Drachenfels_1km_UTM <- 
+  Drachenfels[,"min"] %>%               # use min point as "center point"
+  st_point() %>%                        # convert to point object
+  st_sfc() %>%                          # encapsulate in sfc (simple feature geometry) object
+  st_set_crs(WGS_crs) %>%               # give it a crs (coordinate reference system)
+  st_transform(UTM_crs) %>%             # convert to target crs
+  st_buffer(dist=set_units(1, km)) %>%  # add a buffer of 1km around it
+  st_bbox() %>%                         # calculate bounding box of buffered zone
+  round()       # round coordinates (important, since the data query doesn't work with floats)
+  
+```
+
+What we did here is get the coordinates with `getbb()` as a matrix of two points. Then we convert the min point to an `st_point` object and further convert it to an `sfc` object from the [sf package](https://r-spatial.github.io/sf/){:target="_blank"}. We then have to give it a crs (since the `getbb` function doesn't add this) with `st_set_crs`. The query we will use later requires an UTM coordinate system. So we transform to that crs with `st_transform`. We then add a buffer around this central coordinate with `st_buffer` and calculate the bounding box of that with `st_bbox`.
+
+# build the query url
+
+Now that we have a bounding box we can insert its coordinates into the data query url using the `str_glue()` function of the [stringr package](https://stringr.tidyverse.org){:target="_blank"}. `str_glue()` replaces everything inside curly braces.
+
+```{r build url}
+library(stringr)
+
+url <- str_glue("https://www.wcs.nrw.de/geobasis/wcs_nw_dgm?VERSION=2.0.1&SERVICE=wcs&REQUEST=GetCoverage&COVERAGEID=nw_dgm&FORMAT=image/tiff&SUBSET=x({Drachenfels_1km_UTM$xmin},{Drachenfels_1km_UTM$xmax})&SUBSET=y({Drachenfels_1km_UTM$ymin},{Drachenfels_1km_UTM$ymax})&SCALEFACTOR=1&SUBSETTINGCRS=EPSG:25832")
+```
+
+The resulting url is the following: [`r url`](`r url`){:target="_blank"}. You can also use it in the browser to download the file.
+
+The wcs url consist of the following parts:
+- The base url: `https://www.wcs.nrw.de/geobasis/wcs_nw_dgm` 
+- a `?` followed by all the options (devided by `&`)
+- `VERSION=2.0.1` defines the version of the protocol
+- `SERVICE=wcs` defines that we want to use the wcs service
+- `REQUEST=GetCoverage` is the request to get data. Other requests are for example `GetCapabilities` or `DescribeCoverage`
+- `COVERAGEID=nw_dgm` defines the dataset we want to download
+- `FORMAT=image/tiff` defines the output format
+- `SUBSET=x(372511,374511)` and `SUBSET=y(5613116,5615116)` define the bounding box from which we want to get data
+- `SUBSETTINGCRS=EPSG:25832` defines the coordinate system of the subset bounding box coordinates. Some services support multiple coordinate systems. Others work only with one specific.
+- `SCALEFACTOR=1` can be used to scale down data before the download. Use `SCALEFACTOR=0.1` for 10x aggregation for example.
+
+Further options not used here are:
+- `OUTPUTCRS=EPSG:25832` defines the output crs. For supported crs see the `GetCapabilities` request below.
+- `INTERPOLATION=nearest` defines the interpolation method for scaled downloads. This can also be `bilinear` or `average` or other values documentend in GetCapabilities.
+- `RANGESUBSET=band1,band2` defines the bands to download (relevant for the orthophotos).
+
+More options are described in the [official manual](https://www.bezreg-koeln.nrw.de/system/files/media/document/file/geobasis_webdienste_anleitung_wcs.pdf#page=8){:target="_blank"} on page 8.
+
+# download and read raster data
+
+We can now download the data and read it with the [raster package](https://rspatial.org/raster/pkg/index.html){:target="_blank"}
+
+```{r download dem}
+library(raster)
+
+dem <- raster(url)
+
+names(dem) <- "elevation"
+```
+
+With `names(dem)` we give the layer a sensible name.
+
+```{r plot dem, fig.height=4.5, fig.width=5}
+plot(dem)
+```
+
+
+
+# GetCapabilities
+
+To get more information about the data service we can use the `GetCapabilities` request. This returns a XML file that we can read like this:
+
+
+
+```{r get capabilities}
+library(xml2)
+capabilities <- read_xml("https://www.wcs.nrw.de/geobasis/wcs_nw_dgm?VERSION=2.0.1&SERVICE=WCS&REQUEST=GetCapabilities") 
+```
+
+
+
+We can use the [htmltidy package](https://gitlab.com/hrbrmstr/htmltidy){:target="_blank"} to browse through the xml file:
+
+```{r show capabilities XML, results='hide', eval=F}
+#remotes::install_git("https://git.rud.is/hrbrmstr/htmltidy.git")
+library(htmltidy)
+xml_view(capabilities)
+```
+
+<style>
+pre.highlight{
+  max-height: 400px;
+}
+</style>
+
+```xml
+`r paste(readLines("https://www.wcs.nrw.de/geobasis/wcs_nw_dgm?VERSION=2.0.1&SERVICE=WCS&REQUEST=GetCapabilities"), collapse = "\n")`
+```
+
+
+
+
+
+We can for example extract a list of all the supported crs from the xml file:
+
+```{r list crsSupported}
+capabilities %>%
+  xml_find_all(".//crs:crsSupported") %>%
+  xml_text %>% cat(sep = "\n")
+```
+
+Or the supported interpolation methods:
+
+```{r list InterpolationSupported}
+capabilities %>%
+  xml_find_all(".//int:InterpolationSupported") %>%
+  xml_text %>% cat(sep = "\n")
+```
+
+Or the output formats supported:
+
+```{r list formatSupported}
+capabilities %>%
+  xml_find_all(".//wcs:formatSupported") %>%
+  xml_text %>%cat(sep = "\n")
+```
+But note: The documentation states that only tiff files are geo referenced.
+
+Finally we can get the coverage ID that we need to set in the query:
+
+```{r show CoverageId}
+capabilities %>%
+  xml_find_all(".//wcs:CoverageId") %>%
+  xml_text %>% cat(sep = "\n")
+```
+
+
+# download digital orthophotos (dop)
+
+Since Orthophotos are multichannel files (for red, green, blue and infrared) we have to use the `stack()` function instead of `raster()` to read them. The query is similar to the dem. We add `RANGESUBSET=1,2,3` to the query to omit the infrared band (band 4). This saves some download size.
+
+```{r download dop}
+dop <- stack(str_glue("https://www.wcs.nrw.de/geobasis/wcs_nw_dop?VERSION=2.0.1&SERVICE=wcs&REQUEST=GetCoverage&COVERAGEID=nw_dop&FORMAT=image/tiff&SUBSET=x({Drachenfels_1km_UTM$xmin},{Drachenfels_1km_UTM$xmax})&SUBSET=y({Drachenfels_1km_UTM$ymin},{Drachenfels_1km_UTM$ymax})&SCALEFACTOR=0.1&RANGESUBSET=1,2,3"))
+
+names(dop) <- c("r","g","b")
+```
+
+Since the dop has 10 times the resolution of the dem we set `SCALEFACTOR=0.1`. This way we get a raster with the same pixel size as the dem.
+
+Similar to the dem we add names to the layers (red, green and blue).
+
+If we look into GetCapabilities of the dop service we can see that this one only supports one crs:
+
+```{r}
+dop_capabilities <- read_xml("https://www.wcs.nrw.de/geobasis/wcs_nw_dop?VERSION=2.0.1&SERVICE=WCS&REQUEST=GetCapabilities") 
+
+dop_capabilities %>%
+  xml_find_all(".//crs:crsSupported") %>%
+  xml_text %>% cat(sep = "\n")
+```
+
+
+# plot 3d graphic with orthophoto as texture
+
+The [rayshader package](https://www.rayshader.com){:target="_blank"} is a wonderful package to create a 3d plot from a dem. You have to install it from github via `devtools::install_github("tylermorganwall/rayshader")` since it is not yet on CRAN.
+
+```{r load rayshader library, cache=F}
+library(rayshader)
+```
+
+In order to plot the dem with the orthophotos as texture we have to do some conversion as described in [this tutorial](https://www.tylermw.com/a-step-by-step-guide-to-making-3d-maps-with-satellite-imagery-in-r/){:target="_blank"}:
+  
+```{r convert rgb_array}
+dop_r_matrix = raster_to_matrix(dop$r)
+dop_g_matrix = raster_to_matrix(dop$g)
+dop_b_matrix = raster_to_matrix(dop$b)
+dem_matrix = raster_to_matrix(dem)
+
+siebeng_rgb_array = array(0,dim=c(nrow(dop_r_matrix),ncol(dop_r_matrix),3))
+
+siebeng_rgb_array[,,1] = dop_r_matrix/255 #Red layer
+siebeng_rgb_array[,,2] = dop_g_matrix/255 #Blue layer
+siebeng_rgb_array[,,3] = dop_b_matrix/255 #Green layer
+
+siebeng_rgb_array = aperm(siebeng_rgb_array, c(2,1,3)) # rotate image to correct orientation
+```
+Now we can create an interactive rotatable 3d-plot with the `plot_3d` function:
+
+```{r render 3d scene, cache=F}
+plot_3d(siebeng_rgb_array, dem_matrix, zscale = 1, theta = -45, phi=15, fov = 50, triangulate=T, max_error=1, windowsize=c(1400, 800), zoom=0.5)
+```
+
+```{r snapshot 3d scene, echo=F, cache=T, fig.width=10, fig.height=5}
+render_snapshot()
+```
+
+To better the performance you can set `triangulate=T` and `max_error` to a higher number. This way the graphic will consist of fewer triangles and hence will be faster to render. But be aware that you loose some details with really high values of `max_error`:
+
+```{r render 3d scene lower resolution, cache=T}
+plot_3d(siebeng_rgb_array, dem_matrix, zscale = 1, theta = -45, phi=15, fov = 50, zoom=.5,windowsize=c(1400, 800), triangulate=T, max_error=100)
+```
+
+```{r snapshot 3d scene lower resolution, echo=F, cache=T, fig.width=10, fig.height=5}
+render_snapshot()
+```
+
+We can also render a movie:
+
+```{r render movie, results='hide', cache=T}
+plot_3d(siebeng_rgb_array, dem_matrix, zscale = 1, theta = 45, phi=30, fov = 50, triangulate=T, max_error=1, windowsize=c(1400, 800), zoom=0.5)
+render_movie(filename = "../figure/source/2023-07-10-wcs-data/Drachenfels_orbit.gif", phi=20, zoom = 0.5, width=1400, height=1000)
+```
+
+![](../figure/source/2023-07-10-wcs-data/Drachenfels_orbit.gif)
+
+```{r, eval=F, echo=F}
+render_highquality(min_variance = 0, sample_method = "sobol_blue") 
+```
+
+
+```{r, eval=F, echo=F}
+dtk100 <- raster(str_glue("https://www.wcs.nrw.de/geobasis/wcs_nw_dtk100?VERSION=2.0.1&SERVICE=wcs&REQUEST=GetCoverage&COVERAGEID=nw_dtk100&FORMAT=image/png&SUBSET=x({Siebengebirge_UTM_bbox$xmin},{Siebengebirge_UTM_bbox$xmax})&SUBSET=y({Siebengebirge_UTM_bbox$ymin},{Siebengebirge_UTM_bbox$ymax})"))
+```
+
+```{r, eval=F, echo=F}
+url <- str_glue("https://www.wcs.nrw.de/geobasis/wcs_nw_dtk100?VERSION=2.0.1&SERVICE=WCS&REQUEST=GetCoverage&COVERAGEID=nw_dtk100_col&FORMAT=png&SUBSET=x({Siebengebirge_UTM_bbox$xmin},{Siebengebirge_UTM_bbox$xmax})&SUBSET=y({Siebengebirge_UTM_bbox$ymin},{Siebengebirge_UTM_bbox$ymax})")
+
+dtk <- raster(url)
+
+dtk_matrix <- raster_to_matrix(dtk) %>%
+  scales::rescale(to=c(0,1))
+
+tm_shape(dtk) +
+  tm_raster(n=10) +
+  tm_layout(legend.outside=T)
+```
+
+
+
+
+
