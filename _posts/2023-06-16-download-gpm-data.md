@@ -245,7 +245,7 @@ st_bbox(Brandenburg)
 ## 11.27 51.36 14.77 53.56
 {% endhighlight %}
 
-Plot with tmap in view mode:
+Plot with tmap:
 
 
 {% highlight r %}

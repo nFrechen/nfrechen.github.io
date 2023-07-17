@@ -224,7 +224,7 @@ st_bbox(nc4_opendapr)
 st_bbox(Brandenburg)
 ```
 
-Plot with tmap in view mode:
+Plot with tmap:
 
 ```{r plot opendapr file with tmap view mode, fig.height=7, fig.width=9}
 tm_shape(nc4_opendapr) +
