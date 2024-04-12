@@ -12,6 +12,7 @@ technique: lm
 * auto-gen TOC:
 {:toc}
 
+
 In this post I will demonstrate that a periodic signal can be fitted with a linear model using a sine and cosine transform on the input signal. 
 
 We will be using the following packages:
@@ -216,6 +217,8 @@ max_solar %>%
   geom_line(aes(y=max_solar_sin_model_prediction), col="green", lwd=1.5) +
   geom_point(size=.1, col="black") 
 ```
+
+Note that there are wavy patterns in the scatterplot that probably derive from the measuerement procedure. We will not deal with that.
 
 If we plot the residuals we can clearly see that they contain an additional frequency of two times the yearly cycle.
 

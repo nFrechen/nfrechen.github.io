@@ -12,6 +12,7 @@ technique: lm
 * auto-gen TOC:
 {:toc}
 
+
 In this post I will demonstrate that a periodic signal can be fitted with a linear model using a sine and cosine transform on the input signal. 
 
 We will be using the following packages:
@@ -85,7 +86,7 @@ temp_data %>%
   geom_line(aes(y=sin_model_prediction), col="red", linewidth=1.5)
 {% endhighlight %}
 
-![plot of chunk temp sin model with data](/figure/source/2024-04-11-fit-sin_model/temp sin model with data-1.png)
+![plot of chunk temp sin model with data](/figure/source/2024-04-11-fit-sine_model/temp sin model with data-1.png)
 
 You can see that we have a pretty good fit. Let's look at the residuals to verify that:
 
@@ -99,7 +100,7 @@ temp_data %>%
   geom_smooth() 
 {% endhighlight %}
 
-![plot of chunk residuals of temp sin model](/figure/source/2024-04-11-fit-sin_model/residuals of temp sin model-1.png)
+![plot of chunk residuals of temp sin model](/figure/source/2024-04-11-fit-sine_model/residuals of temp sin model-1.png)
 
 I added a `geom_smooth()` to the plot which fits a loess function to the data. This helps to identify remaining variation in the mean of the residuals. You can see a slight wobble in the loess which indicates that there is a weak second frequency in the data. But I consider it too weak to take into account.
 
@@ -150,7 +151,7 @@ temp_data %>%
   geom_vline(xintercept = phase_angle-365/2, col="orange", linetype=2)
 {% endhighlight %}
 
-![plot of chunk show pahse shift on data plot](/figure/source/2024-04-11-fit-sin_model/show pahse shift on data plot-1.png)
+![plot of chunk show pahse shift on data plot](/figure/source/2024-04-11-fit-sine_model/show pahse shift on data plot-1.png)
 The orange line shows the minimum of the sine curve.
 
 # fit sin models with additional subfrequencies
@@ -213,7 +214,9 @@ max_solar %>%
   geom_point(size=.1, col="black") 
 {% endhighlight %}
 
-![plot of chunk max solar sin model plot with data](/figure/source/2024-04-11-fit-sin_model/max solar sin model plot with data-1.png)
+![plot of chunk max solar sin model plot with data](/figure/source/2024-04-11-fit-sine_model/max solar sin model plot with data-1.png)
+
+Note that there are wavy patterns in the scatterplot that probably derive from the measuerement procedure. We will not deal with that.
 
 If we plot the residuals we can clearly see that they contain an additional frequency of two times the yearly cycle.
 
@@ -225,7 +228,7 @@ max_solar %>%
   geom_point()
 {% endhighlight %}
 
-![plot of chunk max solar sin model residuals](/figure/source/2024-04-11-fit-sin_model/max solar sin model residuals-1.png)
+![plot of chunk max solar sin model residuals](/figure/source/2024-04-11-fit-sine_model/max solar sin model residuals-1.png)
 
 
 To improve the fitting we can introduce additional subfrequencies into the model:
@@ -329,7 +332,7 @@ max_solar %>%
   geom_point(aes(y=mean_solar), size=.1, col="red")
 {% endhighlight %}
 
-![plot of chunk max solar sin3 fit](/figure/source/2024-04-11-fit-sin_model/max solar sin3 fit-1.png)
+![plot of chunk max solar sin3 fit](/figure/source/2024-04-11-fit-sine_model/max solar sin3 fit-1.png)
 
 Red dots and the orange curve are the mean radiation data. We can see that both models fit the data quite good.
 
@@ -345,7 +348,7 @@ max_solar %>%
   geom_smooth()
 {% endhighlight %}
 
-![plot of chunk max solar sin3 model residuals](/figure/source/2024-04-11-fit-sin_model/max solar sin3 model residuals-1.png)
+![plot of chunk max solar sin3 model residuals](/figure/source/2024-04-11-fit-sine_model/max solar sin3 model residuals-1.png)
 
 
 By checking the overlayed loess function we see that there is no significant residual frequency in the residuals. The same is true if the plot the residuals of the mean model.
@@ -374,7 +377,7 @@ temp_data %>%
   ) 
 {% endhighlight %}
 
-![plot of chunk combined plot with radiation and temperature curves](/figure/source/2024-04-11-fit-sin_model/combined plot with radiation and temperature curves-1.png)
+![plot of chunk combined plot with radiation and temperature curves](/figure/source/2024-04-11-fit-sine_model/combined plot with radiation and temperature curves-1.png)
 
 We can see that the maximum of the mean radiation fitting is a bit later than the maximum radiation. The maximum temperature is a good 36 days behind the maximum of radiation. This is only logical since radiation is the driver of the atmospheric warming and the whole landmass/water body/atmosphere system has some heat capacity to buffer the heating process.
 
@@ -409,7 +412,7 @@ year_prediction %>%
   geom_label(aes(label=month.abb[first_of_month]), col="black")
 {% endhighlight %}
 
-![plot of chunk cycle plot solar max](/figure/source/2024-04-11-fit-sin_model/cycle plot solar max-1.png)
+![plot of chunk cycle plot solar max](/figure/source/2024-04-11-fit-sine_model/cycle plot solar max-1.png)
 
 The plot shows the hysteresis between solar radiation and air temperature. Higher radiation is not directly translated into higher air temperature. There is a lag between the signals. We see that the cooling off phase in autumn is more direct as the warming in spring. The curve is more straight from August to December and takes a bit of a detour between January and July. 
 
@@ -426,7 +429,7 @@ year_prediction %>%
   geom_label(aes(label=month.abb[first_of_month]), col="black")
 {% endhighlight %}
 
-![plot of chunk cycle plot solar mean](/figure/source/2024-04-11-fit-sin_model/cycle plot solar mean-1.png)
+![plot of chunk cycle plot solar mean](/figure/source/2024-04-11-fit-sine_model/cycle plot solar mean-1.png)
 
 Here we see more of a detour between August and December. 
 
