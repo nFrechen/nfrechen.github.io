@@ -104,7 +104,7 @@ temp_data %>%
 
 I added a `geom_smooth()` to the plot which fits a loess function to the data. This helps to identify remaining variation in the mean of the residuals. You can see a slight wobble in the loess which indicates that there is a weak second frequency in the data. But I consider it too weak to take into account.
 
-For now we will ignore that the distribution around the mean is not contant. There are other methods of finding residual oszillations in the data like the ACF function. We will not deal with that here.
+For now we will ignore that the distribution around the mean is not constant. There are other methods of finding residual oscillations in the data like the ACF function. We will not deal with that here.
 
 # calculate phase shift
 
@@ -118,7 +118,7 @@ On the right side we have the factors $$B$$ and $$C$$ which correspond to $$A$$ 
 
 $$A = \sqrt{B^2+C^2}$$
 
-$$\varphi$$ is related in the following way:
+$$\varphi$$ is related as follows:
 
 $$\varphi=atan\left(\frac{B}{C}\right)$$
 
@@ -154,11 +154,11 @@ temp_data %>%
 ![plot of chunk show pahse shift on data plot](/figure/source/2024-04-11-fit-sine_model/show pahse shift on data plot-1.png)
 The orange line shows the minimum of the sine curve.
 
-# fit sin models with additional subfrequencies
+# fit sine models with additional subfrequencies
 
 Not every signal can be described by a single sine wave. We can easily add additional subfrequencies to the linear model.
 
-To demonstrate this we use radiation data from the same station. This can be downloaded as followed:
+To demonstrate this we use solar radiation data from the same station. This can be downloaded as followed:
 
 
 {% highlight r %}
@@ -189,7 +189,7 @@ max_solar <- solar_data %>%
   na.omit
 {% endhighlight %}
 
-We use here syntax of the [dplyr package](https://dplyr.tidyverse.org/). We use `group_by()` to group the data by yday and then use the `summarise()` function to calculate the mean and max of the radiation data. Finally we get rid of observations with missing data using the `na.omit` function.
+The syntax is from the [dplyr package](https://dplyr.tidyverse.org/). We use `group_by()` to group the data by yday and then use the `summarise()` function to calculate the mean and max of the radiation data. Finally we get rid of observations with missing data using the `na.omit` function.
 
 To fit a sine model to the data we use the same syntax as for the temperature model:
 
