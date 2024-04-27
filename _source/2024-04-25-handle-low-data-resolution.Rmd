@@ -1,0 +1,307 @@
+---
+layout: post
+title: "Handle low data resolution"
+excerpt: "Find resolution changes in the data set"
+category: tutorial
+language: English
+author: "Nanu Frechen"
+datasource: <a href="https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/1_minute">DWD</a>
+technique: unique, histogram, density, scatterplot
+---
+  
+* auto-gen TOC:
+{:toc}
+
+It is not uncommon for datasets to contain a change in resolution when measurement devices are upgraded. If you want handle data with finer and coarser resolution differently you migth want to find the exact time of the devices upgrade. This is what I will be showing in this post. 
+
+We will be using the following packages:
+
+```{r setup, echo=T, message = F, error = F, warning = F}
+library(readr)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+```
+
+```{r ggplot theme, echo=F, include=F, cache=F}
+library(knitr)
+opts_chunk$set(message = F, error = F, warning = F, cache = T, autodep=T, dev="png", fig.width=9, fig.height=6, dev.args=list(bg="transparent"), dpi=300)
+
+theme_set(theme_linedraw() +
+            theme(
+              panel.grid.major = element_line(size=0.2, color="gray80"),
+              panel.grid.minor= element_line(size=0.1, color="gray80"),
+              text = element_text(size=14, family = "Open Sans"),
+              plot.title = element_text(hjust = 0.5, size=14),
+              plot.subtitle = element_text(hjust=0.5, size=12),
+              plot.caption = element_text(size=8),
+              plot.margin = unit(c(4,5.5,5.5,5.5), "pt"),
+              strip.background = element_blank(),
+              strip.text = element_text(colour = "black"),
+              panel.background = element_rect(fill = "transparent"), # bg of the panel
+              plot.background = element_rect(fill = "transparent", color = NA), 
+              legend.background = element_rect(fill="transparent", color=NA),
+              legend.key = element_rect(fill="transparent", color=NA),
+              legend.title = element_text(size=12),
+              legend.text = element_text(size=12),
+              legend.position="right",
+              legend.direction="vertical",
+              # axis.title.y=element_text(angle=90, vjust=15)
+            )
+)
+
+scale_x_month <- function(breaks, labels, ...){
+  scale_x_continuous(breaks=c(yday(as.Date("2020-01-01")+months(0:11)), 365), labels=month.abb[c(1:12,1)], ...)
+}
+```
+
+# example 1: wind data 
+ 
+Download wind data:
+
+```{r load wind data}
+data_dir = "data/dwd/Cottbus"
+dir.create(data_dir)
+url <- "https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/hourly/wind/historical/stundenwerte_FF_00880_19830101_20231231_hist.zip"
+destfile = file.path(data_dir, basename(url))
+if(!file.exists(destfile)){
+  download.file(url, destfile)
+  unzip(destfile, exdir = data_dir)
+}
+```
+
+Read wind data:
+
+```{r read wind data}
+wind_data <- read_delim("data/dwd/Cottbus/produkt_ff_stunde_19830101_20231231_00880.txt", delim = ";", na = "-999", trim_ws = T) %>%
+  mutate(MESS_DATUM = as.POSIXct(as.character(MESS_DATUM), format="%Y%m%d%H")) %>%
+  mutate(yday = yday(MESS_DATUM)) %>%
+  rename(speed=F, direction=D) %>%
+  mutate(direction = if_else(direction> 360, NA, direction)) %>%
+  na.omit()
+```
+To find the min resolution we use a combination of `unique`, `diff` and `min`:
+
+```{r wind min resolution}
+wind_min_resolution <- wind_data$speed %>% unique %>% sort %>% diff %>% min
+```
+
+```{r show wind min resolution}
+wind_min_resolution
+```
+
+With the min resolution as bin width we can plot a histogram of the wind speed data:
+
+```{r histogram of wind data, fig.height=4}
+wind_data %>%
+  ggplot() +
+  aes(x=speed) +
+  geom_histogram(binwidth=wind_min_resolution)
+```
+From the spikes in the histogram we see that the dataset contains data with coarser resolution. This might invalidate statitistics we want to derive from the dataset. Hence it is important to handle the coarser and finer data differently.
+
+A scatterplot can show us when the switch to finer resolution took place:
+
+```{r scatterplot of wind data}
+wind_data %>%
+  ggplot() +
+  aes(x=MESS_DATUM, y=speed) +
+  geom_point(size=0.1)
+```
+
+To find the exact timing of the switch we query for the first date with non-integer values:
+
+```{r wind: find first with new resolution}
+first_with_new_resolution <- wind_data$MESS_DATUM[!(wind_data$speed %in% 0:20)] %>%
+  first()
+```
+
+To confirm the date we use it to color the scatterplot:
+
+```{r wind: plot fine and coarse resolution}
+wind_data %>%
+  mutate(fine_resolution = MESS_DATUM > first_with_new_resolution) %>%
+  ggplot() +
+  aes(x=MESS_DATUM, y=speed, col=fine_resolution) +
+  geom_point(size=0.1)
+```
+
+Here a zoomed in view:
+
+```{r wind: plot fine and coarse resolution zoomed in}
+wind_data %>%
+  filter(MESS_DATUM > first_with_new_resolution - months(1) & MESS_DATUM < first_with_new_resolution + months(1)) %>%
+  mutate(fine_resolution = MESS_DATUM > first_with_new_resolution) %>%
+  ggplot() +
+  aes(x=MESS_DATUM, y=speed, col=fine_resolution) +
+  geom_point(size=0.5)
+```
+
+Using that date we can devide the histogram plot into an early and late dataset:
+
+```{r histogram wind data devidec}
+wind_data %>%
+  mutate(fine_resolution = MESS_DATUM > first_with_new_resolution) %>%
+  ggplot() +
+  aes(x=speed) +
+  geom_histogram(binwidth=wind_min_resolution) +
+  facet_grid(fine_resolution~.)
+```
+
+Plotting the histogram and density of both subsets (with binwidth/bandwith of 1 according tho the coarser data) we see that the distributions are different:
+
+```{r histogram and density wind data devided, fig.height=3}
+wind_data %>%
+  mutate(fine_resolution = MESS_DATUM > first_with_new_resolution) %>%
+  ggplot() +
+  aes(x=speed, y=after_stat(density), fill=fine_resolution) +
+  geom_histogram(binwidth = 1, alpha=0.3, position="identity") +
+  geom_density(aes(col=fine_resolution), linewidth=1, fill=NA, alpha=1, bw=1)
+```
+
+Another approach would be to define a function to find the min or median resolution:
+
+```{r find_resolution function, results='asis'}
+find_resolution <- function(x, type="min"){
+  diff = x %>% unique %>% sort %>% diff 
+  if(type=="min"){
+    return(diff %>% min(na.rm=T))
+  }
+  if(type=="median"){
+    return(diff %>% median(na.rm=T))
+  }
+  stop("set type to min or median")
+}
+```
+
+
+We can use that to find the resolution switch (by year): 
+
+```{r wind: find resolution switch by year, results='asis'}
+wind_data %>%
+  group_by(year = year(MESS_DATUM)) %>%
+  summarise(speed_resolution = find_resolution(speed), direction_resolution = find_resolution(direction)) %>%
+  head(15) %>%
+  kable()
+```
+
+This approach is not suitable to find the exact date of the switch, since we need a lot of data for the median or min statistics. Using data from one day or one hour might not be enough.
+
+# example 2: radiation data
+
+Data can be downloaded and read similar to the wind data above. 
+
+```{r read radiation data, echo=F}
+solar_data <- read_delim("data/dwd/Görlitz/produkt_st_stunde_19451231_20240331_03987.txt", delim=";", na="-999", col_types = "ccnnnnnncc", trim_ws = T) %>%
+  mutate(MESS_DATUM = as.POSIXct(as.character(MESS_DATUM), format="%Y%m%d%H:%M")) %>%
+  mutate(MESS_DATUM_WOZ = as.POSIXct(MESS_DATUM_WOZ, format="%Y%m%d%H:%M", tz="UTC")) %>%
+  mutate(yday = yday(MESS_DATUM)) %>%
+  mutate(yday_rad = yday/365*2*pi)
+```
+
+Again we find the min resolution:
+
+```{r solar: find min resolution}
+solar_min_resolution <- solar_data$FG_LBERG %>% unique %>% sort %>% diff %>% min
+solar_min_resolution
+```
+
+And plot a histogram.
+
+```{r solar: plot histogram, fig.height=4}
+solar_data  %>%
+  filter(FG_LBERG >0) %>%
+  ggplot() +
+  aes(x=FG_LBERG) +
+  geom_histogram(binwidth = solar_min_resolution)
+```
+
+The histogram shows that the dataset contains data in multiple different resolutions.
+
+To find the resolution changes we again plot a scatterplot:
+
+```{r solar: scatterplot}
+solar_data %>%
+  ggplot() +
+  aes(x=MESS_DATUM, y=FG_LBERG) +
+  scale_y_continuous(limits = c(0,50)) +
+  geom_point(size=0.1)
+```
+Here we see that there are multiple earlier phases with coarser resolution. The resolution seems to be around 4, but there seems to be 3 phases with different alignment. Also there seem to be data with finer resolution between 0 and 4.
+
+To find the date of the change to resolution 1 we select from the graph some values that are only in the later finer resolution data and not in the coarser resolution data: values 5, 6 or 7:
+
+```{r solar: find resolution switch}
+resolution_switch <- solar_data %>%
+  filter(!is.na(FG_LBERG)) %>%
+  filter(FG_LBERG %in% c(5,6,7)) %>%
+  {  first(.$MESS_DATUM) }
+```
+
+This gives us the start of the finer resolution measurements on January first of 1980:
+
+```{r print resolution switch}
+resolution_switch
+```
+
+
+Again we can confirm that by coloring the scatterplot:
+
+```{r solar: color scatterplot}
+solar_data %>%
+  mutate(new_resolution = MESS_DATUM >= "1980-01-01 15:11:00") %>%
+  ggplot() +
+  aes(x=MESS_DATUM, y=FG_LBERG, col=new_resolution) +
+  scale_y_continuous(limits = c(0,50)) +
+  geom_point(size=0.1)
+```
+
+And look into the zoomed in plot:
+
+```{r solar: zoomed colored scatterplot, fig.height=4}
+solar_data %>%
+  filter(MESS_DATUM >= resolution_switch-months(1) & MESS_DATUM < resolution_switch+months(1)) %>%
+  mutate(new_resolution = MESS_DATUM >= resolution_switch) %>%
+  ggplot() +
+  aes(x=MESS_DATUM, y=FG_LBERG, col=new_resolution) +
+  scale_y_continuous(limits = c(0,50)) +
+  geom_point(size=0.5)
+```
+
+Again we can use the found date to devide our histogram plot:
+
+```{r solar: devided histogram}
+solar_data  %>%
+  mutate(period = MESS_DATUM >= resolution_switch) %>%
+  filter(FG_LBERG >0) %>%
+  ggplot() +
+  aes(x=FG_LBERG) +
+  geom_histogram(binwidth = 1) +
+  facet_grid(period~.)
+```
+
+Again we can use the second approach to find the median resolution with our function:
+
+```{r solar: median resolution by month, fig.height=2}
+solar_data %>%
+  group_by(month = floor_date(MESS_DATUM, "month")) %>%
+  summarise(resolution = find_resolution(FG_LBERG, type="median")) %>%
+  ggplot() +
+  aes(x=month, y=resolution) +
+  geom_line()
+```
+
+
+
+But this approach is rather unclear if we switch to weekly statistics. There is not enough data in a week to give a consistant median resolution:
+
+```{r solar: median resolution by week, fig.height=2}
+solar_data %>%
+  group_by(month = floor_date(MESS_DATUM, "week")) %>%
+  summarise(resolution = find_resolution(FG_LBERG, type="median")) %>%
+  ggplot() +
+  aes(x=month, y=resolution) +
+  geom_line()
+```
+
+
