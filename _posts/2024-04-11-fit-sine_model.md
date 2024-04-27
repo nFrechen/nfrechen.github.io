@@ -5,7 +5,7 @@ excerpt: "Use a linear model with sine and cosine input"
 category: tutorial
 language: English
 author: "Nanu Frechen"
-datasource: <a href="https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/1_minute">DWD</a>
+datasource: <a href="https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/hourly">DWD</a>
 technique: lm
 ---
 
@@ -87,6 +87,13 @@ temp_data %>%
 {% endhighlight %}
 
 ![plot of chunk temp sin model with data](/figure/source/2024-04-11-fit-sine_model/temp sin model with data-1.png)
+
+
+
+
+
+
+
 
 You can see that we have a pretty good fit. Let's look at the residuals to verify that:
 
@@ -175,15 +182,20 @@ We read the data the same way as the temperature data:
 {% highlight r %}
 solar_data <- read_delim("data/dwd/Görlitz/produkt_st_stunde_19451231_20240331_03987.txt", delim=";", na="-999", col_types = "ccnnnnnncc", trim_ws = T) %>%
   mutate(MESS_DATUM = as.POSIXct(as.character(MESS_DATUM), format="%Y%m%d%H:%M")) %>%
+  mutate(MESS_DATUM_WOZ = as.POSIXct(as.character(MESS_DATUM_WOZ), format="%Y%m%d%H:%M")) %>%
   mutate(yday = yday(MESS_DATUM)) %>%
-  mutate(yday_rad = yday/365*2*pi)
+  mutate(yday_rad = yday/365*2*pi) %>%
+  mutate(hour = hour(MESS_DATUM_WOZ)) %>%
+  filter(hour == 12)
 {% endhighlight %}
+
+We filter data at solar noon (MESS_DATUM_WOZ == 12). WOZ is the real local time (Wahre Ortszeit in German).
 
 We extract the max and mean for every day of the yearly cycle for all years in the data set:
 
 
 {% highlight r %}
-max_solar <- solar_data %>%
+max_solar <- solar_data  %>%
   group_by(yday, yday_rad) %>%
   summarise(max_solar = max(FG_LBERG, na.rm=T), mean_solar = mean(FG_LBERG, na.rm=T)) %>%
   na.omit
@@ -209,12 +221,13 @@ max_solar %>%
   ggplot() +
   aes(x=yday, y=max_solar) +
   scale_color_viridis_c() +
-  geom_point(size=.01, alpha=0.05, aes(x=yday, y=FG_LBERG), data=solar_data) +
+  geom_point(size=.01, alpha=0.1, aes(x=yday, y=FG_LBERG), data=solar_data) +
   geom_line(aes(y=max_solar_sin_model_prediction), col="green", lwd=1.5) +
   geom_point(size=.1, col="black") 
 {% endhighlight %}
 
 ![plot of chunk max solar sin model plot with data](/figure/source/2024-04-11-fit-sine_model/max solar sin model plot with data-1.png)
+
 
 Note that there are wavy patterns in the scatterplot that probably derive from the measuerement procedure. We will not deal with that.
 
@@ -325,7 +338,7 @@ max_solar %>%
   ggplot() +
   aes(x=yday, y=max_solar) +
   scale_color_viridis_c() +
-  geom_point(size=.01, alpha=0.03, aes(x=yday, y=FG_LBERG), data=solar_data) +
+  geom_point(size=.01, alpha=0.1, aes(x=yday, y=FG_LBERG), data=solar_data) +
   geom_line(aes(y=max_solar_sin3_model_prediction), col="green", lwd=1.5) +
   geom_point(size=.1, col="black") +
   geom_line(aes(y=mean_solar_sin3_model_prediction), col="orange", lwd=1.5) +
@@ -335,6 +348,8 @@ max_solar %>%
 ![plot of chunk max solar sin3 fit](/figure/source/2024-04-11-fit-sine_model/max solar sin3 fit-1.png)
 
 Red dots and the orange curve are the mean radiation data. We can see that both models fit the data quite good.
+
+
 
 Again let's look at the residuals:
 
@@ -416,7 +431,8 @@ year_prediction %>%
 
 The plot shows the hysteresis between solar radiation and air temperature. Higher radiation is not directly translated into higher air temperature. There is a lag between the signals. We see that the cooling off phase in autumn is more direct as the warming in spring. The curve is more straight from August to December and takes a bit of a detour between January and July. 
 
-If we plot the same for the mean radiation and temperature it looks a bit different:
+
+Here we have the same picture for the mean radiation:
 
 
 {% highlight r %}
@@ -431,6 +447,5 @@ year_prediction %>%
 
 ![plot of chunk cycle plot solar mean](/figure/source/2024-04-11-fit-sine_model/cycle plot solar mean-1.png)
 
-Here we see more of a detour between August and December. 
 
 Note that in this type of plot a perfect 90 degree phase shift between the two signals would create a perfect circle. A total sync of the phase would create a line (100% correlation between the signals). Every phase shift in between creates an oval. Since one of our signals is combined from 3 different frequencies the oval get's flattened on one side.
